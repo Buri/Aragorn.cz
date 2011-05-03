@@ -1,3 +1,0 @@
-{$title='Neplatné přihlášení'}
-{block content}
-Zadali jste neplatné uživatelské jméno nebo heslo.

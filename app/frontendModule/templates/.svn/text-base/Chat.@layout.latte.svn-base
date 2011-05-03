@@ -1,4 +1,0 @@
-{extends '../../templates/@layout.latte'}
-{$title='Chat'}
-{block content}
-{include #innercontent}
