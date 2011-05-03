@@ -1,5 +1,5 @@
 require.paths.push('/var/node/lib/');
-require('./lib/mootools.js');
+require('./node_modules/mootools.js');
 
 /* Main WS server@8000 */
 var http = require('http'),
