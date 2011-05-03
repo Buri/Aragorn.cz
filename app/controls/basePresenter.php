@@ -21,7 +21,6 @@ class BasePresenter extends NPresenter{
     public function createComponentLogInForm(){
         $form = new NAppForm;
         $form->getElementPrototype()->class = "logInForm";
-        $form->setAction($this->link("login:"));
         $form->addText("username", "Nick:");
         $form->addPassword("password", "Heslo:");
         $form->addSubmit("login", "Přihlásit");

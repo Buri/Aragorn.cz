@@ -1,9 +1,9 @@
-<?php //netteCache[01]000325a:2:{s:4:"time";s:21:"0.49113200 1304422784";s:9:"callbacks";a:2:{i:0;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:9:"checkFile";}i:1;s:36:"/var/www/app/templates/@layout.latte";i:2;i:1304422097;}i:1;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:10:"checkConst";}i:1;s:20:"NFramework::REVISION";i:2;s:30:"bb2b723 released on 2011-02-06";}}}?><?php
+<?php //netteCache[01]000325a:2:{s:4:"time";s:21:"0.67186800 1304449785";s:9:"callbacks";a:2:{i:0;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:9:"checkFile";}i:1;s:36:"/var/www/app/templates/@layout.latte";i:2;i:1304422097;}i:1;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:10:"checkConst";}i:1;s:20:"NFramework::REVISION";i:2;s:30:"539fdec released on 2011-04-13";}}}?><?php
 
 // source file: /var/www/app/templates/@layout.latte
 
 ?><?php
-$_l = NLatteMacros::initRuntime($template, NULL, 's2lhwdr3k5'); unset($_extends);
+$_l = NLatteMacros::initRuntime($template, NULL, 'ciud5dr3yt'); unset($_extends);
 
 if (isset($presenter, $control) && $presenter->isAjax() && $control->isControlInvalid()) {
 	return NLatteMacros::renderSnippets($control, $_l, get_defined_vars());
@@ -40,9 +40,9 @@ if (isset($presenter, $control) && $presenter->isAjax() && $control->isControlIn
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class=''>
-<?php NLatteMacros::includeTemplate('topmenu.latte', $template->getParams(), $_l->templates['s2lhwdr3k5'])->render() ?>
+<?php NLatteMacros::includeTemplate('topmenu.latte', $template->getParams(), $_l->templates['ciud5dr3yt'])->render() ?>
         <div class="holder">
-<?php NLatteMacros::includeTemplate('logo.latte', $template->getParams(), $_l->templates['s2lhwdr3k5'])->render() ?>
+<?php NLatteMacros::includeTemplate('logo.latte', $template->getParams(), $_l->templates['ciud5dr3yt'])->render() ?>
             <div class="sidebar">
             </div>
             <div class="content">

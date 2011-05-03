@@ -1,9 +1,9 @@
-<?php //netteCache[01]000325a:2:{s:4:"time";s:21:"0.51165900 1304422784";s:9:"callbacks";a:2:{i:0;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:9:"checkFile";}i:1;s:36:"/var/www/app/templates/topmenu.latte";i:2;i:1304422097;}i:1;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:10:"checkConst";}i:1;s:20:"NFramework::REVISION";i:2;s:30:"bb2b723 released on 2011-02-06";}}}?><?php
+<?php //netteCache[01]000325a:2:{s:4:"time";s:21:"0.70163100 1304449785";s:9:"callbacks";a:2:{i:0;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:9:"checkFile";}i:1;s:36:"/var/www/app/templates/topmenu.latte";i:2;i:1304422097;}i:1;a:3:{i:0;a:2:{i:0;s:6:"NCache";i:1;s:10:"checkConst";}i:1;s:20:"NFramework::REVISION";i:2;s:30:"539fdec released on 2011-04-13";}}}?><?php
 
 // source file: /var/www/app/templates/topmenu.latte
 
 ?><?php
-$_l = NLatteMacros::initRuntime($template, NULL, 's2wdeeblxf'); unset($_extends);
+$_l = NLatteMacros::initRuntime($template, NULL, 'rsoc1kdbfa'); unset($_extends);
 
 if (isset($presenter, $control) && $presenter->isAjax() && $control->isControlInvalid()) {
 	return NLatteMacros::renderSnippets($control, $_l, get_defined_vars());
