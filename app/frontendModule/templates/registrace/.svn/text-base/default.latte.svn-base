@@ -1,0 +1,6 @@
+{$title='Registrace'}
+{block innercontent}
+    <div class="pre eula">
+        {include '../../../../db/eula.txt'}
+    </div>
+    {control registerForm}

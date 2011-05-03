@@ -1,0 +1,54 @@
+body{
+    background-color: #000;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+}
+a{
+    color: #E4F9E3;
+    text-decoration: none;
+}
+.holder{
+    width: 950px;
+    display: inline-block;
+    text-align: left;
+}
+.logo{
+    border: 1px solid white;
+    height:174px;
+}
+.leftmenu{
+    border:1px solid red;
+    float: left;
+    width:100px;
+    height: 400px;
+}
+.menu{
+    border: 1px solid white;
+    text-align: center;
+}
+.content{
+    padding: 6px;
+}
+
+.menu .left{
+    float:left;
+}
+.menu .right{
+    float: right;
+}
+.left a, .right a{
+    width:200px;
+}
+.menu.logo a{
+    display: block;
+    height: 87px;
+    vertical-align: middle;
+}
+.menu a.middle{
+    height: 100%;
+}
+.hidden{
+    display:none;
+}

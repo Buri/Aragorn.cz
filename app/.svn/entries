@@ -1,0 +1,80 @@
+10
+
+dir
+30
+svn+ssh://buri@aragorn.czssh/home/apps/svn/repos/a4/app
+svn+ssh://buri@aragorn.czssh/home/apps/svn/repos/a4
+
+
+
+2011-05-02T11:32:26.329741Z
+30
+buri
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+7398fa20-1e8e-4a13-9842-90ac9871d687
+
+controls
+dir
+
+models
+dir
+
+bootstrap.php
+file
+31
+
+
+
+2011-05-02T12:04:17.000000Z
+ff67cddf96fd5313038530628f466b27
+2011-05-02T13:03:05.082821Z
+31
+buri
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1428
+
+frontendModule
+dir
+
+ajaxModule
+dir
+
+adminModule
+dir
+
+templates
+dir
+
