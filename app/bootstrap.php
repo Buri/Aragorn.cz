@@ -5,7 +5,7 @@ define('CFG_DIR', WWW_DIR . '/../config'); // path to the config files
 define('TEMP_DIR', WWW_DIR . '/../temp'); // path to the temp
 define('DEPLOY_DIR', '/web'); // Path to root
 
-include LIBS_DIR . "/Nette/nette.min.php";
+include LIBS_DIR . "/Nette/loader.php";
 include LIBS_DIR . "/memcache.php";
 include LIBS_DIR . "/database.php";
 include LIBS_DIR . "/usock.php";
