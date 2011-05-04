@@ -74,7 +74,7 @@ var AragornClient = new Class({
             this.connected = true;
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
-                    console.log('Sending: ', msg);
+//                    console.log('Sending: ', msg);
                     this.transport.send(msg);
                 }.bind(this));
                 this.batch = [];
@@ -91,7 +91,7 @@ var AragornClient = new Class({
         },
         handleMessage:function(msg){
             if(!msg || !msg.cmd){
-//                console.error('Broken message: ', msg);
+                console.error('Broken message: ', msg);
                 return;
             }
             switch(msg.cmd){
@@ -131,7 +131,7 @@ var AragornClient = new Class({
 //                    console.log('Problem with session.');
                     break;
                 default:
-//                    console.log('Fire event: cmd_' + msg.cmd);
+                    console.log('Fire event: cmd_' + msg.cmd);
                     this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
                     break;
             }

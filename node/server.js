@@ -9,6 +9,7 @@ var http = require('http'),
     redis = require('node-redis'),
     domains = ["*:*"],
     Clients = {},
+    Chat = {},
     socket = {},
     Session = {},
     server = http.createServer(function(req, res){
@@ -16,7 +17,6 @@ var http = require('http'),
         res.end('<h1>You shouldnt be here.</h1>');
     }),
     phpUnixSocket = net.createServer(function(s) {
-        console.log('Connection established on unix socket');
         s.setEncoding('utf-8');
         s.on('data', function(data){
             console.log('@UNIX: ' + data);
@@ -46,13 +46,26 @@ var http = require('http'),
                             this.write("SESSION_NOT_FOUND");
                         }
                         break;
+                    case "chat":
+                        switch(json.data.action){
+                            case "enter":
+                                console.log('User entered chat');
+                                this.write('OK');
+                                break;
+                            case "leave":
+                                console.log('User left chat');
+                                this.write('OK');
+                                break;
+                            default:
+                                this.write('BAD_PARAM');
+                        }
+                        break;
                     default:
                         this.write("BAD_CMD");
                 }
             }else{
                 this.write("BAD_FORMAT");
             }
-            //this.write(data);
         }.bind(s));
     });
 
@@ -88,10 +101,39 @@ console.log('Server listening at port 843');
 catch(e){
     console.log('Flash policy file is already being distributed.');
 }*/
+Chat = new Class({
+    Implements:[Options, Events],
+    options:{},
+    initialize:function(options){
+        this.setOptions(options);
+    },
+    sessionHook:function(message, client){
+        console.log('ChatServer: ' + JSON.stringify(message));
+        var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.id || 'null');
+        switch(message.data.action){
+            case "enter":
+                client.redis.subscribe(cname);
+                break;
+            case 'leave':
+                client.redis.unsubscribe(cname);
+                break;
+            case "post":
+                client.sendToChannel(cname, message);
+                break;
+        }
+    },
+    sessionHookRedis:function(message, client){
+        message.data.from = message.user.name;
+        client.send(message);
+    }
+});
 
 Session = new Class({
     Implements:[Options, Events],
-    options:{},
+    options:{
+        chatCommandHook:function(){},
+        chatRedisHook:function(){}
+    },
     initialize:function(sid, options){
         this.setOptions(options);
         this.sessionId = sid;
@@ -110,24 +152,22 @@ Session = new Class({
         if(this.eraseTimeout){
             clearTimeout(this.eraseTimeout);
             this.eraseTimeout = {};
-//            console.log('Session reinitiated: ' + this.sessionId);
         }
         this.clients.push(client.sessionId);
 
         client.redis = redis.createClient();
         client.redis.on('subscribe', function(channel){console.log('Subscribe ' + channel)});
         client.redis.on('unsubscribe', function(channel){console.log('Unsubscribe ' + channel)});
-        client.redis.on('message', this.handleRedis.bind(this));
+        client.redis.on('message', this.handleRedis.bind(this, client));
         client.redis.subscribe('/system');
         client.sendToChannel = this.sendToChannel.bind(this);
+        client.session = this;
     },
     removeClient:function(client){
-//        console.log('Removing client ' + client.sessionId);
         client.redis.quit();
         delete client.redis;
         this.clients.erase(client.sessionId);
         if(this.clients.length == 0){
-//            console.log('Session ready for clearout: ' + this.sessionId);
 
             /* UPDATE, SET LARGER TIMEOUT, FOR DEBUG PURPOSES ONLY */
             this.eraseTimeout = setTimeout(this.erase.bind(this), 1000 * 5);
@@ -140,37 +180,34 @@ Session = new Class({
     eraseTimeout:{},
     erase:function(){
         this.exit();
-//        console.log('Session terminated: ' + this.sessionId);
         this.fireEvent('disconnect', this);
         Clients['session' + this.sessionId].fireEvent('user_disconnect', this);
         delete Clients['session' + this.sessionId];
     },
-    handleRedis:function(channel, message){
-        message = JSON.decode(message);
+    handleRedis:function(client, channel, message){
+        message = JSON.parse(message);
         console.log('Recieved message on channel ' + channel);
-        console.log(message);
-        try{
-            this.broadcastToClients(message);
-        }
-        catch(e){
-            console.log(e);
-        }
-    },
-    handleMessage:function(message, client){
-        console.log('Handling message');
         console.log(message);
         switch(message.cmd){
             case 'chat':
-                this.sendToChannel(message.channel, message);
+                this.options.chatRedisHook(message, client);
+                break;
+            default:
+                console.log(message);
+        }
+    },
+    handleMessage:function(message, client){
+        switch(message.cmd){
+            case 'chat':
+                this.options.chatCommandHook(message,client);
                 break;
             default:
                 this.sendToClient(client, message);
         }
-    }, //require('./modules/session-handleMessage.js').h,
+    },
     sendToChannel:function(channel, message){
-        message.from = this.sessionId;
         message.time = new Date().getTime();
-        message.from = this.user.name;
+        message.user = this.user;
         this.redis.publish(channel, JSON.encode(message));
     },
     sendToClient:function(client, message){
@@ -188,6 +225,7 @@ Session = new Class({
     }
 });
 
+ChatServer = new Chat();
 socket = io.listen(server);
 
 socket.on('connection', function (client) {
@@ -210,21 +248,20 @@ socket.on('connection', function (client) {
                     this.identity = Math.round(Math.random() * 10000000000000000);
                 }while(Clients['session' + this.identity]);
                 
-                Clients['session' + this.identity] = new Session(this.identity);
+                Clients['session' + this.identity] = new Session(this.identity, {
+                                                                    chatCommandHook:ChatServer.sessionHook,
+                                                                    chatRedisHook:ChatServer.sessionHookRedis
+                                                                });
                 Clients['session' + this.identity].registerClient(this);
                 
-                //console.log('Registered identity: ' + this.identity);
                 this.send({cmd:'SESSION_REGISTER_SID', identity:this.identity});
                 break;
             case 'SESSION_SID':
-                //console.log('Recieved identity: ' + msg.identity + ', checking');
                 if(Clients['session' + msg.identity] != undefined){
-                    //console.log('Identity verified');
                     this.identity = msg.identity;
                     this.send({cmd:'SESSION_CONFIRMED_SID'});
                     Clients['session' + msg.identity].registerClient(this);
                 }else{
-                    //console.log('Invalid identity, requesting clearout');
                     this.send({cmd:'SESSION_RESET_SID'});
                 }
                 break;
@@ -247,6 +284,6 @@ socket.on('connection', function (client) {
             Clients['session' + this.identity].removeClient(this);
     });
 
-    /* When all events are set up, client is requested to identifi himself, otherwise server will register him as new client. */
+    /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
     client.send({cmd:'SESSION_REQUEST_IDENTITY'});
 });

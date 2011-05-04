@@ -15,15 +15,28 @@ class frontend_chatPresenter extends BasePresenter {
         }
     }
     public function actionRoom($id){
-        $this->getTemplate()->rid = $id;
+        $room = DB::chatrooms('id', $id);
+        if(!$room->count()){
+            $this->redirect(301, 'chat:');
+            exit;
+        }
+        $room = $room->fetch();
+        if(!DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, NEnvironment::getUser()->getId()))->count()){
+            $this->redirect(301, 'chat:enter', $id);
+        }
+        $t = $this->getTemplate();
+        $t->rid = $id;
+        $t->title = $room["name"];
     }
     
-    public function actionRoomenter($id, $param){
-        $r = DB::chatrooms()->where('id = ?', $id);
+    public function actionEnter($id, $param){
+        $r = DB::chatrooms('id', $id)->select('id,password');
         if($r->count()){
+            $r = $r->fetch();
             if(!$r["password"] || $r["password"] == $param){
-                if(!DB::chatroom_occupants()->where('user = ?', NEnvironment::getUser()->getId())->count())
-                    DB::chatroom_occupants()->insert(array("id"=>0, "user"=>NEnvironment::getUser()->getId(), "activity"=>time()));
+                if(!DB::chatroom_occupants()->where('idusers = ?', NEnvironment::getUser()->getId())->count())
+                    DB::chatroom_occupants()->insert(array("id"=>0, "idroom"=>$id, "idusers"=>NEnvironment::getUser()->getId(), "activity"=>time()));
+                usock::writeReadClose('{"command":"chat", "data":{"uid":'.NEnvironment::getUser()->getId().', "room":'.$r["id"].', "action":"enter"}}', 4096);
                 $this->redirect(301, 'chat:room', $id);
             }else{
                 $this->redirect(301, 'chat:spatneheslo');
@@ -36,7 +49,13 @@ class frontend_chatPresenter extends BasePresenter {
     public function actionSpatneheslo(){
         $this->setView('default');
         $this->getTemplate()->message = "Zadali jste špatné heslo.";
-        $this->getTemplate()->title = "Špatné heslo";
         $this->actionDefault();
     }
+    
+    public function actionLeave($id){
+        DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, NEnvironment::getUser()->getId()))->delete();
+        $this->redirect(301, 'default');
+    }
+    
+    
 }
