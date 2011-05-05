@@ -19,7 +19,8 @@ var AragornClient = new Class({
             timeout:120,
             url:window.location.host,
             options:{
-                port:8000/*,
+                port:8000,
+                rememberTransport:false/*,
                 transports:['websocket', 'flashsocket']*/
             }
         }
@@ -38,7 +39,6 @@ var AragornClient = new Class({
         this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
         this.transport.on('message', this.fn.handleMessage.bind(this));
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
-//        console.log('Start connecting');
         this.transport.connect();
     },
     transport:null,
@@ -67,14 +67,12 @@ var AragornClient = new Class({
             console.error('FAIL!');
         },
         connectionEstablished:function(){
-//            console.log('Connection established');
         },
         sessionHandshake:function(){
             console.log('HANDSHAKE!');
             this.connected = true;
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
-//                    console.log('Sending: ', msg);
                     this.transport.send(msg);
                 }.bind(this));
                 this.batch = [];
@@ -105,32 +103,26 @@ var AragornClient = new Class({
                     break;
                 case 'SESSION_RESET_SID':
                     Cookie.dispose('sid');
-//                    console.log('Identity cleared');
                 case 'SESSION_REQUEST_IDENTITY':
-//                    console.log('Obtained identity request');
                     if(Cookie.read('sid')){
                         this.transport.send({cmd:'SESSION_SID', identity:Cookie.read('sid')});
-//                        console.log('Responded with identity: ' + Cookie.read('sid'));
                     }else{
                         this.transport.send({cmd:'SESSION_REQUEST_SID'});
-//                        console.log('Requested new identity', {cmd:'REQUEST_IDENTITY'});
                     }
                     break;
                 case 'SESSION_REGISTER_SID':
                     Cookie.write('sid', msg.identity);
-//                    console.log('Identity registered: ' + msg.identity);
                     this.fireEvent('SESSION_HANDSHAKE');
                     this.fn.getIdentity.bind(this).call();
                     break;
                 case 'SESSION_CONFIRMED_SID':
-//                    console.log('Identity confirmed.');
                     this.fireEvent('SESSION_HANDSHAKE');
                     this.fn.getIdentity.bind(this).call();
                     break;
                 case 'INVALID_SID':
-//                    console.log('Problem with session.');
                     break;
                 default:
+                    console.log(msg);
                     console.log('Fire event: cmd_' + msg.cmd);
                     this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
                     break;
@@ -141,17 +133,14 @@ var AragornClient = new Class({
     batch:[],
     send:function(message){
         if(this.connected){
-//            console.log('Sending message', message);
             this.transport.send(message);
         }else{
             if(this.options.batchOffline){
-//                console.log('Storing message for sending later', message);
                 this.batch.push(message);
             }
         }
     },
     registerCmd:function(cmd, callback){
-//        console.log('Registering cmd ' + cmd);
         this.addEvent('cmd_' + cmd, callback);
     },
     removeCmd:function(cmd){

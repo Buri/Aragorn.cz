@@ -3,7 +3,6 @@
 define('LIBS_DIR', WWW_DIR . '/../lib'); // path to the libraries
 define('CFG_DIR', WWW_DIR . '/../config'); // path to the config files
 define('TEMP_DIR', WWW_DIR . '/../temp'); // path to the temp
-define('DEPLOY_DIR', '/web'); // Path to root
 
 include LIBS_DIR . "/Nette/loader.php";
 include LIBS_DIR . "/memcache.php";
@@ -12,7 +11,7 @@ include LIBS_DIR . "/usock.php";
 
 NDebug::$strictMode = TRUE;
 NEnvironment::loadConfig(CFG_DIR . "/config.ini");
-NDebug::enable();
+NDebug::enable(Debug::DETECT, NEnvironment::getVariable('logdir', WWW_DIR . '/../logs'));
 $application = NEnvironment::getApplication();
 //$application->errorPresenter = 'Error';
 //$application->catchExceptions = TRUE;
