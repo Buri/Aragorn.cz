@@ -133,10 +133,10 @@ var AragornClient = new Class({
     batch:[],
     send:function(message){
         if(this.connected){
-            this.transport.send(message);
+            return this.transport.send(message);
         }else{
             if(this.options.batchOffline){
-                this.batch.push(message);
+                return this.batch.push(message);
             }
         }
     },

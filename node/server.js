@@ -7,7 +7,11 @@ var http = require('http'),
     net = require('net'),
     fs = require('fs'),
     domains = ["*:*"],
-    Clients = {},
+    Clients = {
+        remove:function(id){
+            delete this['session' + id];
+        }
+    },
     Chat = require('./modules/chat.js').Chat,
     ChatServer = new Chat(),
     socket = {},
@@ -47,18 +51,7 @@ var http = require('http'),
                         }
                         break;
                     case "chat":
-                        switch(json.data.action){
-                            case "enter":
-                                console.log('User entered chat');
-                                this.write('OK');
-                                break;
-                            case "leave":
-                                console.log('User left chat');
-                                this.write('OK');
-                                break;
-                            default:
-                                this.write('BAD_PARAM');
-                        }
+                        this.write(ChatServer.unixHook(json));
                         break;
                     default:
                         this.write("BAD_CMD");
@@ -78,8 +71,7 @@ phpUnixSocket.listen('/tmp/nodejs.socket', function() {
 });
 console.log('Unix socket opened in /tmp/nodejs.socket');
 
-socket = io.listen(server);
-
+socket = io.listen(server, {log:function(){}});
 socket.on('connection', function (client) {
     /*
      *  Implement basic remote-client <=> node.js <=> redis protocol
@@ -101,9 +93,9 @@ socket.on('connection', function (client) {
                 }while(Clients['session' + this.identity]);
                 
                 Clients['session' + this.identity] = new Session(this.identity, {
-                    parentStorage:Clients,
-                    chatCommandHook:ChatServer.sessionHook,
-                    chatRedisHook:ChatServer.sessionHookRedis
+                    parentStorageRemoval:Clients.remove,
+                    chatCommandHook:ChatServer.sessionHook.bind(ChatServer),
+                    chatRedisHook:ChatServer.sessionHookRedis.bind(ChatServer)
                 });
                 Clients['session' + this.identity].registerClient(this);
                 

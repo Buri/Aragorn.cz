@@ -28,10 +28,20 @@
             var ChatClient = new Class({});
             window.addEvent('domready', function(){
                 AC.registerCmd('chat', function(msg){
-                    //console.log(msg);
-                    $('sklo').set('text', msg.from + ':' + msg.message + '\n' + $('sklo').get('text'));
+                    console.log(msg);
+                    switch(msg.action){
+                        case 'post':
+                            $('sklo').set('text', msg.from + ':' + msg.message + '\n' + $('sklo').get('text'));
+                            break;
+                        case 'queue':
+                            for(var i = 0; i < msg.queue.length; i++){
+                                AC.fireEvent('cmd_chat', msg.queue[i].data);
+                            }
+                            break;
+                     }
                 });
                 AC.send({cmd:'chat',data:{action:'enter', id:{{$rid}}}});
+                AC.send({cmd:'chat', data:{action:'queue', id:{{$rid}}}});
             });
         </script>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->

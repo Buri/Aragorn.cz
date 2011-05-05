@@ -4,7 +4,7 @@ require('mootools.js').apply(GLOBAL);
 exports.Session = new Class({
     Implements:[Options, Events],
     options:{
-        parentStorage:{},
+        parentStorageRemoval:function(){},
         chatCommandHook:function(){},
         chatRedisHook:function(){}
     },
@@ -29,8 +29,8 @@ exports.Session = new Class({
         this.clients.push(client.sessionId);
 
         client.redis = redis.createClient();
-        client.redis.on('subscribe', function(channel){console.log('Subscribe ' + channel)});
-        client.redis.on('unsubscribe', function(channel){console.log('Unsubscribe ' + channel)});
+        client.redis.on('subscribe', function(channel){/*console.log('Subscribe ' + channel)*/});
+        client.redis.on('unsubscribe', function(channel){/*console.log('Unsubscribe ' + channel)*/});
         client.redis.on('message', this.handleRedis.bind(client));
         client.redis.subscribe('/system');
         client.sendToChannel = this.sendToChannel.bind(this);
@@ -55,8 +55,7 @@ exports.Session = new Class({
         this.exit();
         /* Proč je tu tenhle řádek zdvojený? */
         this.fireEvent('disconnect', this);
-        // Clients['session' + this.sessionId].fireEvent('user_disconnect', this); 
-        delete this.options.parentStorage['session' + this.sessionId];
+        this.options.parentStorageRemoval(this.sessionId);
     },
     handleRedis:function(channel, message){
         message = JSON.parse(message);
