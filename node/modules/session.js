@@ -4,6 +4,7 @@ require('mootools.js').apply(GLOBAL);
 exports.Session = new Class({
     Implements:[Options, Events],
     options:{
+        parentStorage:{},
         chatCommandHook:function(){},
         chatRedisHook:function(){}
     },
@@ -52,9 +53,10 @@ exports.Session = new Class({
     eraseTimeout:{},
     erase:function(){
         this.exit();
+        /* Proč je tu tenhle řádek zdvojený? */
         this.fireEvent('disconnect', this);
-        Clients['session' + this.sessionId].fireEvent('user_disconnect', this);
-        delete Clients['session' + this.sessionId];
+        // Clients['session' + this.sessionId].fireEvent('user_disconnect', this); 
+        delete this.options.parentStorage['session' + this.sessionId];
     },
     handleRedis:function(channel, message){
         message = JSON.parse(message);

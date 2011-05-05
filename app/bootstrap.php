@@ -11,7 +11,7 @@ include LIBS_DIR . "/usock.php";
 
 NDebug::$strictMode = TRUE;
 NEnvironment::loadConfig(CFG_DIR . "/config.ini");
-NDebug::enable(Debug::DETECT, NEnvironment::getVariable('logdir', WWW_DIR . '/../logs'));
+NDebug::enable(NDebug::DETECT, NEnvironment::getVariable('logdir', WWW_DIR . '/../logs'));
 $application = NEnvironment::getApplication();
 //$application->errorPresenter = 'Error';
 //$application->catchExceptions = TRUE;

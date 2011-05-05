@@ -101,9 +101,10 @@ socket.on('connection', function (client) {
                 }while(Clients['session' + this.identity]);
                 
                 Clients['session' + this.identity] = new Session(this.identity, {
-                                                                    chatCommandHook:ChatServer.sessionHook,
-                                                                    chatRedisHook:ChatServer.sessionHookRedis
-                                                                });
+                    parentStorage:Clients,
+                    chatCommandHook:ChatServer.sessionHook,
+                    chatRedisHook:ChatServer.sessionHookRedis
+                });
                 Clients['session' + this.identity].registerClient(this);
                 
                 this.send({cmd:'SESSION_REGISTER_SID', identity:this.identity});
