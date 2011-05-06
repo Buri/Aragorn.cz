@@ -73,7 +73,7 @@ var AragornClient = new Class({
             this.connected = true;
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
-                    this.transport.send(msg);
+                    this.send(msg);
                 }.bind(this));
                 this.batch = [];
             }
@@ -82,9 +82,8 @@ var AragornClient = new Class({
             this.connected = false;
         },
         getIdentity:function(){
-//            console.log('Testing identity.');
             if(window.AUTHENTICATED === true){
-                this.transport.send({cmd:'TEST_IDENTITY'});
+                this.transport.send({cmd:'SESSION_HAS_PHPSESSID_REGISTERED'});
             }
         },
         handleMessage:function(msg){
@@ -93,8 +92,7 @@ var AragornClient = new Class({
                 return;
             }
             switch(msg.cmd){
-                case 'TEST_IDENTITY':
-//                   console.log(msg);
+                case 'SESSION_HAS_PHPSESSID_REGISTERED':
                     if(msg.identity === true){
                         this.fireEvent('SESSION_CONFIRM');
                     }else{
@@ -133,12 +131,16 @@ var AragornClient = new Class({
     batch:[],
     send:function(message){
         if(this.connected){
+            message.identity = Cookie.read('sid');
+            message.time = new Date().getTime();
             return this.transport.send(message);
         }else{
             if(this.options.batchOffline){
+                message.itime = new Date().getTime();
                 return this.batch.push(message);
             }
         }
+        return null;
     },
     registerCmd:function(cmd, callback){
         this.addEvent('cmd_' + cmd, callback);

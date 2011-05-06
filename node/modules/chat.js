@@ -1,7 +1,7 @@
 require('mootools.js').apply(GLOBAL);
 var Redis = require('node-redis');
 
-exports.Chat = new Class({
+exports.ChatServer = new Class({
     Implements:[Options, Events],
     options:{
         length:300,

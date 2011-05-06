@@ -1,29 +1,52 @@
 require.paths.push('/var/node/modules/');
 require('./node_modules/mootools.js').apply(GLOBAL);
 
-/* Main WS server@8000 */
+/*
+ * Module loading
+ */
+    /* System modules */
 var http = require('http'),
     io = require('socket.io'),
     net = require('net'),
     fs = require('fs'),
-    domains = ["*:*"],
+    
+    /* Custom modules */
+    Session = require('./modules/session.js').Session,
+    ChatServer = require('./modules/chat.js').ChatServer,
+    
+    /* Other variables */
+    Config = require('node-iniparser').parseSync(__dirname + '/../config/config.ini'),
+    socket = null,
+    
+    /* 
+     * Session storage 
+     * @void    remove(@int id)     Callback function for deleting sessions
+     * @object+ session%            Every single session
+     * */
     Clients = {
         remove:function(id){
-            delete this['session' + id];
+            if(this['session' + id]) delete this['session' + id];
         }
     },
-    Chat = require('./modules/chat.js').Chat,
-    ChatServer = new Chat(),
-    socket = {},
-    Session = require('./modules/session.js').Session,
+    
+    /*
+     * Setup servers 
+     */
+    
+    /* Main WS server@8000 */
     server = http.createServer(function(req, res){
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.end('<h1>You shouldnt be here.</h1>');
     }),
+    Chat = new ChatServer(),
+   
+    /*
+     *
+     *
+     */
     phpUnixSocket = net.createServer(function(s) {
         s.setEncoding('utf-8');
         s.on('data', function(data){
-            console.log('@UNIX: ' + data);
             var json = JSON.parse(data);
             if(json && json.command){
                 switch(json.command){
@@ -32,7 +55,6 @@ var http = require('http'),
                             Clients['session' + json.data.nodeSession].phpid = json.data.PHPSESSID;
                             Clients['session' + json.data.nodeSession].user.id = json.data.id;
                             Clients['session' + json.data.nodeSession].user.name = json.data.username;
-//                            console.log('User ' + json.data.username + ' loged in.');
                             this.write('OK');
                         }else{
                             this.write("SESSION_NOT_FOUND");
@@ -44,14 +66,13 @@ var http = require('http'),
                             Clients['session' + json.data.nodeSession].phpid = '';
                             Clients['session' + json.data.nodeSession].user.id = 0;
                             Clients['session' + json.data.nodeSession].user.name = '';
-//                            console.log('User ' + uname + ' loged out.');
                             this.write('OK');
                         }else{
                             this.write("SESSION_NOT_FOUND");
                         }
                         break;
                     case "chat":
-                        this.write(ChatServer.unixHook(json));
+                        this.write(Chat.unixHook(json));
                         break;
                     default:
                         this.write("BAD_CMD");
@@ -61,17 +82,49 @@ var http = require('http'),
             }
         }.bind(s));
     });
+server.listen(parseInt(Config.common.port));
+console.log('Server listening at port ' + Config.common.port);
 
-server.listen(8000);
-console.log('Server listening at port 8000');
-
+/*
+ * Creates unix socket at target location for PHP => node.js communication
+ * Faster than standart socket + safe from outer connections
+ */
 var oldUmask = process.umask(0000);
-phpUnixSocket.listen('/tmp/nodejs.socket', function() {
+phpUnixSocket.listen(Config.common.usock, function() {
   process.umask(oldUmask);
 });
-console.log('Unix socket opened in /tmp/nodejs.socket');
+console.log('Unix socket opened in ' + Config.common.usock);
 
-socket = io.listen(server, {log:function(){}});
+
+/*
+ * Socket.io server
+ * Handles low-level clinent-server comunication
+ * Implements basic handshake
+ * Implements basic session: modules/session.js 
+ * Protocol based on json
+ * Protocol structure:
+ * {
+ * @string  cmd         Command to be executed
+ * @int     time        Time when message has been send
+ * @int     identity    SID, null if not registerd
+ * @object  data        Parameters of command
+ * @int?    itime       Time when message was intended to be send, not actual send time (see message batching in client script)
+ * }
+ * 
+ * Step 1: Setup event handling
+ * Step 2: Asign low-level commands (< - outgoing, > incoming):
+ *         i/o    Name                              Params      Comment
+ *          <   SESSION_REQUEST_IDENTITY            ()          All events are set up, client is ready for basic authentication
+ *          >   SESSION_SID                         (int sid)   Server recieves client SID (session id) and looks for existing session. If session doesn't exist replies SESSION_RESET_SID, else replies SESION_CONFIRMED_SID and register new client to session
+ *          <   SESSION_RESET_SID                   ()          Client is told to reset his SID and send SESSION_REQUEST_SID
+ *          <   SESSION_CONFIRMED_SID               ()          Session found, client registered
+ *          >   SESSION_REQUEST_SID                 ()          Server generates unique sid and creates new Session() (see module comments for api), then sends SID to client with SESSION_REGISTER_SID
+ *          <   SESSION_REGISTER_SID                (int sid)   Sends new SID to client
+ *          >   SESSION_HAS_PHPSESSID_REGISTERED    ()          Syncs PHPSESSID and SID
+ *          >   %                                   (...)       If clients is registered to session calls Session.handleMessgae(message, client), otherwise logs cmd and replies INVALID_SID
+ * Step 3: Send SESSION_REQUEST_IDENTITY command
+ */
+socket = io.listen(server, {log:null});
 socket.on('connection', function (client) {
     /*
      *  Implement basic remote-client <=> node.js <=> redis protocol
@@ -80,11 +133,11 @@ socket.on('connection', function (client) {
     client.on('message', function(msg, client){
         msg = msg || {cmd:''};
         switch(msg.cmd){
-            case 'TEST_IDENTITY':
+            case 'SESSION_HAS_PHPSESSID_REGISTERED':
                 if(Clients['session' + this.identity].phpid)
-                    this.send({cmd:'TEST_IDENTITY', identity:true});
+                    this.send({cmd:'SESSION_HAS_PHPSESSID_REGISTERED', identity:true});
                 else
-                    this.send({cmd:'TEST_IDENTITY', identity:false});
+                    this.send({cmd:'SESSION_HAS_PHPSESSID_REGISTERED', identity:false});
                 break;
             case 'SESSION_REQUEST_SID':
                 /* Create new client */
@@ -94,8 +147,8 @@ socket.on('connection', function (client) {
                 
                 Clients['session' + this.identity] = new Session(this.identity, {
                     parentStorageRemoval:Clients.remove,
-                    chatCommandHook:ChatServer.sessionHook.bind(ChatServer),
-                    chatRedisHook:ChatServer.sessionHookRedis.bind(ChatServer)
+                    chatCommandHook:Chat.sessionHook.bind(Chat),
+                    chatRedisHook:Chat.sessionHookRedis.bind(Chat)
                 });
                 Clients['session' + this.identity].registerClient(this);
                 

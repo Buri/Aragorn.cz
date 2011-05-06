@@ -9,10 +9,12 @@ class usock {
     static $handle;
     
     private function __construct(){}
+    private function __clone(){}
     
     static function getInstance(){
         if(!self::$handle){
-            self::$handle = fsockopen("unix:///tmp/nodejs.socket", NULL);
+            $cfg = NEnvironment::getConfig("usock");
+            self::$handle = fsockopen("unix://".$cfg, NULL);
         }
         return self::$handle;
     }
