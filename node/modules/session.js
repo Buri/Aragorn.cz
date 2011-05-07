@@ -36,7 +36,8 @@ exports.Session = new Class({
         client.session = this;
     },
     removeClient:function(client){
-        client.redis.quit();
+        if(typeOf(client.redis.quit) == 'function')
+            client.redis.quit();
         delete client.redis;
         this.clients.erase(client.sessionId);
         if(this.clients.length == 0){
@@ -52,30 +53,13 @@ exports.Session = new Class({
     eraseTimeout:{},
     erase:function(){
         this.exit();
-        /* Proč je tu tenhle řádek zdvojený? */
         this.fireEvent('disconnect', this);
-        this.options.parentStorageRemoval(this.sessionId);
+        this.options.parentStorageRemoval(this.sessionId); // AKA "Delete me, pls!"
     },
     handleRedis:function(channel, message){
         message = JSON.parse(message);
         this.session.options.redisHook(message, this, channel);
-        /*switch(message.cmd){
-            case 'chat':
-                this.session.options.chatRedisHook(message, this);
-                break;
-            default:
-                console.log(message);
-        }*/
     },
-    /*handleMessage:function(message, client){
-        switch(message.cmd){
-            case 'chat':
-                this.options.chatCommandHook(message,client);
-                break;
-            default:
-                this.sendToClient(client, message);
-        }
-    },*/
     sendToChannel:function(channel, message){
         message.time = new Date().getTime();
         message.user = this.user;
