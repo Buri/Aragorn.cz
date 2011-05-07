@@ -59,7 +59,7 @@ exports.ChatServer = new Class({
                 break;
         }
     },
-    sessionHookRedis:function(message, client){
+    redisHook:function(message, client, channel){
         message.data.from = message.user.name;
         client.send(message);
     },
@@ -80,3 +80,4 @@ exports.ChatServer = new Class({
         return "OK";
     }
 });
+exports.create = function(){ return new exports.ChatServer(); }

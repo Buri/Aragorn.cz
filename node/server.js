@@ -30,6 +30,53 @@ var http = require('http'),
     },
     
     /*
+     * Module loading system
+     * Mods are loaded from modules directive in config.ini (modules=chat,forum)
+     * Public api
+     * @object  register(@string name)                      Loads module
+     * @void    remove(@string name)                        Unloads module
+     * @object  alias(@string target, @string alias)        Creates alias for existing module
+     * @object  get(@string name)                           Returns module if exists
+     * @bool    isSet(@string name)                         Returns true if module is loaded
+     * 
+     * Each module is required to have folowing api:
+     * @object  create()                                    Returns new instance of module
+     * @var     redisHook(@object message,
+     *                    @object client, @string channel)  Method to handle messages comming on pubsub
+     * @string  unixHook(@object message)                   Method to handle communication from PHP
+     * @var     sessionHook(@object message,
+     *                      @object client)                 Method to handle messages comming from client.
+     */
+    Modules = {
+        /* Public api */
+        register:function(name){
+            var module = require('./modules/' + name + '.js');
+            return this.list[name] = module.create();
+        },
+        remove:function(name){
+            if(this.list[name]) delete this.list[name];
+        },
+        alias:function(target, alias){
+            this.list[alias] = this.list[target];
+            return this[target];
+        },
+        get:function(name){return (this.list[name] || false);},
+        isSet:function(name){return this.list[name] ? true : false;},        
+        
+        /* Private api */
+        redisHook:function(message, client, channel){
+            return this.list[message.cmd].redisHook(message, client, channel);
+        },
+        unixHook:function(message){
+            return this.list[message.command].unixHook(message);
+        },
+        sessionHook:function(message, client){
+            return this.list[message.cmd].sessionHook(message, client);
+        },
+        list:{}
+    },
+    
+    /*
      * Setup servers 
      */
     
@@ -62,7 +109,6 @@ var http = require('http'),
                         break;
                     case "user-logout":
                         if(Clients['session' + json.data.nodeSession]){
-                            var uname = Clients['session' + json.data.nodeSession].user.name;
                             Clients['session' + json.data.nodeSession].phpid = '';
                             Clients['session' + json.data.nodeSession].user.id = 0;
                             Clients['session' + json.data.nodeSession].user.name = '';
@@ -71,11 +117,11 @@ var http = require('http'),
                             this.write("SESSION_NOT_FOUND");
                         }
                         break;
-                    case "chat":
-                        this.write(Chat.unixHook(json));
-                        break;
                     default:
-                        this.write("BAD_CMD");
+                        if(Modules.isSet(json.command))
+                            this.write(Modules.unixHook(json));
+                        else
+                            this.write('UNKNOWN_CMD');
                 }
             }else{
                 this.write("BAD_FORMAT");
@@ -84,6 +130,13 @@ var http = require('http'),
     });
 server.listen(parseInt(Config.common.port));
 console.log('Server listening at port ' + Config.common.port);
+
+/*
+ * Load modules
+ * Module list in config.ini
+ * Names separated by comma (,)
+ */
+Config.common.modules.split(',').each(function(name){Modules.register(name);});
 
 /*
  * Creates unix socket at target location for PHP => node.js communication
@@ -147,8 +200,7 @@ socket.on('connection', function (client) {
                 
                 Clients['session' + this.identity] = new Session(this.identity, {
                     parentStorageRemoval:Clients.remove,
-                    chatCommandHook:Chat.sessionHook.bind(Chat),
-                    chatRedisHook:Chat.sessionHookRedis.bind(Chat)
+                    redisHook:Modules.redisHook.bind(Modules)
                 });
                 Clients['session' + this.identity].registerClient(this);
                 
@@ -168,7 +220,7 @@ socket.on('connection', function (client) {
                 break;
             default:
                 if(this.identity){
-                    Clients['session' + this.identity].handleMessage(msg, this);
+                    Modules.sessionHook(msg, this);
                 }else{
                     console.log('Unknown command: ', msg);
                     this.send({cmd:'INVALID_SID'});

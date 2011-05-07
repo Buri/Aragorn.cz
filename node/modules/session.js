@@ -5,8 +5,7 @@ exports.Session = new Class({
     Implements:[Options, Events],
     options:{
         parentStorageRemoval:function(){},
-        chatCommandHook:function(){},
-        chatRedisHook:function(){}
+        redisHook:null
     },
     initialize:function(sid, options){
         this.setOptions(options);
@@ -59,15 +58,16 @@ exports.Session = new Class({
     },
     handleRedis:function(channel, message){
         message = JSON.parse(message);
-        switch(message.cmd){
+        this.session.options.redisHook(message, this, channel);
+        /*switch(message.cmd){
             case 'chat':
                 this.session.options.chatRedisHook(message, this);
                 break;
             default:
                 console.log(message);
-        }
+        }*/
     },
-    handleMessage:function(message, client){
+    /*handleMessage:function(message, client){
         switch(message.cmd){
             case 'chat':
                 this.options.chatCommandHook(message,client);
@@ -75,7 +75,7 @@ exports.Session = new Class({
             default:
                 this.sendToClient(client, message);
         }
-    },
+    },*/
     sendToChannel:function(channel, message){
         message.time = new Date().getTime();
         message.user = this.user;
