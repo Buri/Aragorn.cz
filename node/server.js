@@ -12,7 +12,6 @@ var http = require('http'),
     
     /* Custom modules */
     Session = require('./modules/session.js').Session,
-    ChatServer = require('./modules/chat.js').ChatServer,
     
     /* Other variables */
     Config = require('node-iniparser').parseSync(__dirname + '/../config/config.ini'),
@@ -85,7 +84,6 @@ var http = require('http'),
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.end('<h1>You shouldnt be here.</h1>');
     }),
-    Chat = new ChatServer(),
    
     /*
      *
@@ -156,13 +154,13 @@ console.log('Unix socket opened in ' + Config.common.usock);
  * Implements basic session: modules/session.js 
  * Protocol based on json
  * Protocol structure:
- * {
+ * [{
  * @string  cmd         Command to be executed
  * @int     time        Time when message has been send
  * @int     identity    SID, null if not registerd
  * @object  data        Parameters of command
  * @int?    itime       Time when message was intended to be send, not actual send time (see message batching in client script)
- * }
+ * }, {...}, {...}, ...]
  * 
  * Step 1: Setup event handling
  * Step 2: Asign low-level commands (< - outgoing, > incoming):
@@ -178,12 +176,7 @@ console.log('Unix socket opened in ' + Config.common.usock);
  * Step 3: Send SESSION_REQUEST_IDENTITY command
  */
 socket = io.listen(server, {log:null});
-socket.on('connection', function (client) {
-    /*
-     *  Implement basic remote-client <=> node.js <=> redis protocol
-     */
-
-    client.on('message', function(msg, client){
+socket.handleMessage = function(msg){
         msg = msg || {cmd:''};
         switch(msg.cmd){
             case 'SESSION_HAS_PHPSESSID_REGISTERED':
@@ -227,6 +220,18 @@ socket.on('connection', function (client) {
                 }
                 break;
         }
+    };
+
+socket.on('connection', function (client) {
+    /*
+     *  Implement basic remote-client <=> node.js <=> redis protocol
+     */
+    
+    client.on('message', function(msg){
+        if(typeOf(msg) == 'array')
+            msg.each(socket.handleMessage.bind(this));
+        else
+            socket.handleMessage.bind(this)(msg);
     });
 
     client.on('disconnect', function(){

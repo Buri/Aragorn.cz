@@ -7,21 +7,37 @@
 //WEB_SOCKET_DEBUG = true;
 WEB_SOCKET_SWF_LOCATION = '/WebSocketMain.swf';
 
+
+/*
+ * Aragorn client
+ * Options:
+ * {
+ *  @bool   batchOffline    if true, message that are sent while disconnected from server are stored and sent when connected
+ *  @object client          Socket.io related configuration
+ *           {
+ *            @string   url         Location of node.js
+ *            @object   options     See Socket.io documentation
+ *           }
+ * }
+ * 
+ * Public api:
+ * @object      ajax(@string url, @object data, @function callback)     Sends ajax request on url. For options see Request.HTML documentation on mootools
+ * @object      send(@string cmd, @object data)                         Sends cmd(data) to node.js server
+ * @object      sendRaw(@object message)                                
+ * @bool        connected                                               Indicates whenever is session established or not
+ * @object      registerCmd(@string cmd, @function callback)            Callback to be executed when cmd arives
+ * @object      removeCmd(@string cmd)                                  Oposite to registerCmd
+ */
 var AragornClient = new Class({
     Implements:[Options, Events],
     options:{
-        node:{
-            url:null,
-            port:0
-        },
         batchOffline:true,
         client:{
-            timeout:120,
+//            timeout:120,
             url:window.location.host,
             options:{
                 port:8000,
-                rememberTransport:false/*,
-                transports:['websocket', 'flashsocket']*/
+                rememberTransport:false
             }
         }
     },
@@ -73,7 +89,7 @@ var AragornClient = new Class({
             this.connected = true;
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
-                    this.send(msg);
+                    this.sendRaw(msg);
                 }.bind(this));
                 this.batch = [];
             }
@@ -129,10 +145,18 @@ var AragornClient = new Class({
     },
     connected:false,
     batch:[],
-    send:function(message){
+    send:function(cmd, params){        
+        return this.sendRaw({
+            cmd:cmd, 
+            time:new Date().getTime(), 
+            data:params, 
+            identity:Cookie.read('sid')
+        });
+    },
+    sendRaw:function(message){
         if(this.connected){
-            message.identity = Cookie.read('sid');
-            message.time = new Date().getTime();
+            if(!message.identity) message.identity = Cookie.read('sid');
+            if(!message.time) message.time = new Date().getTime();
             return this.transport.send(message);
         }else{
             if(this.options.batchOffline){
@@ -143,10 +167,10 @@ var AragornClient = new Class({
         return null;
     },
     registerCmd:function(cmd, callback){
-        this.addEvent('cmd_' + cmd, callback);
+        return this.addEvent('cmd_' + cmd, callback);
     },
     removeCmd:function(cmd){
-        this.removeEvent('cmd_' + cmd);
+        return this.removeEvent('cmd_' + cmd);
     }
 }), AC = null;
 

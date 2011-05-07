@@ -40,15 +40,15 @@
                             break;
                      }
                 });
-                AC.send({cmd:'chat',data:{action:'enter', id:{{$rid}}}});
-                AC.send({cmd:'chat', data:{action:'queue', id:{{$rid}}}});
+                AC.send('chat', {action:'enter', id:{{$rid}}});
+                AC.send('chat', {action:'queue', id:{{$rid}}});
             });
         </script>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
 
     </head>
     <body n:syntax="double">
-        <form onsubmit="AC.send({cmd:'chat',data:{action:'post', id:{{$rid}}, message:this.msg.value}}); this.msg.value=''; return false;">
+        <form onsubmit="AC.send('chat',{action:'post', id:{{$rid}}, message:this.msg.value}); this.msg.value=''; return false;">
             <input type="text" name="msg" /> <button type="submit">Odeslat</button>
         </form>
         <a href="{{link leave $rid}}" target="_self">Odejít</a>

@@ -1,6 +1,6 @@
 var redis = require('node-redis');
 require('mootools.js').apply(GLOBAL);
-  
+
 exports.Session = new Class({
     Implements:[Options, Events],
     options:{
