@@ -21,9 +21,11 @@ Aragorn.cz v4
 * Run node.js as root since it needs access to port 843 (Flash policy file distribution)
 * Try your site
 
-Authors:
-    Core:   
-            Jakub Buriánek
-            Jakub Korál
-    Modules:
-            Jakub Buriánek
+**Authors:**
+
+* Core:   
+  * Jakub Buriánek
+  * Jakub Korál
+
+* Modules:
+  * Jakub Buriánek
