@@ -3,7 +3,9 @@
 class BasePresenter extends NPresenter{
 
     public function  __construct(IComponentContainer $parent = NULL, $name = NULL) {
-        $this->getTemplate()->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . NEnvironment::getVariable("staticServer", "www.aragorn.cz");
+        $t = $this->getTemplate();
+        $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . NEnvironment::getVariable("staticServer", "www.aragorn.cz");
+        $t->user = NEnvironment::getUser();
         parent::__construct($parent, $name);
     }
     protected function createComponent($name) {

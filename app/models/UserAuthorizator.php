@@ -7,7 +7,7 @@ class UserAuthorizator extends NObject implements IAuthorizator
         /* Role must be defined */
         if($role === null) return false;
         /* root is allowed to do anything */
-        //if($role === 0 || NEnvironment::getUser()->getId() === 0) return true; 
+        if($role == 0 || NEnvironment::getUser()->getId() == 0) return true; 
         
         /* Better safe than sorry */
         $priv = false;

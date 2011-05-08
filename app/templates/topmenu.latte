@@ -6,7 +6,7 @@
             <a href="{link nastaveni:}" class="middle">Nastavení</a> |
             <a href="{link posta:}" class="middle">Pošta</a> |
             <a href="{link logout}" class="middle">Odhlásit</a>
-            {if true} {*$user->isAllowed('admin', 'view')}*}
+            {if $user->isAllowed('admin')}
             | <a href="{link :admin:dashboard:}" class="middle">RS</a>
             {/if}
             {else}
