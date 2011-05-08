@@ -1,10 +1,32 @@
 var redis = require('node-redis');
 require('mootools.js').apply(GLOBAL);
 
+/*
+ * Sessoion.js
+ * Class for representing user session (guest/registered)
+ * Allows synchronistaion with php sessions
+ * Options:
+ * {
+ *  @function   parentStorageRemoval()      Function used to remove expired session from storage
+ *  @fucntion   redisHook(@object message,
+ *                  @object client,
+ *                  @string channel)        Callback function used to handle incomming messages on pubsub
+ * }
+ * 
+ * Public api:
+ * @void        exit()                      Tells session to end itself. To be reworked
+ * @mixed       sendToChannel(@string channel,
+ *                  @object message)        Sends message to pubsub
+ * @mixed       sendToClient(@mixed client,
+ *                  @object message)        Sends message to selected client belonging to session
+ * @void        broadcastToClients(
+ *                  @object message)        Sends message to all clients owned by session
+ */
+
 exports.Session = new Class({
     Implements:[Options, Events],
     options:{
-        parentStorageRemoval:function(){},
+        parentStorageRemoval:null,
         redisHook:null
     },
     initialize:function(sid, options){
@@ -28,8 +50,8 @@ exports.Session = new Class({
         this.clients.push(client.sessionId);
 
         client.redis = redis.createClient();
-        client.redis.on('subscribe', function(channel){/*console.log('Subscribe ' + channel)*/});
-        client.redis.on('unsubscribe', function(channel){/*console.log('Unsubscribe ' + channel)*/});
+        /*client.redis.on('subscribe', function(channel){});
+        client.redis.on('unsubscribe', function(channel){});*/
         client.redis.on('message', this.handleRedis.bind(client));
         client.redis.subscribe('/system');
         client.sendToChannel = this.sendToChannel.bind(this);
@@ -58,13 +80,14 @@ exports.Session = new Class({
     },
     handleRedis:function(channel, message){
         message = JSON.parse(message);
-        this.session.options.redisHook(message, this, channel);
+        return this.session.options.redisHook(message, this, channel);
     },
     sendToChannel:function(channel, message){
         message.time = new Date().getTime();
         message.user = this.user;
-        this.redis.publish(channel, JSON.stringify(message));
+        return this.redis.publish(channel, JSON.stringify(message));
     },
+    /* Client param can be id of client or client object */
     sendToClient:function(client, message){
         if(typeof(client) == 'string'){
             if(this.clients.indexOf('client') == -1) throw new Exception('Client not found.');
@@ -72,6 +95,7 @@ exports.Session = new Class({
         }
         client.send(message);
     },
+    /* Clients can be array of client objects or empty */
     broadcastToClients:function(message, clients){
         if(!clients || !clients.length) clients = this.clients;
         clients.each(function(client){
