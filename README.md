@@ -22,8 +22,8 @@ Aragorn.cz v4
 * Try your site
 
 Authors:
-    Core:   
-            Jakub Buriánek
-            Jakub Korál
-    Modules:
-            Jakub Buriánek
+* Core:   
+** Jakub Buriánek
+** Jakub Korál
+* Modules:
+** Jakub Buriánek
