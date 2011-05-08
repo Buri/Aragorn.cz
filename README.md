@@ -24,10 +24,8 @@ Aragorn.cz v4
 **Authors:**
 
 * Core:   
-
-** Jakub Buriánek
-** Jakub Korál
+  * Jakub Buriánek
+  * Jakub Korál
 
 * Modules:
-
-** Jakub Buriánek
+  * Jakub Buriánek
