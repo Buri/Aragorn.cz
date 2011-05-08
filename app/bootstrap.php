@@ -23,17 +23,15 @@ $router[] = new NRoute('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'presenter' => 'ajax',
                 'action' => 'default'
 ));
-$router[] = new NRoute('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
-                'module' => 'frontend',
-                'presenter' => 'dashboard',
-                'action' => 'default'
-));
 $router[] = new NRoute('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'admin',
                 'presenter' => 'dashboard',
                 'action' => 'default'
 ));
+$router[] = new NRoute('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+                'module' => 'frontend',
+                'presenter' => 'dashboard',
+                'action' => 'default'
+));
 
-
-$user =  NEnvironment::getUser();
 $application->run();

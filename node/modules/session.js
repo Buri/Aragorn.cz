@@ -69,7 +69,8 @@ exports.Session = new Class({
         }
     },
     exit:function(){
-        this.redis.quit();
+        if(typeOf(this.redis.quit) == 'function')
+            this.redis.quit();
         delete this.redis;
     },
     eraseTimeout:{},
@@ -93,6 +94,8 @@ exports.Session = new Class({
             if(this.clients.indexOf('client') == -1) throw new Exception('Client not found.');
             client = socket.clients[client];
         }
+        message.time = new Date().getTime();
+        message.identity = client.identity;
         client.send(message);
     },
     /* Clients can be array of client objects or empty */

@@ -46,7 +46,7 @@ class UserAuthenticator extends NObject implements IAuthenticator{
         $password = sha1($credentials[self::PASSWORD]);
     
         // přečteme záznam o uživateli z databáze
-        $usrs = DB::users()->select("username,id")->where("username LIKE ?", $username);
+        $usrs = DB::users()->select("username,id,groupid")->where("username LIKE ?", $username);
         if (!$usrs->count()) { // uživatel nenalezen?
             throw new NAuthenticationException("User '$username' not found.", self::IDENTITY_NOT_FOUND);
         }
@@ -63,6 +63,7 @@ class UserAuthenticator extends NObject implements IAuthenticator{
             throw new BanAuthenticationException((string)$x["username"] . ";" . (string)$y["username"], self::BANNED, $ban);
         }
 
-        return new NIdentity($row["id"], null, array("username" => $row["username"])); // vrátíme identitu
+        //$group = DB::groups("id", $row["groupid"])->select("name")->fetch();
+        return new NIdentity($row["id"], $row["groupid"], array("username" => $row["username"])); // vrátíme identitu
     }
 }

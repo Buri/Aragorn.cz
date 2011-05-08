@@ -48,7 +48,7 @@ class frontend_registracePresenter extends BasePresenter {
         $form->onSubmit[] = callback($this, 'processRegisterForm');
 
         $form->setAction($this->link("register"));
-        $form->getElementPrototype()->action = $this->link("register");
+        //$form->getElementPrototype()->action = $this->link("register");
         
         return $form;
     }
