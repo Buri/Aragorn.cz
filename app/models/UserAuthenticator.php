@@ -5,25 +5,15 @@
  * @author Buri
  */
 
-class AraIdentity extends NIdentity implements IIdentity {
-    //put your code here
-
-
-    public function __constuct($id = 0, $username = "Host", $roles = null, $data = null){
-        $this->id = $id;
-        $this->username = $username;
-        parent::__construct($id, $roles, $data);
+/*class UserIdentity extends NIdentity {
+    public function __consturct($id, $roles = NULL, $data = NULL){
+        $data["permissions"] = new Permissions();
+        parent::_construct($id, $roles, $data);
     }
-/*    public function getId(){
-        return $this->id;
+    public function resetPermissions(){
+        $this->permissions->unload();
     }
-
-    public function getRoles(){
-        return array();
-    }
-*/
-    public function getUsername(){ return $this->username; }
-}
+}*/
 
 class BanAuthenticationException extends NAuthenticationException{
     private $bdata;

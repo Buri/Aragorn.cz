@@ -35,7 +35,7 @@ class DB{
             $dbcfg = NEnvironment::getConfig('database');
             self::$instance = new NotORM(new PDO($dbcfg['driver'] . ":" . $dbcfg['params'], $dbcfg['user'], $dbcfg['password']), 
                     new ConventionTable($primary = 'id', $foreign = 'id%s',$table = '%s'), 
-                    new NotORM_Cache_Memcache(MC::getInstance()));
+                    new NotORM_Cache_Memcache(MC::getMemcachedInstance()));
         }
         return self::$instance;
     }

@@ -61,7 +61,8 @@ class BasePresenter extends NPresenter{
     }
 
     public function actionLogout(){
-        NEnvironment::getUser()->logout();
+        Permissions::unload();
+        NEnvironment::getUser()->logout(true);
         $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE["sid"].'"}}';
         usock::writeReadClose($data, 4096);
         $this->redirect(301, "dashboard:default");
