@@ -11,7 +11,8 @@ class frontend_chatPresenter extends BasePresenter {
             $this->getTemplate()->chatrooms[] = array("name"=>$row["name"], "password"=>($row["password"] ? true : false),
                 "id" => $row["id"],
                 "description" => $row["description"],
-                "occupants" => $users);;
+                "max" => $row["max"],
+                "occupants" => $users);
         }
     }
     public function actionRoom($id){
@@ -30,10 +31,13 @@ class frontend_chatPresenter extends BasePresenter {
     }
     
     public function actionEnter($id, $param){
-        $r = DB::chatrooms('id', $id)->select('id,password');
+        $r = DB::chatrooms('id', $id)->select('id,password,max');
         if($r->count()){
             $r = $r->fetch();
-            if(!$r["password"] || $r["password"] == $param){
+            if(!$r["password"] || NEnvironment::getUser()->isAllowed('chat', 'override_password') || $r["password"] == $param){                
+                if($r["max"] && !NEnvironment::getUser()->isAllowed('chat', 'override_limit') && DB::chatroom_occupants("idroom", $id)->count() >= $r["max"]){
+                    $this->redirect(301, 'chat:');
+                }
                 if(!DB::chatroom_occupants()->where('idusers = ?', NEnvironment::getUser()->getId())->count())
                     DB::chatroom_occupants()->insert(array("id"=>0, "idroom"=>$id, "idusers"=>NEnvironment::getUser()->getId(), "activity"=>time()));
                 usock::writeReadClose('{"command":"chat", "data":{"uid":'.NEnvironment::getUser()->getId().',"name":'.json_encode(NEnvironment::getUser()->getIdentity()->data["username"]).', "room":'.$r["id"].', "action":"enter"}}', 4096);

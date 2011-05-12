@@ -18,6 +18,32 @@ USE `aragorn_cz`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `groups`
+--
+
+DROP TABLE IF EXISTS `groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `groups` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `parent` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `groups`
+--
+
+LOCK TABLES `groups` WRITE;
+/*!40000 ALTER TABLE `groups` DISABLE KEYS */;
+INSERT INTO `groups` VALUES (1,'guest',-1),(2,'member',-1),(3,'moderator',2),(4,'admin',3),(0,'root',-1);
+/*!40000 ALTER TABLE `groups` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `chatroom_occupants`
 --
 
@@ -56,7 +82,7 @@ CREATE TABLE `users` (
   `groupid` smallint(5) unsigned NOT NULL DEFAULT '2',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idusers_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,7 +91,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Buri',0);
+INSERT INTO `users` VALUES (1,'Buri',4),(2,'test',2);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -110,7 +136,7 @@ CREATE TABLE `chatrooms` (
   `name` varchar(255) NOT NULL DEFAULT 'Nova mistnost',
   `type` enum('public','game') NOT NULL DEFAULT 'public',
   `description` text,
-  `limit` int(11) NOT NULL DEFAULT '0',
+  `max` int(11) NOT NULL DEFAULT '0',
   `password` varchar(255) DEFAULT NULL,
   `creator` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -124,7 +150,7 @@ CREATE TABLE `chatrooms` (
 
 LOCK TABLES `chatrooms` WRITE;
 /*!40000 ALTER TABLE `chatrooms` DISABLE KEYS */;
-INSERT INTO `chatrooms` VALUES (1,'Hospoda','','Hospoda p?ece musí být',0,NULL,2),(2,'Dalsi mistnost','','Heslo: test, max 6 lidi',6,'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3',2);
+INSERT INTO `chatrooms` VALUES (1,'Hospoda','','Hospoda p?ece musí být',0,NULL,2),(2,'Dalsi mistnost','','Heslo: test, max 6 lidi',1,'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3',2);
 /*!40000 ALTER TABLE `chatrooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -153,29 +179,27 @@ LOCK TABLES `users_activity` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `groups`
+-- Table structure for table `users_preferences`
 --
 
-DROP TABLE IF EXISTS `groups`;
+DROP TABLE IF EXISTS `users_preferences`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `groups` (
+CREATE TABLE `users_preferences` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) DEFAULT NULL,
-  `parent` int(11) DEFAULT NULL,
+  `preference` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `groups`
+-- Dumping data for table `users_preferences`
 --
 
-LOCK TABLES `groups` WRITE;
-/*!40000 ALTER TABLE `groups` DISABLE KEYS */;
-INSERT INTO `groups` VALUES (1,'guest',-1),(2,'member',-1),(3,'moderator',2),(4,'admin',3),(0,'root',-1);
-/*!40000 ALTER TABLE `groups` ENABLE KEYS */;
+LOCK TABLES `users_preferences` WRITE;
+/*!40000 ALTER TABLE `users_preferences` DISABLE KEYS */;
+/*!40000 ALTER TABLE `users_preferences` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -194,7 +218,7 @@ CREATE TABLE `registration` (
   `mail` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idregistration_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,7 +245,7 @@ CREATE TABLE `users_profiles` (
   `login` int(11) unsigned zerofill DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -230,7 +254,7 @@ CREATE TABLE `users_profiles` (
 
 LOCK TABLES `users_profiles` WRITE;
 /*!40000 ALTER TABLE `users_profiles` DISABLE KEYS */;
-INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,00000000000);
+INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,00000000000),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,00000000000);
 /*!40000 ALTER TABLE `users_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -250,7 +274,7 @@ CREATE TABLE `permissions` (
   `value` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -259,6 +283,7 @@ CREATE TABLE `permissions` (
 
 LOCK TABLES `permissions` WRITE;
 /*!40000 ALTER TABLE `permissions` DISABLE KEYS */;
+INSERT INTO `permissions` VALUES (1,'test',NULL,1,'group',1),(2,'test','write',0,'user',0),(3,'admin',NULL,4,'group',1),(4,'chat',NULL,4,'group',1);
 /*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -271,4 +296,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2011-05-08 21:24:02
+-- Dump completed on 2011-05-12 19:31:33

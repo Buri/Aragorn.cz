@@ -2,3 +2,4 @@
 {$title='Chat'}
 {block content}
 {include #innercontent}
+{if $user->isAllowed('chat', 'modify')}[<a href="">Administrace</a>]{/if}

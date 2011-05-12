@@ -80,7 +80,7 @@ class UserAuthorizator extends NObject implements IAuthorizator
     public function isAllowed($role = self::ALL, $resource = self::ALL, $privilege = self::ALL)
     {
         /* Role must be defined */
-        if($role === null) return false;
+        if($role == null || !NEnvironment::getUser()->isLoggedIn()) return false;
         /* root is allowed to do anything */
         if($role == 0 || NEnvironment::getUser()->getId() == 0) return true; 
         

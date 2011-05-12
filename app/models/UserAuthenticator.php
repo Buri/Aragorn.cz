@@ -28,7 +28,6 @@ class BanAuthenticationException extends NAuthenticationException{
 };
 
 class UserAuthenticator extends NObject implements IAuthenticator{
-    //put your code here
     const BANNED = 6;
     public function authenticate(array $credentials)
     {
@@ -54,6 +53,7 @@ class UserAuthenticator extends NObject implements IAuthenticator{
         }
 
         //$group = DB::groups("id", $row["groupid"])->select("name")->fetch();
-        return new NIdentity($row["id"], $row["groupid"], array("username" => $row["username"])); // vrátíme identitu
+        $prefs = DB::users_preferences("id", $row["id"])->fetch();
+        return new NIdentity($row["id"], $row["groupid"], array("username" => $row["username"], "preferences" => json_decode($prefs["preference"]))); // vrátíme identitu
     }
 }
