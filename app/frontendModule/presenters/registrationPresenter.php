@@ -7,7 +7,7 @@
  *
  */
 
-class frontend_registracePresenter extends BasePresenter {
+class frontend_registrationPresenter extends BasePresenter {
 
     public function createComponentRegisterForm() {
         $form = new NAppForm;
@@ -76,14 +76,14 @@ class frontend_registracePresenter extends BasePresenter {
         $headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
         $headers .= "From: registrace@" . $_SERVER["SERVER_NAME"] . "\r\nX-Mailer: PHP/" . phpversion();
 
-        $l = $this->link("dokoncit", $data["token"]);
+        $l = $this->link("finish", $data["token"]);
         $bdy = 'Blablabla <a href="' . $l . '">' . $l . '</a>';
 
         $this->getTemplate()->p = $bdy;
         #mail($data["mail"], "Registrace na serveru " . $_SERVER["SERVER_NAME"], $bdy, $headers);
     }
 
-    public function actionDokoncit( $id ){
+    public function actionFinish( $id ){
         $this->getTemplate()->message = "";
         $reg = DB::registration()->where("token = ?", $id);
         if(!count($reg)){

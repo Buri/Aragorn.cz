@@ -43,14 +43,14 @@ class frontend_chatPresenter extends BasePresenter {
                 usock::writeReadClose('{"command":"chat", "data":{"uid":'.NEnvironment::getUser()->getId().',"name":'.json_encode(NEnvironment::getUser()->getIdentity()->data["username"]).', "room":'.$r["id"].', "action":"enter"}}', 4096);
                 $this->redirect(301, 'chat:room', $id);
             }else{
-                $this->redirect(301, 'chat:spatneheslo');
+                $this->redirect(301, 'chat:badpasswd');
             }
         }else{
             $this->redirect(301, 'chat:');
         }
     }
     
-    public function actionSpatneheslo(){
+    public function actionBadpasswd(){
         $this->setView('default');
         $this->getTemplate()->message = "Zadali jste špatné heslo.";
         $this->actionDefault();

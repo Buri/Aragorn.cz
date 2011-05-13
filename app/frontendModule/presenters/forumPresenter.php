@@ -1,6 +1,6 @@
 <?php
 
-class frontend_postaPresenter extends BasePresenter {
+class frontend_forumPresenter extends BasePresenter {
 
     public function renderDefault() {
     }

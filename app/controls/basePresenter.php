@@ -56,7 +56,7 @@ class BasePresenter extends NPresenter{
             $this->redirect(301, 'ban:');
         }
         catch(NAuthenticationException $e){
-            $this->redirect(301, 'neplatneprihlaseni:');
+            $this->redirect(301, 'badlogin:');
         }
     }
 

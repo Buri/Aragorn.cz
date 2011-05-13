@@ -1,19 +1,16 @@
         <div class="menu main">
             <a href="{link chat:}" class="middle">Chat</a> |
-            <a href="{link napoveda:}" class="middle">Nápověda</a> |
-            <a href="{link uzivatele:}" class="middle">Uživatelé</a> |
+            <a href="{link help:}" class="middle">Nápověda</a> |
+            <a href="{link users:}" class="middle">Uživatelé</a> |
             {if $user->isLoggedIn()}
-            <a href="{link nastaveni:}" class="middle">Nastavení</a> |
-            <a href="{link posta:}" class="middle">Pošta</a> |
+            <a href="{link settings:}" class="middle">Nastavení</a> |
+            <a href="{link mail:}" class="middle">Pošta</a> |
             <a href="{link logout}" class="middle">Odhlásit</a>
             {if $user->isAllowed('admin')}
             | <a href="{link :admin:dashboard:}" class="middle">RS</a>
             {/if}
             {else}
-            <a href="{link registrace:}" class="middle">Registrace</a> |
+            <a href="{link registration:}" class="middle">Registrace</a> |
             {control logInForm}
             {/if}
-        </div>
-        <div id="buddylist">
-            Seznam buddíků
         </div>

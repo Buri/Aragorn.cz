@@ -28,6 +28,17 @@ $router[] = new NRoute('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array
                 'presenter' => 'dashboard',
                 'action' => 'default'
 ));
+
+/* Load routing table from config */
+foreach(array('presenter', 'action') as $type){
+    $routing_table = array();
+    foreach(explode(",", NEnvironment::getVariable($type . "RoutingTable")) as $item){
+        $item = explode(":", $item);
+        $routing_table[$item[0]] = $item[1];
+    }
+    NRoute::setStyleProperty($type, NRoute::FILTER_TABLE, $routing_table);
+}
+
 $router[] = new NRoute('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
