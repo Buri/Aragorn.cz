@@ -7,8 +7,6 @@ Aragorn.cz v4
 * YAGNI (You ain't gonna need it)
 * UNIX Philosophy ([http://en.wikipedia.org/wiki/Unix_philosophy](http://en.wikipedia.org/wiki/Unix_philosophy "External link"))
 
-#### Development version ####
-
 **System requirements**
 
 * **PHP/5.3**
