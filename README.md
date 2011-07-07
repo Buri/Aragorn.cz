@@ -1,7 +1,11 @@
 Aragorn.cz v4
 =============
 
-#### Development version ####
+#### Principles ####
+
+* KISS (Keep it simple, stupid)
+* YAGNI (You ain't gonna need it)
+* UNIX Philosophy ([http://en.wikipedia.org/wiki/Unix_philosophy](http://en.wikipedia.org/wiki/Unix_philosophy "External link"))
 
 **System requirements**
 
