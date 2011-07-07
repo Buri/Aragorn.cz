@@ -11,11 +11,13 @@ class ajax_AjaxPresenter extends BasePresenter {
 
     public function actionTestIdentity(){
         /* Sync with node.js */
-        $data = '{"command":"user-login","data":{"PHPSESSID":"'.session_id().
-        '","nodeSession":"'.$_COOKIE["sid"].
-        '","id":'.NEnvironment::getUser()->getIdentity()->getId().
-        ',"username":"'.addslashes(NEnvironment::getUser()->getIdentity()->data["username"]).'"}}';
-        
+        $data = json_encode(array("command" => "user-login",
+                "data" => array("PHPSESSID" => session_id(),
+                    "nodeSession" => $_COOKIE["sid"],
+                    "id" => NEnvironment::getUser()->getIdentity()->getId(),
+                    "username" => NEnvironment::getUser()->getIdentity()->username,
+                    "preferences" => NEnvironment::getUser()->getIdentity()->preferences
+                )));
         $this->getTemplate()->data = usock::writeReadClose($data, 4096);
     }
 }

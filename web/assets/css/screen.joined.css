@@ -90,3 +90,13 @@ a{
     z-index: 80;
     background: black;
 }
+
+#constat{
+    background: red; 
+    display: inline-block; 
+    position: fixed; 
+    left: 0; 
+    top: 0; 
+    width: 20px; 
+    height: 20px;
+}

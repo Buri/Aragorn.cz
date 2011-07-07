@@ -50,7 +50,7 @@ var AragornClient = new Class({
         }
         this.ajax = this.Ajax.send.bind(this);
         this.transport.on('connect', this.fn.connectionEstablished);
-        this.transport.on('connectiong', function(){conslole.log('connecting', this);});
+        this.transport.on('connectiong', function(){ $('constat').setStyle('background', 'yellow'); conslole.log('connecting', this);});
         this.transport.on('connect_failed', this.fn.global);
         this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
         this.transport.on('message', this.fn.handleMessage.bind(this));
@@ -83,6 +83,7 @@ var AragornClient = new Class({
             console.error('FAIL!');
         },
         connectionEstablished:function(){
+            $('constat').setStyle('background', 'lime');
         },
         sessionHandshake:function(){
             console.log('HANDSHAKE!');
@@ -96,6 +97,7 @@ var AragornClient = new Class({
         },
         handleDisconnect:function(){
             this.connected = false;
+            $('constat').setStyle('background', 'red');
         },
         getIdentity:function(){
             if(window.AUTHENTICATED === true){
@@ -137,7 +139,7 @@ var AragornClient = new Class({
                     break;
                 default:
                     console.log(msg);
-                    console.log('Fire event: cmd_' + msg.cmd);
+                    //console.log('Fire event: cmd_' + msg.cmd);
                     this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
                     break;
             }
@@ -173,7 +175,26 @@ var AragornClient = new Class({
         return this.removeEvent('cmd_' + cmd);
     }
 }), AC = null;
+/*Linker = new Request.HTML({
+    update:$('content'),
+    onSuccess:function(){
+        console.log('Done loading');
+    }
+});
+Linker.callback = function(e){
+    e.stop();
+    Linker.get({url:this.href});
+};
+Linker.hook = '';*/
 
 window.addEvent('domready', function(){
+    History.addEvent('change', function(url){
+        alert('History changed: ' + url);
+    });
     AC = new AragornClient();
+    new LazyLoad();
+    /*$$('a[href]').addEvent('click', function(e){
+        e.stop();
+        $('content').load(this.href);
+    });*/
 });

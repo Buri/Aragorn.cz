@@ -18,40 +18,71 @@
         <base target="_blank" />
         <link rel="shortcut icon" type="image/x-icon" href="http://www.aragorn.cz/favicon.ico" />
         <link rel="stylesheet" media="print" type="text/css" href="{!$staticPath}/css/printing.css" />
-        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
+        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
+        <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/mootools-core-1.3.1-full-nocompat-yc.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/mootools-more.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/socket.io.min.js"></script>
+        <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/lazyload.js"></script>
+        <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/powertools.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/aragorn-yc.js"></script>
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = NEnvironment::getUser()->isLoggedIn()}};
+            window.rid = {{$rid}};
             var ChatClient = new Class({});
+            var ConnectedUsers = [];
             window.addEvent('domready', function(){
                 AC.registerCmd('chat', function(msg){
                     console.log(msg);
                     switch(msg.action){
                         case 'post':
-                            $('sklo').set('text', msg.from + ':' + msg.message + '\n' + $('sklo').get('text'));
+                            /*$('sklo').set('text', msg.from + ':' + msg.message + '\n' + $('sklo').get('text'));*/
+                            var d = new Date();
+                            d.setTime(msg.time);
+                            new Element('div', {
+                                id:'msg' + msg.id,
+                                styles:{
+                                    color:msg.color
+                                }
+                            }).adopt(new Element('span', {
+                                    'class':'datetime',
+                                    text:(d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ' '
+                                }),
+                                new Element('strong', {text:msg.from + ': '}),
+                                new Element('span', {text:msg.message})
+                            ).inject($('glass'), 'top');
                             break;
                         case 'queue':
                             for(var i = 0; i < msg.queue.length; i++){
                                 AC.fireEvent('cmd_chat', msg.queue[i].data);
                             }
                             break;
+                        case 'userlist':
+                            $$('#user-list *').dispose(); 
+                            ConnectedUsers = msg.list;
+                            ConnectedUsers.each(function(el){
+                                $('user-list').adopt(new Element('span', {text:el.name}));
+                            });
+                            break;
+                        /*case 'add-user':
+                            ConnectedUsers.include(msg.name);
+                            break;*/
                      }
                 });
-                AC.send('chat', {action:'enter', id:{{$rid}}});
-                AC.send('chat', {action:'queue', id:{{$rid}}});
+                AC.send('chat', {action:'enter', id:rid});
+                AC.send('chat', {action:'userlist', id:rid});
             });
         </script>
-        <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
-
     </head>
     <body n:syntax="double">
-        <form onsubmit="AC.send('chat',{action:'post', id:{{$rid}}, message:this.msg.value}); this.msg.value=''; return false;">
-            <input type="text" name="msg" /> <button type="submit">Odeslat</button>
-        </form>
-        <a href="{{link leave $rid}}" target="_self">Odejít</a>
-        <div id="sklo" style="white-space: pre-wrap;"></div>
+        <div id="user-list"></div>
+        <div id="glass" style="white-space: pre-wrap;"></div>
+        <div style="position:fixed; height: 30px; bottom: 0; left:0;right:0;">
+            <form onsubmit="AC.send('chat',{action:'post', id:rid, message:this.msg.value}); this.msg.value=''; return false;" style="display:inline;">
+                Zpráva: <input type="text" name="msg" /> <button type="submit">Odeslat</button>
+            </form>
+            <a href="{{link leave $rid}}" target="_self">Odejít</a>
+        </div>
+        <div id="constat" title="Connection status">&nbsp;</div>
     </body>
 </html>

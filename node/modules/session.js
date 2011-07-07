@@ -38,7 +38,8 @@ exports.Session = new Class({
     sessionId:0,
     user:{
         id:0,
-        name:''
+        name:'',
+        preferences:{}
     },
     phpid:'',
     redis:{},
@@ -50,10 +51,7 @@ exports.Session = new Class({
         this.clients.push(client.sessionId);
 
         client.redis = redis.createClient();
-        /*client.redis.on('subscribe', function(channel){});
-        client.redis.on('unsubscribe', function(channel){});*/
         client.redis.on('message', this.handleRedis.bind(client));
-        client.redis.subscribe('/system');
         client.sendToChannel = this.sendToChannel.bind(this);
         client.session = this;
     },

@@ -35,10 +35,13 @@ class BasePresenter extends NPresenter{
         try{
             NEnvironment::getUser()->login($v["username"], $v["password"]);
             /* Sync with node.js */
-            $data = '{"command":"user-login","data":{"PHPSESSID":"'.session_id().
-            '","nodeSession":"'.$_COOKIE["sid"].
-            '","id":'.NEnvironment::getUser()->getIdentity()->getId().
-            ',"username":"'.addslashes(NEnvironment::getUser()->getIdentity()->data["username"]).'"}}';
+            $data = json_encode(array("command" => "user-login",
+                "data" => array("PHPSESSID" => session_id(),
+                    "nodeSession" => $_COOKIE["sid"],
+                    "id" => NEnvironment::getUser()->getIdentity()->getId(),
+                    "username" => NEnvironment::getUser()->getIdentity()->username,
+                    "preferences" => NEnvironment::getUser()->getIdentity()->preferences
+                )));
             usock::writeReadClose($data, 4096);
             $this->redirect(301, 'this');
         }

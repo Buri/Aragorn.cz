@@ -1,5 +1,7 @@
+var starttime = new Date().getTime();
 require.paths.push('/var/node/modules/');
 require('./node_modules/mootools.js').apply(GLOBAL);
+//require('v8-profiler');
 
 /*
  * Module loading
@@ -9,6 +11,7 @@ var http = require('http'),
     io = require('socket.io'),
     net = require('net'),
     fs = require('fs'),
+    utility = require('./modules/utility.js'),
     
     /* Custom modules */
     Session = require('./modules/session.js').Session,
@@ -72,17 +75,40 @@ var http = require('http'),
         sessionHook:function(message, client){
             return this.list[message.cmd].sessionHook(message, client);
         },
+        getList:function(){
+            var r = [];
+            for(var m in this.list) r.push(m);
+            return r;
+        },
         list:{}
-    },
+    };
+    utility.apply(GLOBAL);
     
     /*
      * Setup servers 
      */
     
     /* Main WS server@8000 */
-    server = http.createServer(function(req, res){
+    var server = http.createServer(function(req, res){        
         res.writeHead(200, {'Content-Type': 'text/html'});
-        res.end('<h1>You shouldnt be here.</h1>');
+        res.write('<h1>System information</h1>\n');
+        res.write(
+            '<style type="text/css">.b{font-weight:bold;}</style>\n' +
+            '<table>\n' +
+            '<tr><th colspan="2">Server</th></tr>\n' +
+            '<tr><td class="b">Software:</td><td>Node@' + process.version + '</tr></td>\n' +
+            '<tr><td class="b">Process:</td><td>' + process.title + ' (pid: ' + process.pid + ')</tr></td>\n' +
+            '<tr><td class="b">Platform:</td><td>' + process.platform + '</tr></td>\n' +
+            '<tr><td class="b">Memory usage:</td><td>' + process.memoryUsage().rss.bytes2string() + '/1024MB</tr></td>\n' +
+            '<tr><td class="b">Uptime:</td><td>' + utility.serverUptime(starttime) + '</tr></td>\n' +
+            '<tr><th colspan="2">Software</th></tr>\n' +
+            // '<tr><td class="b">Configuration:</td><td>' + JSON.stringify(Config) + '</tr></td>\n' +
+            '<tr><td class="b">Modules:</td><td>' + Modules.getList().combine(['session', 'utils']).sort().join(', ') + '</tr></td>\n' +
+            '<tr><td class="b">Sessions:</td><td>' + utility.serverUptime(starttime) + '</tr></td>\n' +
+            '<tr><td class="b">Clients:</td><td>' + Clients.length + '</tr></td>\n' +
+            '</table>\n'
+        );
+        res.end('<hr />\nCreated by <a href="http://aragorn.cz/">Aragorn.cz</a> &copy; 2011');
     }),
    
     /*
@@ -100,6 +126,7 @@ var http = require('http'),
                             Clients['session' + json.data.nodeSession].phpid = json.data.PHPSESSID;
                             Clients['session' + json.data.nodeSession].user.id = json.data.id;
                             Clients['session' + json.data.nodeSession].user.name = json.data.username;
+                            Clients['session' + json.data.nodeSession].user.preferences = json.data.preferences;
                             this.write('OK');
                         }else{
                             this.write("SESSION_NOT_FOUND");
@@ -134,7 +161,16 @@ console.log('Server listening at port ' + Config.common.port);
  * Module list in config.ini
  * Names separated by comma (,)
  */
-Config.common.modules.split(',').each(function(name){Modules.register(name);});
+var mods = Config.common.modules.split(',');
+if(mods.length && mods[0]){
+    console.log('Modules found: ' + mods.length);
+    mods.each(function(name){
+        console.log('Registering module ' + name);
+        Modules.register(name);
+    });
+}else{
+    console.log('Server loaded without modules.');
+}
 
 /*
  * Creates unix socket at target location for PHP => node.js communication

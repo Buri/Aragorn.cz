@@ -3,3 +3,5 @@
 !/temp/.gitignore
 /logs/*
 !/logs/.gitignore
+/node/node_modules/*
+

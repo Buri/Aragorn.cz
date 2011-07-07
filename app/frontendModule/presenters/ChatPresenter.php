@@ -40,7 +40,14 @@ class frontend_chatPresenter extends BasePresenter {
                 }
                 if(!DB::chatroom_occupants()->where('idusers = ?', NEnvironment::getUser()->getId())->count())
                     DB::chatroom_occupants()->insert(array("id"=>0, "idroom"=>$id, "idusers"=>NEnvironment::getUser()->getId(), "activity"=>time()));
-                usock::writeReadClose('{"command":"chat", "data":{"uid":'.NEnvironment::getUser()->getId().',"name":'.json_encode(NEnvironment::getUser()->getIdentity()->data["username"]).', "room":'.$r["id"].', "action":"enter"}}', 4096);
+                usock::writeReadClose(json_encode(array("command" => "chat",
+                    "data" => array(
+                        "uid" => NEnvironment::getUser()->getId(),
+                        "name" => NEnvironment::getUser()->getIdentity()->username,
+                        "room" => $r["id"],
+                        "action" => "enter"
+                    )
+                )), 4096);
                 $this->redirect(301, 'chat:room', $id);
             }else{
                 $this->redirect(301, 'chat:badpasswd');
@@ -60,7 +67,14 @@ class frontend_chatPresenter extends BasePresenter {
         $u = DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, NEnvironment::getUser()->getId()));
         if($u->count()){
             $u->delete();
-            usock::writeReadClose('{"command":"chat", "data":{"uid":'.NEnvironment::getUser()->getId().',"name":'.json_encode(NEnvironment::getUser()->getIdentity()->data["username"]).', "room":'.$id.', "action":"leave"}}', 4096);
+            usock::writeReadClose(json_encode(array("command" => "chat",
+                    "data" => array(
+                        "uid" => NEnvironment::getUser()->getId(),
+                        "name" => NEnvironment::getUser()->getIdentity()->username,
+                        "room" => $id,
+                        "action" => "leave"
+                    )
+                )), 4096);
         }
         $this->redirect(301, 'default');
     }
