@@ -50,7 +50,7 @@ var AragornClient = new Class({
         }
         this.ajax = this.Ajax.send.bind(this);
         this.transport.on('connect', this.fn.connectionEstablished);
-        this.transport.on('connectiong', function(){ $('constat').setStyle('background', 'yellow'); conslole.log('connecting', this);});
+        this.transport.on('connectiong', function(){ $('constat').setStyle('background', 'yellow'); $('constat').set('title', 'Connection status: connecting'); conslole.log('connecting', this);});
         this.transport.on('connect_failed', this.fn.global);
         this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
         this.transport.on('message', this.fn.handleMessage.bind(this));
@@ -84,6 +84,7 @@ var AragornClient = new Class({
         },
         connectionEstablished:function(){
             $('constat').setStyle('background', 'lime');
+            $('constat').set('title', 'Connection status: online');
         },
         sessionHandshake:function(){
             console.log('HANDSHAKE!');
@@ -98,6 +99,7 @@ var AragornClient = new Class({
         handleDisconnect:function(){
             this.connected = false;
             $('constat').setStyle('background', 'red');
+            $('constat').set('title', 'Connection status: offline');
         },
         getIdentity:function(){
             if(window.AUTHENTICATED === true){
@@ -138,8 +140,6 @@ var AragornClient = new Class({
                 case 'INVALID_SID':
                     break;
                 default:
-                    console.log(msg);
-                    //console.log('Fire event: cmd_' + msg.cmd);
                     this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
                     break;
             }

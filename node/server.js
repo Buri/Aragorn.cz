@@ -28,6 +28,13 @@ var http = require('http'),
     Clients = {
         remove:function(id){
             if(this['session' + id]) delete this['session' + id];
+        },
+        length:function(){
+            var i = 0;
+            for(var m in this)
+                if(typeOf(this[m]) != 'function')
+                    i++;
+            return i;
         }
     },
     
@@ -53,7 +60,7 @@ var http = require('http'),
         /* Public api */
         register:function(name){
             var module = require('./modules/' + name + '.js');
-            return this.list[name] = module.create();
+            return this.list[name] = module.create(Config);
         },
         remove:function(name){
             if(this.list[name]) delete this.list[name];
@@ -104,8 +111,8 @@ var http = require('http'),
             '<tr><th colspan="2">Software</th></tr>\n' +
             // '<tr><td class="b">Configuration:</td><td>' + JSON.stringify(Config) + '</tr></td>\n' +
             '<tr><td class="b">Modules:</td><td>' + Modules.getList().combine(['session', 'utils']).sort().join(', ') + '</tr></td>\n' +
-            '<tr><td class="b">Sessions:</td><td>' + utility.serverUptime(starttime) + '</tr></td>\n' +
-            '<tr><td class="b">Clients:</td><td>' + Clients.length + '</tr></td>\n' +
+            '<tr><td class="b">Sessions:</td><td>' + Clients.length() + '</tr></td>\n' +
+            '<tr><td class="b">Clients:</td><td>' + JSON.stringify(io) + '</tr></td>\n' +
             '</table>\n'
         );
         res.end('<hr />\nCreated by <a href="http://aragorn.cz/">Aragorn.cz</a> &copy; 2011');

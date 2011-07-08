@@ -1,0 +1,35 @@
+/* 
+    Document   : common
+    Created on : 8.7.2011, 14:20:20
+    Author     : Buri
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+.floating-tip {
+    background-color: #333;
+    border: 1px solid #666;
+    padding: 5px 15px;
+    color: #dddddd;
+    font-weight: bold;
+    font-size: 11px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    opacity: 0.6;
+}
+
+#constat{
+    background: red; 
+    display: inline-block; 
+    position: fixed; 
+    left: 0; 
+    top: 0; 
+    width: 20px; 
+    height: 20px;
+}

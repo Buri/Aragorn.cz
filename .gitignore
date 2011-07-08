@@ -1,6 +1,7 @@
 *~
 /temp/*
 !/temp/.gitignore
+!/temp/userspace/*
 /logs/*
 !/logs/.gitignore
 /node/node_modules/*

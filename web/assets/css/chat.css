@@ -22,13 +22,8 @@ body{
 .datetime{
     color:gray;
 }
-
 #constat{
-    background: red; 
-    display: inline-block; 
-    position: fixed; 
-    right: 0; 
-    top: 0; 
-    width: 20px; 
-    height: 20px;
+    right: 0 !important;
+    left: inherit;
+    position: fixed;
 }

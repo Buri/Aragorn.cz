@@ -5,54 +5,70 @@ exports.ChatServer = new Class({
     Implements:[Options, Events],
     options:{
         length:30,          // How many messages to store in one channel? Defaults to 500
-        timeout:15*60       // How long before message is deleted
+        timeout:15*60,       // How long before message is deleted
+        userServer:'static.aragorn.cz'
     },
     initialize:function(options){
         this.setOptions(options);
         this.redis = Redis.createClient();
     },
-    sysMsg:function(channel, message){
+    sysMsg:function(channel, message, store){
         message.user = {id:0, name:'System'};
         message.time = new Date().getTime();
         message.data.color = '#7B6200';
         message.data.id = this.newMsgId(channel);
-        this.storeMessage(channel, message);
+        if(store)
+            this.storeMessage(channel, message);
         this.redis.publish(channel, JSON.stringify(message));
     },
     redis:null,
     storage:{},
     users:{},
     usersInfo:{},
+    /* 
+     * States: idle, writing, deleting, textready, disconnected
+     * Roles:  guest, user, moderator, admin or fetched from db?
+     *
+     */
     sortUsers:function(a,b){
         if(a < b) return 1;
         else if(a == b) return 0;
         return -1;
     },
-    addUser:function(room, user){
+    addUser:function(room, user, info){
         this.setUsers(room, this.getUsers(room).include(user).sort(this.sortUsers));
         if(user)
-            this.usersInfo[user] = {};
+            this.usersInfo[user] = Object.merge(info || {icon:'http://' + this.options.userServer + '/i/nobody.jpg', status:'Lorem ipsum'}, {time:new Date().getTime(), state:'idle'}); 
+        this.broadcastUserUpdate(room);
     },
     removeUser:function(room, user){
         this.setUsers(room, this.getUsers(room).erase(user).sort(this.sortUsers));
         if(user)
             delete this.usersInfo[user];
+        this.broadcastUserUpdate(room);
     },
     getUsers:function(room){
         return this.users[room] || [];
     },
+    updateUser:function(room, user, data){
+        this.broadcastUserUpdate(room);
+    },
     getUsersO:function(room){
         var a = this.getUsers(room), r = [];
-        for(var i = 0; i < a.length; a++){
-            r[i] = Object.clone(this.usersInfo[a[i]]);
-            r[i].name = a[i];
+        for(var i = 0; i < a.length; i++){
+            var clone = Object.clone(this.usersInfo[a[i]]);
+            clone.name = a[i];
+            r.push(clone);
         }
         return r;
     },
-    
-    setUsers:function(room, users){
+    broadcastUserUpdate:function(cname){
+        this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}}, false);
+    },
+    setUsers:function(room, users, broadcastUpdate){
         this.users[room] = users || [];
-        console.log(this.getUsers(room));
+        if(broadcastUpdate)
+            this.broadcastUserUpdate(room);
         return this.users[room];
     },
     storeMessage:function(cname, message){
@@ -62,7 +78,6 @@ exports.ChatServer = new Class({
                 this.storage[cname].pop(); 
                 if(!this.storage[cname].length) 
                     delete this.storage[cname];
-                console.log(this.storage);
             }.bind(this, cname), this.options.timeout*1000), 
             d:message
         });
@@ -104,7 +119,7 @@ exports.ChatServer = new Class({
                 client.send({cmd:'chat', data:{action:'queue', queue:s}});
                 break;
             case 'userlist':
-                client.send({cmd:'chat', data:{action:'userlist', list:this.getUsers(cname)}});
+                client.send({cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
                 break;
             case 'leave':
                 client.redis.unsubscribe(cname);
@@ -126,19 +141,14 @@ exports.ChatServer = new Class({
     },
     unixHook:function(message){
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.room || 'null');
-        console.log("Unix: " + cname + ':' + JSON.stringify(message));
         switch(message.data.action){
             case "enter":
-                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}});
-                //this.sysMsg(cname, {cmd:'chat', data:{action:'add-user', user:{id:message.data.uid, name:message.data.name}}});
-                this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
-                this.addUser(cname,message.data.name);
+                this.addUser(cname,message.data.name, message.data.info);
+                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
                 break;
             case "leave":
-                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}});
-                this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
-                //this.sysMsg(cname, {cmd:'chat', data:{action:'remove-user', user:{id:message.data.uid}}});
                 this.removeUser(cname,message.data.name);
+                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
                 break;
             default:
                 return ('BAD_PARAM');
@@ -146,4 +156,4 @@ exports.ChatServer = new Class({
         return "OK";
     }
 });
-exports.create = function(){return new exports.ChatServer();}
+exports.create = function(conf){ return new exports.ChatServer({userServer:conf.common['variable.userServer']});}

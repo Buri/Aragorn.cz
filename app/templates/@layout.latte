@@ -30,21 +30,29 @@
         <link rel="alternate" title="Aragorn.cz RSS Galerie" href="http://{!$_SERVER['SERVER_NAME']}/rss/galerie/" type="application/rss+xml" />
         <link rel="shortcut icon" type="image/x-icon" href="http://www.aragorn.cz/favicon.ico" />
         <link rel="stylesheet" media="print" type="text/css" href="{!$staticPath}/css/printing.css" />
+        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/common.css" />
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/mootools-core-1.3.1-full-nocompat-yc.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/mootools-more.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/socket.io.min.js"></script>
         <!--<script src="http://test.aragorn.cz:8000/socket.io/socket.io.js"></script>-->
+        <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/floatingtips.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/lazyload.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/powertools.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/aragorn-yc.js"></script>
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = NEnvironment::getUser()->isLoggedIn()}};
+            window.addEvent('domready', function(){
+                new FloatingTips('div#constat',{
+                    position:'bottom',
+                    center:false
+                });
+            });
         </script>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class=''>
-        <div id="constat" title="Connection status">&nbsp;</div>
+        <div id="constat" title="Connection status: offline">&nbsp;</div>
         {include 'topmenu.latte'}
         <div class="holder">
             {include 'logo.latte'}

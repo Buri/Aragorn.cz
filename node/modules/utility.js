@@ -58,8 +58,9 @@ exports.serverUptime = function(starttime){
     }
     if(diff > 60){
         var mi = parseInt(diff / 60);
-        tstr += mi + ' minute' + (y > mi ? 's' : '') + ' ';
+        tstr += mi + ' minute' + (mi > 1 ? 's' : '') + ' ';
         diff -= mi * 60;
     }
     tstr += diff + ' second' + (diff > 1 ? 's' : '');
+    return tstr;
 }

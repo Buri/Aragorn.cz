@@ -18,6 +18,7 @@
         <base target="_blank" />
         <link rel="shortcut icon" type="image/x-icon" href="http://www.aragorn.cz/favicon.ico" />
         <link rel="stylesheet" media="print" type="text/css" href="{!$staticPath}/css/printing.css" />
+        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/common.css" />
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/mootools-core-1.3.1-full-nocompat-yc.js"></script>
@@ -25,18 +26,51 @@
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/socket.io.min.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/lazyload.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/powertools.js"></script>
+        <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/floatingtips.js"></script>
         <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/aragorn-yc.js"></script>
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = NEnvironment::getUser()->isLoggedIn()}};
             window.rid = {{$rid}};
-            var ChatClient = new Class({});
-            var ConnectedUsers = [];
-            window.addEvent('domready', function(){
-                AC.registerCmd('chat', function(msg){
-                    console.log(msg);
+            var Chat = null;
+            var ChatClient = new Class({
+                Implements:[Events, Options],
+                options:{
+                    tips:{
+                        position:'left',
+                        html:true,
+                        distance:55,
+                        content:function(e){ 
+                            var info = JSON.decode(e.get('data-info')),
+                                diff = parseInt((new Date().getTime() - info.time)/1000),
+                                act = {m:parseInt(diff/60), s:diff%60, type:{idle:'Čte', 'writing':'Píše...', 'textready':'Má rozepsaný text', deleting:'Maže...', offline:'Nepřipojený'}},
+                                html = '<img src="' + info.icon + '" style="max-height:50px; vertical-align: top;" />\n' +
+                                       '<div style="display:inline-block; margin-left:3px;">\n' +
+                                       '<b>' + info.name + '</b><br/>\n' + 
+                                       '<i>'+ act.m + ' min. a ' + act.s + ' sec.</i><br/>\n'+
+                                       '<span>' + act.type[info.state] + '</span><br/>\n' + 
+                                       '<span>' + info.status + '</span>' +
+                                       '</div>'; 
+                            return html;
+                        }
+                    },
+                    tipsSelector:'div.users',
+                    userList:'user-list',
+                    glass:'glass'
+                },
+                initialize:function(t, options){
+                    this.setOptions(options);
+                    t.registerCmd('chat', this._handle.bind(this));
+                    this.transport = t;
+                    t.send('chat', {action:'enter', id:rid});
+                    t.send('chat', {action:'userlist', id:rid});
+                    this.tips = new FloatingTips(this.options.tipsSelector, this.options.tips);
+                },
+                transport:null,
+                tips:null,
+                connectedUsers:[],
+                _handle:function(msg){
                     switch(msg.action){
                         case 'post':
-                            /*$('sklo').set('text', msg.from + ':' + msg.message + '\n' + $('sklo').get('text'));*/
                             var d = new Date();
                             d.setTime(msg.time);
                             new Element('div', {
@@ -50,7 +84,7 @@
                                 }),
                                 new Element('strong', {text:msg.from + ': '}),
                                 new Element('span', {text:msg.message})
-                            ).inject($('glass'), 'top');
+                            ).inject($(this.options.glass), 'top');
                             break;
                         case 'queue':
                             for(var i = 0; i < msg.queue.length; i++){
@@ -59,23 +93,27 @@
                             break;
                         case 'userlist':
                             $$('#user-list *').dispose(); 
-                            ConnectedUsers = msg.list;
-                            ConnectedUsers.each(function(el){
-                                $('user-list').adopt(new Element('span', {text:el.name}));
-                            });
+                            this.connectedUsers = msg.list;
+                            this.connectedUsers.each(function(usr){
+                                var e = new Element('div', {
+                                    'class':'users',
+                                    'data-info':JSON.stringify(usr),
+                                    text:usr.name
+                                });
+                                $(this.options.userList).grab(e);
+                            }.bind(this));
+                            this.tips.attach(this.options.tipsSelector);
                             break;
-                        /*case 'add-user':
-                            ConnectedUsers.include(msg.name);
-                            break;*/
                      }
-                });
-                AC.send('chat', {action:'enter', id:rid});
-                AC.send('chat', {action:'userlist', id:rid});
+                }
+            });
+            window.addEvent('domready', function(){
+                Chat = new ChatClient(AC);
             });
         </script>
     </head>
     <body n:syntax="double">
-        <div id="user-list"></div>
+        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border: 1px solid gray; bottom: 0;"></div>
         <div id="glass" style="white-space: pre-wrap;"></div>
         <div style="position:fixed; height: 30px; bottom: 0; left:0;right:0;">
             <form onsubmit="AC.send('chat',{action:'post', id:rid, message:this.msg.value}); this.msg.value=''; return false;" style="display:inline;">
