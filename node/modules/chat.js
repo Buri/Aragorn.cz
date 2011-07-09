@@ -4,9 +4,9 @@ var Redis = require('node-redis');
 exports.ChatServer = new Class({
     Implements:[Options, Events],
     options:{
-        length:30,          // How many messages to store in one channel? Defaults to 500
-        timeout:15*60,       // How long before message is deleted
-        userServer:'static.aragorn.cz'
+        length:50,          // How many messages to store in one channel? Defaults to 500
+        timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
+        userServer:'static.aragorn.cz' // From where to serve icons?
     },
     initialize:function(options){
         this.setOptions(options);
@@ -76,10 +76,12 @@ exports.ChatServer = new Class({
         tmp.unshift({
             t:setTimeout(function(cname){
                 this.storage[cname].pop(); 
+                /* Delete storage after channel is empty? If not, possible memory leaks... */
                 if(!this.storage[cname].length) 
                     delete this.storage[cname];
             }.bind(this, cname), this.options.timeout*1000), 
-            d:message
+            d:message,
+            id:message.data.id
         });
         if(tmp.length > this.options.length){
             clearTimeout(tmp[tmp.length - 1].t);
@@ -91,10 +93,11 @@ exports.ChatServer = new Class({
         return this.storage[cname] || [];
     },
     newMsgId:function(cname){
+        if(!cname) return 0;
         var tmp = this.getQueue(cname);
         tmp.counter = tmp.counter || 0;
         this.storage[cname] = tmp;
-        return tmp.counter++;
+        return ('msg' + cname.replace(/\//gi, '-') + (tmp.counter++));
     },
     clearChannel:function(channel){
         delete this.storage[channel];
@@ -125,12 +128,23 @@ exports.ChatServer = new Class({
                 client.redis.unsubscribe(cname);
                 client.redis.unsubscribe(cname + '/' + client.session.user.name);
                 break;
-            case "post":
+            case 'post':
                 if(!message.data.color)
                     message.data.color = client.session.user.preferences.chat.color;
                 message.data.id = this.newMsgId(cname);
                 this.storeMessage(cname, message);
                 client.sendToChannel(cname, message);
+                break;
+            case 'delete':
+                /* OVERIT OPRAVNENI NA MAZANI! */
+                if(true){
+                    var q = this.getQueue(cname), pos = q.binarySearch({id:message.data.messid}, function(a,b){a = parseInt(a.id.substr(a.id.lastIndexOf('-') + 1)); b = parseInt(b.id.substr(b.id.lastIndexOf('-') + 1)); return ( a < b ? 1 : (a == b ? 0 : -1)); });
+                    for(pos; pos < q.length - 1; pos++){
+                        q[pos] = q[pos + 1];
+                    }
+                    q.pop();
+                    this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
+                }
                 break;
         }
     },

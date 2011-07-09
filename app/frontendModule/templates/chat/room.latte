@@ -55,7 +55,8 @@
                     },
                     tipsSelector:'div.users',
                     userList:'user-list',
-                    glass:'glass'
+                    glass:'glass',
+                    limit:50
                 },
                 initialize:function(t, options){
                     this.setOptions(options);
@@ -74,17 +75,36 @@
                             var d = new Date();
                             d.setTime(msg.time);
                             new Element('div', {
-                                id:'msg' + msg.id,
+                                id:msg.id,
                                 styles:{
                                     color:msg.color
                                 }
-                            }).adopt(new Element('span', {
+                            }).adopt(
+                                new Element('a',{
+                                    href:'#',
+                                    text:'x',
+                                    events:{
+                                        click:function(e){
+                                            if(e) e.stop();
+                                            var mid = msg.id;
+                                            console.log('Delete message ' + mid);
+                                            this.transport.send('chat', {action:'delete', id:rid, messid:mid});
+                                        }.bind(this)
+                                    }
+                                }),
+                                new Element('span', {
                                     'class':'datetime',
                                     text:(d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ' '
                                 }),
                                 new Element('strong', {text:msg.from + ': '}),
                                 new Element('span', {text:msg.message})
                             ).inject($(this.options.glass), 'top');
+                            if(this.options.limit){
+                                var c = $$('#' + this.options.glass + ' div'), s = parseInt(typeOf(this.options.limit) == 'number' ? this.options.limit : $(this.options.limit).get('value'));
+                                for(var i = s - 1; i < c.length; i++){
+                                    c[i].dispose()
+                                }
+                            }
                             break;
                         case 'queue':
                             for(var i = 0; i < msg.queue.length; i++){
@@ -104,23 +124,35 @@
                             }.bind(this));
                             this.tips.attach(this.options.tipsSelector);
                             break;
+                        case 'delete':
+                            $$('#' + msg.message).dispose();
+                            break;
                      }
                 }
             });
             window.addEvent('domready', function(){
-                Chat = new ChatClient(AC);
+                Chat = new ChatClient(AC, {limit:'glass-length'});
+                $('msg').focus();
             });
         </script>
     </head>
     <body n:syntax="double">
-        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border: 1px solid gray; bottom: 0;"></div>
-        <div id="glass" style="white-space: pre-wrap;"></div>
+        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px;"></div>
+        <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed;"></div>
         <div style="position:fixed; height: 30px; bottom: 0; left:0;right:0;">
-            <form onsubmit="AC.send('chat',{action:'post', id:rid, message:this.msg.value}); this.msg.value=''; return false;" style="display:inline;">
-                Zpráva: <input type="text" name="msg" /> <button type="submit">Odeslat</button>
+            <form onsubmit="if(this.msg.value.length){ AC.send('chat',{action:'post', id:rid, message:this.msg.value}); this.msg.value='';}else{} return false;" style="display:inline;">
+                Zpráva: <input type="text" name="msg" id="msg" /> <button type="submit">Odeslat</button>
             </form>
+            <select name="glassLength" id="glass-length" title="Počet zobrazovaných zpráv" style="cursor: help;">
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="150">150</option>
+                <option value="200">200</option>
+                <option value="250">250</option>
+                <option value="300">300</option>
+            </select>
             <a href="{{link leave $rid}}" target="_self">Odejít</a>
         </div>
-        <div id="constat" title="Connection status">&nbsp;</div>
+        <div id="constat" title="Connection status: offline">&nbsp;</div>
     </body>
 </html>
