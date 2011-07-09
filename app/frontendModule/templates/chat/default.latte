@@ -2,11 +2,18 @@
 <div>
     {foreach $chatrooms as $room}
     <div>
-        {if NEnvironment::getUser()->isLoggedIn() && (!$room["max"] || $room["max"] > count($room["occupants"]) || $user->isAllowed('chat', 'override_limit'))}<a href="{link chat:enter $room['id']}"{if $room['password']} title="Uzamčená místnost - nutné heslo" {if !$user->isAllowed('chat', 'override_password')}onclick="var p = prompt('Zadejte heslo:'); if(!p) return false; this.href += p.sha1();"{/if} class="lock"{/if}>
-        {$room["name"]}</a>{else}<span{if $room['password']} title="Uzamčená místnost - nutné heslo" class="lock"{/if}>{$room["name"]}</span>{/if}
+        {if $user->isLoggedIn() && (!$room["max"] || $room["max"] > count($room["occupants"]) || $user->isAllowed('chat', 'override_limit'))}
+            <a href="{link chat:enter $room['id']}"{if $room['password']} title="Uzamčená místnost - nutné heslo" {if !$user->isAllowed('chat', 'override_password')}onclick="var p = prompt('Zadejte heslo:'); if(!p) return false; this.href += p.sha1();"{/if} class="lock"{/if}>
+            {$room["name"]}</a>
+            {if $user->isAllowed('chat', 'ninja')}
+            / <a n:href="ninja $room['id']" title="Vstoupit jako pozorovatel"><img src="{!$staticPath}/images/ninja.gif" /></a>
+            {/if}
+        {else}
+            <span{if $room['password']} title="Uzamčená místnost - nutné heslo" class="lock"{/if}>{$room["name"]}</span>
+        {/if}
         - {$room["description"]} - 
         {foreach $room["occupants"] as $occupant}
-            {$occupant}, 
+            {$occupant}{sep}, {/sep}
         {/foreach}
     </div>
     {/foreach}

@@ -16,6 +16,7 @@ exports.ChatServer = new Class({
         message.user = {id:0, name:'System'};
         message.time = new Date().getTime();
         message.data.color = '#7B6200';
+        message.data.size = 'small';
         message.data.id = this.newMsgId(channel);
         if(store)
             this.storeMessage(channel, message);
@@ -31,14 +32,17 @@ exports.ChatServer = new Class({
      *
      */
     sortUsers:function(a,b){
-        if(a < b) return 1;
+        /* Case insensitive sorting */
+        a = String(a).toUpperCase();
+        b = String(b).toUpperCase();
+        if(a > b) return 1;
         else if(a == b) return 0;
         return -1;
     },
     addUser:function(room, user, info){
         this.setUsers(room, this.getUsers(room).include(user).sort(this.sortUsers));
         if(user)
-            this.usersInfo[user] = Object.merge(info || {icon:'http://' + this.options.userServer + '/i/nobody.jpg', status:'Lorem ipsum'}, {time:new Date().getTime(), state:'idle'}); 
+            this.usersInfo[user] = Object.merge(info || {icon:'http://' + this.options.userServer + '/i/nobody.jpg', status:'Lorem ipsum', permissions:{'delete':false}, id:-1}, {time:new Date().getTime(), state:'idle'});
         this.broadcastUserUpdate(room);
     },
     removeUser:function(room, user){
@@ -51,13 +55,19 @@ exports.ChatServer = new Class({
         return this.users[room] || [];
     },
     updateUser:function(room, user, data){
+        this.usersInfo[user] = data;
         this.broadcastUserUpdate(room);
+    },
+    getUserInfo:function(user){
+        return this.usersInfo[user]
     },
     getUsersO:function(room){
         var a = this.getUsers(room), r = [];
         for(var i = 0; i < a.length; i++){
             var clone = Object.clone(this.usersInfo[a[i]]);
             clone.name = a[i];
+            delete clone.permissions;
+            delete clone.id;
             r.push(clone);
         }
         return r;
@@ -135,14 +145,22 @@ exports.ChatServer = new Class({
                 this.storeMessage(cname, message);
                 client.sendToChannel(cname, message);
                 break;
+            case 'state':
+                var u = this.getUserInfo(client.session.user.name);
+                if(u){
+                    u.state = message.data.state;
+                    this.updateUser(cname, client.session.user.name, u);
+                }
+                break;
             case 'delete':
-                /* OVERIT OPRAVNENI NA MAZANI! */
-                if(true){
-                    var q = this.getQueue(cname), pos = q.binarySearch({id:message.data.messid}, function(a,b){a = parseInt(a.id.substr(a.id.lastIndexOf('-') + 1)); b = parseInt(b.id.substr(b.id.lastIndexOf('-') + 1)); return ( a < b ? 1 : (a == b ? 0 : -1)); });
+                var usr = this.getUserInfo(client.session.user.name);
+                if(usr && usr.permissions['delete']){
+                    var q = this.getQueue(cname), pos = q.binarySearch({id:message.data.messid}, function(a,b){a = parseInt(a.id.substr(a.id.lastIndexOf('-') + 1));b = parseInt(b.id.substr(b.id.lastIndexOf('-') + 1));return ( a < b ? 1 : (a == b ? 0 : -1));});
                     for(pos; pos < q.length - 1; pos++){
                         q[pos] = q[pos + 1];
                     }
-                    clearTimeout(q.pop().t);
+                    q = q.pop();
+                    if(q) clearTimeout(q.t);
                     this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
                 }
                 break;
@@ -157,12 +175,18 @@ exports.ChatServer = new Class({
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.room || 'null');
         switch(message.data.action){
             case "enter":
-                this.addUser(cname,message.data.name, message.data.info);
-                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
+                if(this.getUsers(cname).binarySearch(message.data.name) == -1){
+                    this.addUser(cname, message.data.name, message.data.info);
+                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
+                }
                 break;
             case "leave":
-                this.removeUser(cname,message.data.name);
-                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                if(this.getUsers(cname).binarySearch(message.data.name) != -1){
+                    this.removeUser(cname, message.data.name);
+                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                }
+                cname += '/' + message.data.name;
+                this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', url:'/chat'}});
                 break;
             default:
                 return ('BAD_PARAM');
@@ -170,4 +194,4 @@ exports.ChatServer = new Class({
         return "OK";
     }
 });
-exports.create = function(conf){ return new exports.ChatServer({userServer:conf.common['variable.userServer']});}
+exports.create = function(conf){return new exports.ChatServer({userServer:conf.common['variable.userServer']});}
