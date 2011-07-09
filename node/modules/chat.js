@@ -142,7 +142,7 @@ exports.ChatServer = new Class({
                     for(pos; pos < q.length - 1; pos++){
                         q[pos] = q[pos + 1];
                     }
-                    q.pop();
+                    clearTimeout(q.pop().t);
                     this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
                 }
                 break;
