@@ -139,8 +139,8 @@ exports.ChatServer = new Class({
                 client.redis.unsubscribe(cname + '/' + client.session.user.name);
                 break;
             case 'post':
-                if(!message.data.color)
-                    message.data.color = client.session.user.preferences.chat.color;
+                if(!message.data.color && client.session.user.preferences)
+                    message.data.color = client.session.user.preferences.chat.color || '#fff' ;
                 message.data.id = this.newMsgId(cname);
                 this.storeMessage(cname, message);
                 client.sendToChannel(cname, message);

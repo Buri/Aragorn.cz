@@ -189,12 +189,12 @@ Linker.hook = '';*/
 
 window.addEvent('domready', function(){
     History.addEvent('change', function(url){
-        alert('History changed: ' + url);
+        console.log('History changed: ' + url);
     });
     AC = new AragornClient();
     new LazyLoad();
-    /*$$('a[href]').addEvent('click', function(e){
+    $$('a.ajax').addEvent('click', function(e){
         e.stop();
         $('content').load(this.href);
-    });*/
+    });
 });

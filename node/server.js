@@ -80,7 +80,10 @@ var http = require('http'),
             return this.list[message.command].unixHook(message);
         },
         sessionHook:function(message, client){
-            return this.list[message.cmd].sessionHook(message, client);
+            if(this.list[message.cmd])
+                return this.list[message.cmd].sessionHook(message, client);
+            console.error('Undefined message', message);
+            return false;
         },
         getList:function(){
             var r = [];
@@ -218,7 +221,7 @@ console.log('Unix socket opened in ' + Config.common.usock);
  *          >   %                                   (...)       If clients is registered to session calls Session.handleMessgae(message, client), otherwise logs cmd and replies INVALID_SID
  * Step 3: Send SESSION_REQUEST_IDENTITY command
  */
-socket = io.listen(server, {log:null});
+socket = io.listen(server);
 socket.handleMessage = function(msg){
         msg = msg || {cmd:''};
         switch(msg.cmd){

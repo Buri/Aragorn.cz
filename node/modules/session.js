@@ -33,6 +33,7 @@ exports.Session = new Class({
         this.setOptions(options);
         this.sessionId = sid;
         this.redis = redis.createClient();
+        this.redis.pingTimer = setTimeout(this.pingRedis.bind(this), 30*1000); /* ping every 30 sec */
     },
     clients:[],
     sessionId:0,
@@ -52,7 +53,9 @@ exports.Session = new Class({
 
         client.redis = redis.createClient();
         client.redis.on('message', this.handleRedis.bind(client));
+        client.redis.on('end', this.reconnectRedis.bind(client));
         client.sendToChannel = this.sendToChannel.bind(this);
+        client.redis.pingTimer = setTimeout(this.pingRedis.bind(client), 30*1000); /* ping every 30 sec */
         client.session = this;
     },
     removeClient:function(client){
@@ -81,9 +84,19 @@ exports.Session = new Class({
         message = JSON.parse(message);
         return this.session.options.redisHook(message, this, channel);
     },
+    reconnectRedis:function(e){
+        this.redis = redis.createClient();
+        //console.log('Redis reconnect');
+    },
+    pingRedis:function(){
+        /* Just to keep connection alive */
+        this.redis.publish('/dev/null', Math.round(Math.random()*1000));
+    },
     sendToChannel:function(channel, message){
         message.time = new Date().getTime();
         message.user = this.user;
+        if(!this.redis.publish)
+            this.redis = redis.createClient();
         return this.redis.publish(channel, JSON.stringify(message));
     },
     /* Client param can be id of client or client object */
