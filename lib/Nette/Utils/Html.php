@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -16,7 +19,7 @@
  * HTML helper.
  *
  * <code>
- * $anchor = NHtml::el('a')->href($link)->setText('Nette');
+ * $anchor = Html::el('a')->href($link)->setText('Nette');
  * $el->class = 'myclass';
  * echo $el;
  *
@@ -25,7 +28,7 @@
  *
  * @author     David Grudl
  */
-class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
+class Html extends Nette\Object implements \ArrayAccess, \Countable, \IteratorAggregate
 {
 	/** @var string  element's name */
 	private $name;
@@ -52,11 +55,11 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	 * Static factory.
 	 * @param  string element name (or NULL)
 	 * @param  array|string element's attributes (or textual content)
-	 * @return NHtml
+	 * @return Html
 	 */
 	public static function el($name = NULL, $attrs = NULL)
 	{
-		$el = new self;
+		$el = new static;
 		$parts = explode(' ', $name, 2);
 		$el->setName($parts[0]);
 
@@ -68,7 +71,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 		}
 
 		if (isset($parts[1])) {
-			foreach (NString::matchAll($parts[1] . ' ', '#([a-z0-9:-]+)(?:=(["\'])?(.*?)(?(2)\\2|\s))?#i') as $m) {
+			foreach (Strings::matchAll($parts[1] . ' ', '#([a-z0-9:-]+)(?:=(["\'])?(.*?)(?(2)\\2|\s))?#i') as $m) {
 				$el->attrs[$m[1]] = isset($m[3]) ? $m[3] : TRUE;
 			}
 		}
@@ -82,13 +85,13 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	 * Changes element's name.
 	 * @param  string
 	 * @param  bool  Is element empty?
-	 * @return NHtml  provides a fluent interface
-	 * @throws InvalidArgumentException
+	 * @return Html  provides a fluent interface
+	 * @throws Nette\InvalidArgumentException
 	 */
 	final public function setName($name, $isEmpty = NULL)
 	{
 		if ($name !== NULL && !is_string($name)) {
-			throw new InvalidArgumentException("Name must be string or NULL, " . gettype($name) ." given.");
+			throw new Nette\InvalidArgumentException("Name must be string or NULL, " . gettype($name) ." given.");
 		}
 
 		$this->name = $name;
@@ -123,7 +126,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	/**
 	 * Sets multiple attributes.
 	 * @param  array
-	 * @return NHtml  provides a fluent interface
+	 * @return Html  provides a fluent interface
 	 */
 	public function addAttributes(array $attrs)
 	{
@@ -174,7 +177,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	 * Overloaded setter for element's attribute.
 	 * @param  string  HTML attribute name
 	 * @param  array   (string) HTML attribute value or pair?
-	 * @return NHtml  provides a fluent interface
+	 * @return Html  provides a fluent interface
 	 */
 	final public function __call($m, $args)
 	{
@@ -214,13 +217,15 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	 * Special setter for element's attribute.
 	 * @param  string path
 	 * @param  array query
-	 * @return NHtml  provides a fluent interface
+	 * @return Html  provides a fluent interface
 	 */
 	final public function href($path, $query = NULL)
 	{
 		if ($query) {
 			$query = http_build_query($query, NULL, '&');
-			if ($query !== '') $path .= '?' . $query;
+			if ($query !== '') {
+				$path .= '?' . $query;
+			}
 		}
 		$this->attrs['href'] = $path;
 		return $this;
@@ -231,8 +236,8 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	/**
 	 * Sets element's HTML content.
 	 * @param  string
-	 * @return NHtml  provides a fluent interface
-	 * @throws InvalidArgumentException
+	 * @return Html  provides a fluent interface
+	 * @throws Nette\InvalidArgumentException
 	 */
 	final public function setHtml($html)
 	{
@@ -240,7 +245,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 			$html = '';
 
 		} elseif (is_array($html)) {
-			throw new InvalidArgumentException("Textual content must be a scalar, " . gettype($html) ." given.");
+			throw new Nette\InvalidArgumentException("Textual content must be a scalar, " . gettype($html) ." given.");
 
 		} else {
 			$html = (string) $html;
@@ -275,8 +280,8 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	/**
 	 * Sets element's textual content.
 	 * @param  string
-	 * @return NHtml  provides a fluent interface
-	 * @throws InvalidArgumentException
+	 * @return Html  provides a fluent interface
+	 * @throws Nette\InvalidArgumentException
 	 */
 	final public function setText($text)
 	{
@@ -301,8 +306,8 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 	/**
 	 * Adds new element's child.
-	 * @param  NHtml|string child node
-	 * @return NHtml  provides a fluent interface
+	 * @param  Html|string child node
+	 * @return Html  provides a fluent interface
 	 */
 	final public function add($child)
 	{
@@ -315,11 +320,11 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	 * Creates and adds a new Html child.
 	 * @param  string  elements's name
 	 * @param  array|string element's attributes (or textual content)
-	 * @return NHtml  created element
+	 * @return Html  created element
 	 */
 	final public function create($name, $attrs = NULL)
 	{
-		$this->insert(NULL, $child = self::el($name, $attrs));
+		$this->insert(NULL, $child = static::el($name, $attrs));
 		return $child;
 	}
 
@@ -328,14 +333,14 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	/**
 	 * Inserts child node.
 	 * @param  int
-	 * @param  NHtml node
+	 * @param  Html node
 	 * @param  bool
-	 * @return NHtml  provides a fluent interface
-	 * @throws Exception
+	 * @return Html  provides a fluent interface
+	 * @throws \Exception
 	 */
 	public function insert($index, $child, $replace = FALSE)
 	{
-		if ($child instanceof NHtml || is_scalar($child)) {
+		if ($child instanceof Html || is_scalar($child)) {
 			if ($index === NULL) { // append
 				$this->children[] = $child;
 
@@ -344,7 +349,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 			}
 
 		} else {
-			throw new InvalidArgumentException("Child node must be scalar or Html object, " . (is_object($child) ? get_class($child) : gettype($child)) ." given.");
+			throw new Nette\InvalidArgumentException("Child node must be scalar or Html object, " . (is_object($child) ? get_class($child) : gettype($child)) ." given.");
 		}
 
 		return $this;
@@ -353,9 +358,9 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 
 	/**
-	 * Inserts (replaces) child node (ArrayAccess implementation).
+	 * Inserts (replaces) child node (\ArrayAccess implementation).
 	 * @param  int
-	 * @param  NHtml node
+	 * @param  Html node
 	 * @return void
 	 */
 	final public function offsetSet($index, $child)
@@ -366,7 +371,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 
 	/**
-	 * Returns child node (ArrayAccess implementation).
+	 * Returns child node (\ArrayAccess implementation).
 	 * @param  int index
 	 * @return mixed
 	 */
@@ -378,7 +383,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 
 	/**
-	 * Exists child node? (ArrayAccess implementation).
+	 * Exists child node? (\ArrayAccess implementation).
 	 * @param  int index
 	 * @return bool
 	 */
@@ -390,7 +395,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 
 	/**
-	 * Removes child node (ArrayAccess implementation).
+	 * Removes child node (\ArrayAccess implementation).
 	 * @param  int index
 	 * @return void
 	 */
@@ -404,7 +409,7 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 
 	/**
-	 * Required by the Countable interface.
+	 * Required by the \Countable interface.
 	 * @return int
 	 */
 	final public function count()
@@ -429,16 +434,16 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 	 * Iterates over a elements.
 	 * @param  bool    recursive?
 	 * @param  string  class types filter
-	 * @return RecursiveIterator
+	 * @return \RecursiveIterator
 	 */
 	final public function getIterator($deep = FALSE)
 	{
 		if ($deep) {
-			$deep = $deep > 0 ? RecursiveIteratorIterator::SELF_FIRST : RecursiveIteratorIterator::CHILD_FIRST;
-			return new RecursiveIteratorIterator(new NGenericRecursiveIterator(new ArrayIterator($this->children)), $deep);
+			$deep = $deep > 0 ? \RecursiveIteratorIterator::SELF_FIRST : \RecursiveIteratorIterator::CHILD_FIRST;
+			return new \RecursiveIteratorIterator(new Nette\Iterators\Recursor(new \ArrayIterator($this->children)), $deep);
 
 		} else {
-			return new NGenericRecursiveIterator(new ArrayIterator($this->children));
+			return new Nette\Iterators\Recursor(new \ArrayIterator($this->children));
 		}
 	}
 
@@ -535,15 +540,15 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 
 		$s = '';
 		foreach ($this->attrs as $key => $value) {
-			// skip NULLs and false boolean attributes
-			if ($value === NULL || $value === FALSE) continue;
+			if ($value === NULL || $value === FALSE) {
+				continue;
 
-			// true boolean attribute
-			if ($value === TRUE) {
-				// in XHTML must use unminimized form
-				if (self::$xhtml) $s .= ' ' . $key . '="' . $key . '"';
-				// in HTML should use minimized form
-				else $s .= ' ' . $key;
+			} elseif ($value === TRUE) {
+				if (self::$xhtml) {
+					$s .= ' ' . $key . '="' . $key . '"';
+				} else {
+					$s .= ' ' . $key;
+				}
 				continue;
 
 			} elseif (is_array($value)) {
@@ -556,16 +561,16 @@ class NHtml extends NObject implements ArrayAccess, Countable, IteratorAggregate
 					continue;
 				}
 
-				// prepare into temporary array
 				$tmp = NULL;
 				foreach ($value as $k => $v) {
-					// skip NULLs & empty string; composite 'style' vs. 'others'
-					if ($v == NULL) continue; // intentionally ==
-
-					//  composite 'style' vs. 'others'
-					$tmp[] = $v === TRUE ? $k : (is_string($k) ? $k . ':' . $v : $v);
+					if ($v != NULL) { // intentionally ==, skip NULLs & empty string
+						//  composite 'style' vs. 'others'
+						$tmp[] = $v === TRUE ? $k : (is_string($k) ? $k . ':' . $v : $v);
+					}
 				}
-				if ($tmp === NULL) continue;
+				if ($tmp === NULL) {
+					continue;
+				}
 
 				$value = implode($key === 'style' || !strncmp($key, 'on', 2) ? ';' : ' ', $tmp);
 

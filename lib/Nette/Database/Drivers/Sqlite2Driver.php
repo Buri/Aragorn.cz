@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NPdoSqlite2Driver extends NPdoSqliteDriver
+class Sqlite2Driver extends SqliteDriver
 {
 
 	/**
@@ -25,7 +28,7 @@ class NPdoSqlite2Driver extends NPdoSqliteDriver
 	 */
 	public function formatLike($value, $pos)
 	{
-		throw new NotSupportedException;
+		throw new Nette\NotSupportedException;
 	}
 
 
@@ -37,7 +40,7 @@ class NPdoSqlite2Driver extends NPdoSqliteDriver
 	{
 		if (!is_object($row)) {
 			$iterator = $row;
-		} elseif ($row instanceof Traversable) {
+		} elseif ($row instanceof \Traversable) {
 			$iterator = iterator_to_array($row);
 		} else {
 			$iterator = (array) $row;

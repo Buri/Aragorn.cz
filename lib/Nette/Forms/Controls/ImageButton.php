@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NImageButton extends NSubmitButton
+class ImageButton extends SubmitButton
 {
 
 	/**
@@ -54,7 +57,7 @@ class NImageButton extends NSubmitButton
 	{
 		$path = $this->getHtmlName(); // img_x or img['x']
 		$path = explode('[', strtr(str_replace(']', '', strpos($path, '[') === FALSE ? $path . '.x' : substr($path, 0, -2)), '.', '_'));
-		$this->setValue(NArrayTools::get($this->getForm()->getHttpData(), $path) !== NULL);
+		$this->setValue(Nette\Utils\Arrays::get($this->getForm()->getHttpData(), $path, NULL) !== NULL);
 	}
 
 }

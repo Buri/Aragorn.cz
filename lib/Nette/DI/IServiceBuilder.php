@@ -7,16 +7,22 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\DI;
+
+use Nette;
 
 
 
 /**
- * Ambiguous service resolution exception.
+ * The service creator.
  *
  * @author     David Grudl
  */
-class NAmbiguousServiceException extends Exception
+interface IServiceBuilder
 {
+
+	function createService(IContainer $container);
+
 }

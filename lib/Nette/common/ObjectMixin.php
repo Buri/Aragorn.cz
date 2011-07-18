@@ -7,17 +7,20 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette;
+
+use Nette;
 
 
 
 /**
- * NObject behaviour mixin.
+ * Nette\Object behaviour mixin.
  *
  * @author     David Grudl
  */
-final class NObjectMixin
+final class ObjectMixin
 {
 	/** @var array */
 	private static $methods;
@@ -29,7 +32,7 @@ final class NObjectMixin
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new StaticClassException;
 	}
 
 
@@ -44,7 +47,7 @@ final class NObjectMixin
 	 */
 	public static function call($_this, $name, $args)
 	{
-		$class = new NClassReflection($_this);
+		$class = new Reflection\ClassType($_this);
 
 		if ($name === '') {
 			throw new MemberAccessException("Call to class '$class->name' method without name.");
@@ -52,7 +55,7 @@ final class NObjectMixin
 
 		// event functionality
 		if ($class->hasEventProperty($name)) {
-			if (is_array($list = $_this->$name) || $list instanceof Traversable) {
+			if (is_array($list = $_this->$name) || $list instanceof \Traversable) {
 				foreach ($list as $handler) {
 					callback($handler)->invokeArgs($args);
 				}
@@ -73,7 +76,7 @@ final class NObjectMixin
 
 	/**
 	 * Call to undefined static method.
-	 * @param  object
+	 * @param  string
 	 * @param  string  method name
 	 * @param  array   arguments
 	 * @return mixed
@@ -114,7 +117,7 @@ final class NObjectMixin
 		$m = 'get' . $name;
 		if (isset(self::$methods[$class][$m])) {
 			// ampersands:
-			// - uses &__get() because declaration should be forward compatible (e.g. with NHtml)
+			// - uses &__get() because declaration should be forward compatible (e.g. with Nette\Utils\Html)
 			// - doesn't call &$_this->$m because user could bypass property setter by: $x = & $obj->property; $x = 'new value';
 			$val = $_this->$m();
 			return $val;
@@ -174,7 +177,7 @@ final class NObjectMixin
 	 * Throws exception.
 	 * @param  object
 	 * @param  string  property name
-	 * @param  mixed   property value
+	 * @return void
 	 * @throws MemberAccessException
 	 */
 	public static function remove($_this, $name)

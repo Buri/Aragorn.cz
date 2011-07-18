@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-final class NJson
+final class Json
 {
 	const FORCE_ARRAY = 1;
 
@@ -36,7 +39,7 @@ final class NJson
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -48,7 +51,7 @@ final class NJson
 	 */
 	public static function encode($value)
 	{
-		NDebug::tryError();
+		Nette\Diagnostics\Debugger::tryError();
 		if (function_exists('ini_set')) {
 			$old = ini_set('display_errors', 0); // needed to receive 'Invalid UTF-8 sequence' error
 			$json = json_encode($value);
@@ -56,8 +59,8 @@ final class NJson
 		} else {
 			$json = json_encode($value);
 		}
-		if (NDebug::catchError($e)) { // needed to receive 'recursion detected' error
-			throw new NJsonException($e->getMessage());
+		if (Nette\Diagnostics\Debugger::catchError($e)) { // needed to receive 'recursion detected' error
+			throw new JsonException($e->getMessage());
 		}
 		return $json;
 	}
@@ -76,7 +79,7 @@ final class NJson
 		$value = json_decode($json, (bool) ($options & self::FORCE_ARRAY));
 		if ($value === NULL && $json !== '' && strcasecmp($json, 'null')) { // '' do not clean json_last_error
 			$error = PHP_VERSION_ID >= 50300 ? json_last_error() : 0;
-			throw new NJsonException(isset(self::$messages[$error]) ? self::$messages[$error] : 'Unknown error', $error);
+			throw new JsonException(isset(self::$messages[$error]) ? self::$messages[$error] : 'Unknown error', $error);
 		}
 		return $value;
 	}
@@ -88,6 +91,6 @@ final class NJson
 /**
  * The exception that indicates error of JSON encoding/decoding.
  */
-class NJsonException extends Exception
+class JsonException extends \Exception
 {
 }

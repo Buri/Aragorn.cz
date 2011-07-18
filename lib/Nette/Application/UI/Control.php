@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application\UI;
+
+use Nette;
 
 
 
@@ -17,15 +20,18 @@
  *
  * @author     David Grudl
  *
- * @property-read ITemplate $template
+ * @property-read Nette\Templating\ITemplate $template
  */
-abstract class NControl extends NPresenterComponent implements IPartiallyRenderable
+abstract class Control extends PresenterComponent implements IPartiallyRenderable
 {
-	/** @var ITemplate */
+	/** @var Nette\Templating\ITemplate */
 	private $template;
 
 	/** @var array */
 	private $invalidSnippets = array();
+
+	/** @var bool */
+	public $snippetMode;
 
 
 
@@ -34,15 +40,15 @@ abstract class NControl extends NPresenterComponent implements IPartiallyRendera
 
 
 	/**
-	 * @return ITemplate
+	 * @return Nette\Templating\ITemplate
 	 */
 	final public function getTemplate()
 	{
 		if ($this->template === NULL) {
 			$value = $this->createTemplate();
-			if (!$value instanceof ITemplate && $value !== NULL) {
-				$class = get_class($value);
-				throw new UnexpectedValueException("Object returned by {$this->reflection->name}::createTemplate() must be instance of ITemplate, '$class' given.");
+			if (!$value instanceof Nette\Templating\ITemplate && $value !== NULL) {
+				$class2 = get_class($value); $class = get_class($this);
+				throw new Nette\UnexpectedValueException("Object returned by $class::createTemplate() must be instance of Nette\\Templating\\ITemplate, '$class2' given.");
 			}
 			$this->template = $value;
 		}
@@ -52,41 +58,35 @@ abstract class NControl extends NPresenterComponent implements IPartiallyRendera
 
 
 	/**
-	 * @return ITemplate
+	 * @return Nette\Templating\ITemplate
 	 */
-	protected function createTemplate()
+	protected function createTemplate($class = NULL)
 	{
-		$template = new NFileTemplate;
+		$template = $class ? new $class : new Nette\Templating\FileTemplate;
 		$presenter = $this->getPresenter(FALSE);
 		$template->onPrepareFilters[] = callback($this, 'templatePrepareFilters');
+		$template->registerHelperLoader('Nette\Templating\DefaultHelpers::loader');
 
 		// default parameters
 		$template->control = $this;
 		$template->presenter = $presenter;
-		$template->user = NEnvironment::getUser();
-		$template->baseUri = rtrim(NEnvironment::getVariable('baseUri', NULL), '/');
-		$template->basePath = preg_replace('#https?://[^/]+#A', '', $template->baseUri);
+		if ($presenter instanceof Presenter) {
+			$template->setCacheStorage($presenter->getContext()->templateCacheStorage);
+			$template->user = $presenter->getUser();
+			$template->netteHttpResponse = $presenter->getHttpResponse();
+			$template->netteCacheStorage = $presenter->getContext()->cacheStorage;
+			$template->baseUri = $template->baseUrl = rtrim($presenter->getHttpRequest()->getUrl()->getBaseUrl(), '/');
+			$template->basePath = preg_replace('#https?://[^/]+#A', '', $template->baseUrl);
 
-		// flash message
-		if ($presenter !== NULL && $presenter->hasFlashSession()) {
-			$id = $this->getParamId('flash');
-			$template->flashes = $presenter->getFlashSession()->$id;
+			// flash message
+			if ($presenter->hasFlashSession()) {
+				$id = $this->getParamId('flash');
+				$template->flashes = $presenter->getFlashSession()->$id;
+			}
 		}
 		if (!isset($template->flashes) || !is_array($template->flashes)) {
 			$template->flashes = array();
 		}
-
-		// default helpers
-		$template->registerHelper('escape', 'NTemplateHelpers::escapeHtml');
-		$template->registerHelper('escapeUrl', 'rawurlencode');
-		$template->registerHelper('stripTags', 'strip_tags');
-		$template->registerHelper('nl2br', 'nl2br');
-		$template->registerHelper('substr', 'iconv_substr');
-		$template->registerHelper('repeat', 'str_repeat');
-		$template->registerHelper('replaceRE', 'NString::replace');
-		$template->registerHelper('implode', 'implode');
-		$template->registerHelper('number', 'number_format');
-		$template->registerHelperLoader('NTemplateHelpers::loader');
 
 		return $template;
 	}
@@ -95,13 +95,12 @@ abstract class NControl extends NPresenterComponent implements IPartiallyRendera
 
 	/**
 	 * Descendant can override this method to customize template compile-time filters.
-	 * @param  NTemplate
+	 * @param  Nette\Templating\Template
 	 * @return void
 	 */
 	public function templatePrepareFilters($template)
 	{
-		// default filters
-		$template->registerFilter(new NLatteFilter);
+		$template->registerFilter(new Nette\Latte\Engine);
 	}
 
 
@@ -109,7 +108,7 @@ abstract class NControl extends NPresenterComponent implements IPartiallyRendera
 	/**
 	 * Returns widget component specified by name.
 	 * @param  string
-	 * @return IComponent
+	 * @return Nette\ComponentModel\IComponent
 	 */
 	public function getWidget($name)
 	{

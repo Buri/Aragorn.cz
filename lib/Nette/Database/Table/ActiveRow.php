@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Selector
  */
+
+namespace Nette\Database\Table;
+
+use Nette;
 
 
 
@@ -18,20 +21,20 @@
  *
  * @author     Jakub Vrana
  */
-class NTableRow extends NObject implements IteratorAggregate, ArrayAccess
+class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
 {
-	/** @var NTableSelection */
+	/** @var Selection */
 	protected $table;
 
 	/** @var array of row data */
 	protected $data;
 
-	/** @var array of new values {@see NTableRow::update()} */
+	/** @var array of new values {@see ActiveRow::update()} */
 	private $modified = array();
 
 
 
-	public function __construct(array $data, NTableSelection $table)
+	public function __construct(array $data, Selection $table)
 	{
 		$this->data = $data;
 		$this->table = $table;
@@ -64,7 +67,7 @@ class NTableRow extends NObject implements IteratorAggregate, ArrayAccess
 	/**
 	 * Returns referenced row.
 	 * @param  string
-	 * @return NTableRow or NULL if the row does not exist
+	 * @return ActiveRow or NULL if the row does not exist
 	 */
 	public function ref($name)
 	{
@@ -80,7 +83,7 @@ class NTableRow extends NObject implements IteratorAggregate, ArrayAccess
 	/**
 	 * Returns referencing rows.
 	 * @param  string table name
-	 * @return NGroupedTableSelection
+	 * @return GroupedSelection
 	 */
 	public function related($table)
 	{
@@ -128,7 +131,7 @@ class NTableRow extends NObject implements IteratorAggregate, ArrayAccess
 	public function getIterator()
 	{
 		$this->access(NULL);
-		return new ArrayIterator($this->data);
+		return new \ArrayIterator($this->data);
 	}
 
 
@@ -254,8 +257,9 @@ class NTableRow extends NObject implements IteratorAggregate, ArrayAccess
 
 	public function access($key, $delete = FALSE)
 	{
-		if ($this->table->connection->cache && $this->table->access($key, $delete)) {
-			$this->data = $this->table[$this->data[$this->table->primary]]->data;
+		if ($this->table->connection->getCache() && !isset($this->modified[$key]) && $this->table->access($key, $delete)) {
+			$id = (isset($this->data[$this->table->primary]) ? $this->data[$this->table->primary] : $this->data);
+			$this->data = $this->table[$id]->data;
 		}
 	}
 

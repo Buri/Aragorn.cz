@@ -9,24 +9,9 @@
  * the file license.txt that was distributed with this source code.
  */
 
-// no namespace
+namespace Nette;
 
-
-
-/*
-some useful SPL exception:
-
-- LogicException
-	- InvalidArgumentException
-	- LengthException
-- RuntimeException
-	- OutOfBoundsException
-	- UnexpectedValueException
-
-other SPL exceptions are ambiguous; do not use them
-
-ErrorException is corrupted in PHP < 5.3
-*/
+use Nette;
 
 
 
@@ -34,7 +19,7 @@ ErrorException is corrupted in PHP < 5.3
  * The exception that is thrown when the value of an argument is
  * outside the allowable range of values as defined by the invoked method.
  */
-class ArgumentOutOfRangeException extends InvalidArgumentException
+class ArgumentOutOfRangeException extends \InvalidArgumentException
 {
 }
 
@@ -44,25 +29,16 @@ class ArgumentOutOfRangeException extends InvalidArgumentException
  * The exception that is thrown when a method call is invalid for the object's
  * current state, method has been invoked at an illegal or inappropriate time.
  */
-class InvalidStateException extends RuntimeException
+class InvalidStateException extends \RuntimeException
 {
-	public function __construct($message = '', $code = 0, Exception $previous = NULL)
-	{
-		if (PHP_VERSION_ID < 50300) {
-			$this->previous = $previous;
-			parent::__construct($message, $code);
-		} else {
-			parent::__construct($message, $code, $previous);
-		}
 	}
-}
 
 
 
 /**
  * The exception that is thrown when a requested method or operation is not implemented.
  */
-class NotImplementedException extends LogicException
+class NotImplementedException extends \LogicException
 {
 }
 
@@ -72,7 +48,7 @@ class NotImplementedException extends LogicException
  * The exception that is thrown when an invoked method is not supported. For scenarios where
  * it is sometimes possible to perform the requested operation, see InvalidStateException.
  */
-class NotSupportedException extends LogicException
+class NotSupportedException extends \LogicException
 {
 }
 
@@ -90,7 +66,7 @@ class DeprecatedException extends NotSupportedException
 /**
  * The exception that is thrown when accessing a class member (property or method) fails.
  */
-class MemberAccessException extends LogicException
+class MemberAccessException extends \LogicException
 {
 }
 
@@ -99,7 +75,7 @@ class MemberAccessException extends LogicException
 /**
  * The exception that is thrown when an I/O error occurs.
  */
-class IOException extends RuntimeException
+class IOException extends \RuntimeException
 {
 }
 
@@ -124,25 +100,55 @@ class DirectoryNotFoundException extends IOException
 
 
 /**
+ * The exception that is thrown when an argument does not match with the expected value.
+ */
+class InvalidArgumentException extends \InvalidArgumentException
+{
+}
+
+
+
+/**
+ * The exception that is thrown when an illegal index was requested.
+ */
+class OutOfRangeException extends \OutOfRangeException
+{
+}
+
+
+
+/**
+ * The exception that is thrown when a value (typically returned by function) does not match with the expected value.
+ */
+class UnexpectedValueException extends \UnexpectedValueException
+{
+}
+
+
+
+/**
+ * The exception that is thrown when static class is instantiated.
+ */
+class StaticClassException extends \LogicException
+{
+}
+
+
+
+/**
  * The exception that indicates errors that can not be recovered from. Execution of
  * the script should be halted.
  */
-class FatalErrorException extends Exception
+
+class FatalErrorException extends \ErrorException
 {
-	private $severity;
 
 	public function __construct($message, $code, $severity, $file, $line, $context)
 	{
-		parent::__construct($message, $code);
-		$this->severity = $severity;
-		$this->file = $file;
-		$this->line = $line;
+		parent::__construct($message, $code, $severity, $file, $line);
 		$this->context = $context;
 	}
 
-	public function getSeverity()
-	{
-		return $this->severity;
-	}
-
 }
+
+

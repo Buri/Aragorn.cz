@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Caching
  */
+
+namespace Nette\Caching;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NCache extends NObject implements ArrayAccess
+class Cache extends Nette\Object implements \ArrayAccess
 {
 	/** dependency */
 	const PRIORITY = 'priority',
@@ -34,7 +37,7 @@ class NCache extends NObject implements ArrayAccess
 	/** @internal */
 	const NAMESPACE_SEPARATOR = "\x00";
 
-	/** @var ICacheStorage */
+	/** @var IStorage */
 	private $storage;
 
 	/** @var string */
@@ -48,7 +51,7 @@ class NCache extends NObject implements ArrayAccess
 
 
 
-	public function __construct(ICacheStorage $storage, $namespace = NULL)
+	public function __construct(IStorage $storage, $namespace = NULL)
 	{
 		$this->storage = $storage;
 		$this->namespace = $namespace . self::NAMESPACE_SEPARATOR;
@@ -58,7 +61,7 @@ class NCache extends NObject implements ArrayAccess
 
 	/**
 	 * Returns cache storage.
-	 * @return ICacheStorage
+	 * @return IStorage
 	 */
 	public function getStorage()
 	{
@@ -81,11 +84,11 @@ class NCache extends NObject implements ArrayAccess
 	/**
 	 * Returns new nested cache object.
 	 * @param  string
-	 * @return NCache
+	 * @return Cache
 	 */
 	public function derive($namespace)
 	{
-		$derived = new self($this->storage, $this->namespace . $namespace);
+		$derived = new static($this->storage, $this->namespace . $namespace);
 		return $derived;
 	}
 
@@ -103,21 +106,39 @@ class NCache extends NObject implements ArrayAccess
 
 
 	/**
+	 * Retrieves the specified item from the cache or returns NULL if the key is not found.
+	 * @param  mixed key
+	 * @return mixed|NULL
+	 */
+	public function load($key)
+	{
+		$key = is_scalar($key) ? (string) $key : serialize($key);
+		if ($this->key === $key) {
+			return $this->data;
+		}
+		$this->key = $key;
+		$this->data = $this->storage->read($this->namespace . md5($key));
+		return $this->data;
+	}
+
+
+
+	/**
 	 * Writes item into the cache.
 	 * Dependencies are:
-	 * - NCache::PRIORITY => (int) priority
-	 * - NCache::EXPIRATION => (timestamp) expiration
-	 * - NCache::SLIDING => (bool) use sliding expiration?
-	 * - NCache::TAGS => (array) tags
-	 * - NCache::FILES => (array|string) file names
-	 * - NCache::ITEMS => (array|string) cache items
-	 * - NCache::CONSTS => (array|string) cache items
+	 * - Cache::PRIORITY => (int) priority
+	 * - Cache::EXPIRATION => (timestamp) expiration
+	 * - Cache::SLIDING => (bool) use sliding expiration?
+	 * - Cache::TAGS => (array) tags
+	 * - Cache::FILES => (array|string) file names
+	 * - Cache::ITEMS => (array|string) cache items
+	 * - Cache::CONSTS => (array|string) cache items
 	 *
 	 * @param  mixed  key
 	 * @param  mixed  value
 	 * @param  array  dependencies
 	 * @return mixed  value itself
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function save($key, $data, array $dp = NULL)
 	{
@@ -125,8 +146,8 @@ class NCache extends NObject implements ArrayAccess
 		$key = $this->namespace . md5($this->key);
 
 		// convert expire into relative amount of seconds
-		if (isset($dp[NCache::EXPIRATION])) {
-			$dp[NCache::EXPIRATION] = NDateTime53::from($dp[NCache::EXPIRATION])->format('U') - time();
+		if (isset($dp[Cache::EXPIRATION])) {
+			$dp[Cache::EXPIRATION] = Nette\DateTime::from($dp[Cache::EXPIRATION])->format('U') - time();
 		}
 
 		// convert FILES into CALLBACKS
@@ -154,15 +175,15 @@ class NCache extends NObject implements ArrayAccess
 			unset($dp[self::CONSTS]);
 		}
 
-		if ($data instanceof NCallback || $data instanceof Closure) {
-			NCriticalSection::enter();
+		if ($data instanceof Nette\Callback || $data instanceof \Closure) {
+			Nette\Utils\CriticalSection::enter();
 			$data = $data->__invoke();
-			NCriticalSection::leave();
+			Nette\Utils\CriticalSection::leave();
 		}
 
 		if (is_object($data)) {
 			$dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkSerializationVersion'), get_class($data),
-				NClassReflection::from($data)->getAnnotation('serializationVersion'));
+				Nette\Reflection\ClassType::from($data)->getAnnotation('serializationVersion'));
 		}
 
 		$this->data = $data;
@@ -179,9 +200,9 @@ class NCache extends NObject implements ArrayAccess
 	/**
 	 * Removes items from the cache by conditions.
 	 * Conditions are:
-	 * - NCache::PRIORITY => (int) priority
-	 * - NCache::TAGS => (array) tags
-	 * - NCache::ALL => TRUE
+	 * - Cache::PRIORITY => (int) priority
+	 * - Cache::TAGS => (array) tags
+	 * - Cache::ALL => TRUE
 	 *
 	 * @param  array
 	 * @return void
@@ -202,11 +223,27 @@ class NCache extends NObject implements ArrayAccess
 	public function call($function)
 	{
 		$key = func_get_args();
-		if ($this->offsetGet($key) === NULL) {
+		if ($this->load($key) === NULL) {
 			array_shift($key);
 			return $this->save($this->key, call_user_func_array($function, $key));
 		} else {
 			return $this->data;
+		}
+	}
+
+
+
+	/**
+	 * Starts the output cache.
+	 * @param  mixed  key
+	 * @return OutputHelper|NULL
+	 */
+	public function start($key)
+	{
+		if ($this->offsetGet($key) === NULL) {
+			return new OutputHelper($this, $key);
+		} else {
+			echo $this->data;
 		}
 	}
 
@@ -217,11 +254,11 @@ class NCache extends NObject implements ArrayAccess
 
 
 	/**
-	 * Inserts (replaces) item into the cache (ArrayAccess implementation).
+	 * Inserts (replaces) item into the cache (\ArrayAccess implementation).
 	 * @param  mixed key
 	 * @param  mixed
 	 * @return void
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetSet($key, $data)
 	{
@@ -231,33 +268,27 @@ class NCache extends NObject implements ArrayAccess
 
 
 	/**
-	 * Retrieves the specified item from the cache or NULL if the key is not found (ArrayAccess implementation).
+	 * Retrieves the specified item from the cache or NULL if the key is not found (\ArrayAccess implementation).
 	 * @param  mixed key
 	 * @return mixed|NULL
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetGet($key)
 	{
-		$key = is_scalar($key) ? (string) $key : serialize($key);
-		if ($this->key === $key) {
-			return $this->data;
-		}
-		$this->key = $key;
-		$this->data = $this->storage->read($this->namespace . md5($key));
-		return $this->data;
+		return $this->load($key);
 	}
 
 
 
 	/**
-	 * Exists item in cache? (ArrayAccess implementation).
+	 * Exists item in cache? (\ArrayAccess implementation).
 	 * @param  mixed key
 	 * @return bool
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetExists($key)
 	{
-		return $this->offsetGet($key) !== NULL;
+		return $this->load($key) !== NULL;
 	}
 
 
@@ -266,7 +297,7 @@ class NCache extends NObject implements ArrayAccess
 	 * Removes the specified item from the cache.
 	 * @param  mixed key
 	 * @return void
-	 * @throws InvalidArgumentException
+	 * @throws Nette\InvalidArgumentException
 	 */
 	public function offsetUnset($key)
 	{
@@ -331,7 +362,7 @@ class NCache extends NObject implements ArrayAccess
 	 */
 	private static function checkSerializationVersion($class, $value)
 	{
-		return NClassReflection::from($class)->getAnnotation('serializationVersion') === $value;
+		return Nette\Reflection\ClassType::from($class)->getAnnotation('serializationVersion') === $value;
 	}
 
 }

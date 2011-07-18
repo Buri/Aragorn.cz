@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Iterators;
+
+use Nette;
 
 
 
@@ -23,7 +26,7 @@
  * @property-read bool $odd
  * @property-read bool $even
  */
-class NSmartCachingIterator extends CachingIterator implements Countable
+class CachingIterator extends \CachingIterator implements \Countable
 {
 	/** @var int */
 	private $counter = 0;
@@ -32,19 +35,19 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 
 	public function __construct($iterator)
 	{
-		if (is_array($iterator) || $iterator instanceof stdClass) {
-			$iterator = new ArrayIterator($iterator);
+		if (is_array($iterator) || $iterator instanceof \stdClass) {
+			$iterator = new \ArrayIterator($iterator);
 
-		} elseif ($iterator instanceof Traversable) {
-			if ($iterator instanceof IteratorAggregate) {
+		} elseif ($iterator instanceof \Traversable) {
+			if ($iterator instanceof \IteratorAggregate) {
 				$iterator = $iterator->getIterator();
 
-			} elseif (!$iterator instanceof Iterator) {
-				$iterator = new IteratorIterator($iterator);
+			} elseif (!$iterator instanceof \Iterator) {
+				$iterator = new \IteratorIterator($iterator);
 			}
 
 		} else {
-			throw new InvalidArgumentException("Invalid argument passed to foreach resp. " . __CLASS__ . "; array or Traversable expected, " . (is_object($iterator) ? get_class($iterator) : gettype($iterator)) ." given.");
+			throw new Nette\InvalidArgumentException("Invalid argument passed to foreach resp. " . __CLASS__ . "; array or Traversable expected, " . (is_object($iterator) ? get_class($iterator) : gettype($iterator)) ." given.");
 		}
 
 		parent::__construct($iterator, 0);
@@ -127,11 +130,11 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 	public function count()
 	{
 		$inner = $this->getInnerIterator();
-		if ($inner instanceof Countable) {
+		if ($inner instanceof \Countable) {
 			return $inner->count();
 
 		} else {
-			throw new NotSupportedException('Iterator is not countable.');
+			throw new Nette\NotSupportedException('Iterator is not countable.');
 		}
 	}
 
@@ -185,7 +188,7 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 
 
 
-	/********************* NObject behaviour ****************d*g**/
+	/********************* Nette\Object behaviour ****************d*g**/
 
 
 
@@ -194,11 +197,11 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 	 * @param  string  method name
 	 * @param  array   arguments
 	 * @return mixed
-	 * @throws MemberAccessException
+	 * @throws Nette\MemberAccessException
 	 */
 	public function __call($name, $args)
 	{
-		return NObjectMixin::call($this, $name, $args);
+		return Nette\ObjectMixin::call($this, $name, $args);
 	}
 
 
@@ -207,11 +210,11 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 	 * Returns property value. Do not call directly.
 	 * @param  string  property name
 	 * @return mixed   property value
-	 * @throws MemberAccessException if the property is not defined.
+	 * @throws Nette\MemberAccessException if the property is not defined.
 	 */
 	public function &__get($name)
 	{
-		return NObjectMixin::get($this, $name);
+		return Nette\ObjectMixin::get($this, $name);
 	}
 
 
@@ -221,11 +224,11 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 	 * @param  string  property name
 	 * @param  mixed   property value
 	 * @return void
-	 * @throws MemberAccessException if the property is not defined or is read-only
+	 * @throws Nette\MemberAccessException if the property is not defined or is read-only
 	 */
 	public function __set($name, $value)
 	{
-		return NObjectMixin::set($this, $name, $value);
+		return Nette\ObjectMixin::set($this, $name, $value);
 	}
 
 
@@ -237,7 +240,7 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 	 */
 	public function __isset($name)
 	{
-		return NObjectMixin::has($this, $name);
+		return Nette\ObjectMixin::has($this, $name);
 	}
 
 
@@ -246,11 +249,11 @@ class NSmartCachingIterator extends CachingIterator implements Countable
 	 * Access to undeclared property.
 	 * @param  string  property name
 	 * @return void
-	 * @throws MemberAccessException
+	 * @throws Nette\MemberAccessException
 	 */
 	public function __unset($name)
 	{
-		NObjectMixin::remove($this, $name);
+		Nette\ObjectMixin::remove($this, $name);
 	}
 
 

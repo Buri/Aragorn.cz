@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Mail
  */
+
+namespace Nette\Mail;
+
+use Nette,
+	Nette\Utils\Strings;
 
 
 
@@ -21,7 +25,7 @@
  * @property   string $body
  * @property-read array $headers
  */
-class NMailMimePart extends NObject
+class MimePart extends Nette\Object
 {
 	/** encoding */
 	const ENCODING_BASE64 = 'base64',
@@ -49,12 +53,12 @@ class NMailMimePart extends NObject
 	 * @param  string
 	 * @param  string|array  value or pair email => name
 	 * @param  bool
-	 * @return NMailMimePart  provides a fluent interface
+	 * @return MimePart  provides a fluent interface
 	 */
 	public function setHeader($name, $value, $append = FALSE)
 	{
 		if (!$name || preg_match('#[^a-z0-9-]#i', $name)) {
-			throw new InvalidArgumentException("Header name must be non-empty alphanumeric string, '$name' given.");
+			throw new Nette\InvalidArgumentException("Header name must be non-empty alphanumeric string, '$name' given.");
 		}
 
 		if ($value == NULL) { // intentionally ==
@@ -69,24 +73,24 @@ class NMailMimePart extends NObject
 			}
 
 			foreach ($value as $email => $name) {
-				if ($name !== NULL && !NString::checkEncoding($name)) {
-					throw new InvalidArgumentException("Name is not valid UTF-8 string.");
+				if ($name !== NULL && !Strings::checkEncoding($name)) {
+					throw new Nette\InvalidArgumentException("Name is not valid UTF-8 string.");
 				}
 
 				if (!preg_match('#^[^@",\s]+@[^@",\s]+\.[a-z]{2,10}$#i', $email)) {
-					throw new InvalidArgumentException("Email address '$email' is not valid.");
+					throw new Nette\InvalidArgumentException("Email address '$email' is not valid.");
 				}
 
 				if (preg_match('#[\r\n]#', $name)) {
-					throw new InvalidArgumentException("Name must not contain line separator.");
+					throw new Nette\InvalidArgumentException("Name must not contain line separator.");
 				}
 				$tmp[$email] = $name;
 			}
 
 		} else {
 			$value = (string) $value;
-			if (!NString::checkEncoding($value)) {
-				throw new InvalidArgumentException("Header is not valid UTF-8 string.");
+			if (!Strings::checkEncoding($value)) {
+				throw new Nette\InvalidArgumentException("Header is not valid UTF-8 string.");
 			}
 			$this->headers[$name] = preg_replace('#[\r\n]+#', ' ', $value);
 		}
@@ -110,7 +114,7 @@ class NMailMimePart extends NObject
 	/**
 	 * Removes a header.
 	 * @param  string
-	 * @return NMailMimePart  provides a fluent interface
+	 * @return MimePart  provides a fluent interface
 	 */
 	public function clearHeader($name)
 	{
@@ -175,7 +179,7 @@ class NMailMimePart extends NObject
 	 * Sets Content-Type header.
 	 * @param  string
 	 * @param  string
-	 * @return NMailMimePart  provides a fluent interface
+	 * @return MimePart  provides a fluent interface
 	 */
 	public function setContentType($contentType, $charset = NULL)
 	{
@@ -188,7 +192,7 @@ class NMailMimePart extends NObject
 	/**
 	 * Sets Content-Transfer-Encoding header.
 	 * @param  string
-	 * @return NMailMimePart  provides a fluent interface
+	 * @return MimePart  provides a fluent interface
 	 */
 	public function setEncoding($encoding)
 	{
@@ -211,10 +215,10 @@ class NMailMimePart extends NObject
 
 	/**
 	 * Adds or creates new multipart.
-	 * @param  NMailMimePart
-	 * @return NMailMimePart
+	 * @param  MimePart
+	 * @return MimePart
 	 */
-	public function addPart(NMailMimePart $part = NULL)
+	public function addPart(MimePart $part = NULL)
 	{
 		return $this->parts[] = $part === NULL ? new self : $part;
 	}
@@ -224,7 +228,7 @@ class NMailMimePart extends NObject
 	/**
 	 * Sets textual body.
 	 * @param  mixed
-	 * @return NMailMimePart  provides a fluent interface
+	 * @return MimePart  provides a fluent interface
 	 */
 	public function setBody($body)
 	{
@@ -256,7 +260,7 @@ class NMailMimePart extends NObject
 	public function generateMessage()
 	{
 		$output = '';
-		$boundary = '--------' . NString::random();
+		$boundary = '--------' . Strings::random();
 
 		foreach ($this->headers as $name => $value) {
 			$output .= $name . ': ' . $this->getEncodedHeader($name);
@@ -289,12 +293,14 @@ class NMailMimePart extends NObject
 				break;
 
 			default:
-				throw new InvalidStateException('Unknown encoding.');
+				throw new Nette\InvalidStateException('Unknown encoding.');
 			}
 		}
 
 		if ($this->parts) {
-			if (substr($output, -strlen(self::EOL)) !== self::EOL) $output .= self::EOL;
+			if (substr($output, -strlen(self::EOL)) !== self::EOL) {
+				$output .= self::EOL;
+			}
 			foreach ($this->parts as $part) {
 				$output .= '--' . $boundary . self::EOL . $part->generateMessage() . self::EOL;
 			}
@@ -348,37 +354,4 @@ class NMailMimePart extends NObject
 	 * Converts a 8 bit string to a quoted-printable string.
 	 * @param  string
 	 * @return string
-	 */public static function encodeQuotedPrintable($s)
-	{
-		$range = '!"#$%&\'()*+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}'; // \x21-\x7E without \x3D
-		$pos = 0;
-		$len = 0;
-		$o = '';
-		$size = strlen($s);
-		while ($pos < $size) {
-			if ($l = strspn($s, $range, $pos)) {
-				while ($len + $l > self::LINE_LENGTH - 1) { // 1 = length of suffix =
-					$lx = self::LINE_LENGTH - $len - 1;
-					$o .= substr($s, $pos, $lx) . '=' . self::EOL;
-					$pos += $lx;
-					$l -= $lx;
-					$len = 0;
-				}
-				$o .= substr($s, $pos, $l);
-				$len += $l;
-				$pos += $l;
-
-			} else {
-				$len += 3;
-				if ($len > self::LINE_LENGTH - 1) {
-					$o .= '=' . self::EOL;
-					$len = 3;
-				}
-				$o .= '=' . strtoupper(bin2hex($s[$pos]));
-				$pos++;
-			}
-		}
-		return rtrim($o, '=' . self::EOL);
-	}
-
-}
+	 */}

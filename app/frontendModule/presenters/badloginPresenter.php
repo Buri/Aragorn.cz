@@ -1,6 +1,8 @@
 <?php
 
-class frontend_badloginPresenter extends BasePresenter {
-    public function renderDefault() {
+namespace frontendModule{
+    class badloginPresenter extends \BasePresenter {
+        public function renderDefault() {
+        }
     }
 }

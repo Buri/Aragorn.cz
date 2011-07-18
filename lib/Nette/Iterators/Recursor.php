@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Iterators;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NGenericRecursiveIterator extends IteratorIterator implements RecursiveIterator, Countable
+class Recursor extends \IteratorIterator implements \RecursiveIterator, \Countable
 {
 
 	/**
@@ -27,20 +30,20 @@ class NGenericRecursiveIterator extends IteratorIterator implements RecursiveIte
 	public function hasChildren()
 	{
 		$obj = $this->current();
-		return ($obj instanceof IteratorAggregate && $obj->getIterator() instanceof RecursiveIterator)
-			|| $obj instanceof RecursiveIterator;
+		return ($obj instanceof \IteratorAggregate && $obj->getIterator() instanceof \RecursiveIterator)
+			|| $obj instanceof \RecursiveIterator;
 	}
 
 
 
 	/**
 	 * The sub-iterator for the current element.
-	 * @return RecursiveIterator
+	 * @return \RecursiveIterator
 	 */
 	public function getChildren()
 	{
 		$obj = $this->current();
-		return $obj instanceof IteratorAggregate ? $obj->getIterator() : $obj;
+		return $obj instanceof \IteratorAggregate ? $obj->getIterator() : $obj;
 	}
 
 

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms
  */
+
+namespace Nette\Forms;
+
+use Nette;
 
 
 
@@ -20,9 +23,9 @@
  * @property-read array $controls
  * @property-read array $options
  */
-class NFormGroup extends NObject
+class ControlGroup extends Nette\Object
 {
-	/** @var SplObjectStorage */
+	/** @var \SplObjectStorage */
 	protected $controls;
 
 	/** @var array user options */
@@ -32,27 +35,27 @@ class NFormGroup extends NObject
 
 	public function __construct()
 	{
-		$this->controls = new SplObjectStorage;
+		$this->controls = new \SplObjectStorage;
 	}
 
 
 
 	/**
-	 * @return NFormGroup  provides a fluent interface
+	 * @return ControlGroup  provides a fluent interface
 	 */
 	public function add()
 	{
 		foreach (func_get_args() as $num => $item) {
-			if ($item instanceof IFormControl) {
+			if ($item instanceof IControl) {
 				$this->controls->attach($item);
 
-			} elseif ($item instanceof Traversable || is_array($item)) {
+			} elseif ($item instanceof \Traversable || is_array($item)) {
 				foreach ($item as $control) {
 					$this->controls->attach($control);
 				}
 
 			} else {
-				throw new InvalidArgumentException("Only IFormControl items are allowed, the #$num parameter is invalid.");
+				throw new Nette\InvalidArgumentException("Only IFormControl items are allowed, the #$num parameter is invalid.");
 			}
 		}
 		return $this;
@@ -81,7 +84,7 @@ class NFormGroup extends NObject
 	 *
 	 * @param  string key
 	 * @param  mixed  value
-	 * @return NFormGroup  provides a fluent interface
+	 * @return ControlGroup  provides a fluent interface
 	 */
 	public function setOption($key, $value)
 	{

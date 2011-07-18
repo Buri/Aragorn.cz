@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application\Responses;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NDownloadResponse extends NObject implements IPresenterResponse
+class FileResponse extends Nette\Object implements Nette\Application\IResponse
 {
 	/** @var string */
 	private $file;
@@ -40,7 +43,7 @@ class NDownloadResponse extends NObject implements IPresenterResponse
 	public function __construct($file, $name = NULL, $contentType = NULL)
 	{
 		if (!is_file($file)) {
-			throw new NBadRequestException("File '$file' doesn't exist.");
+			throw new Nette\Application\BadRequestException("File '$file' doesn't exist.");
 		}
 
 		$this->file = $file;
@@ -87,7 +90,7 @@ class NDownloadResponse extends NObject implements IPresenterResponse
 	 * Sends response to output.
 	 * @return void
 	 */
-	public function send(IHttpRequest $httpRequest, IHttpResponse $httpResponse)
+	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse)
 	{
 		$httpResponse->setContentType($this->contentType);
 		$httpResponse->setHeader('Content-Disposition', 'attachment; filename="' . $this->name . '"');

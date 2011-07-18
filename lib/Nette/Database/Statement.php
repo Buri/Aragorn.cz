@@ -7,8 +7,13 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database
  */
+
+namespace Nette\Database;
+
+use Nette,
+	PDO,
+	Nette\ObjectMixin;
 
 
 
@@ -17,9 +22,9 @@
  *
  * @author     David Grudl
  */
-class NStatement extends PDOStatement
+class Statement extends \PDOStatement
 {
-	/** @var NConnection */
+	/** @var Connection */
 	private $connection;
 
 	/** @var float */
@@ -30,16 +35,16 @@ class NStatement extends PDOStatement
 
 
 
-	protected function __construct(NConnection $connection)
+	protected function __construct(Connection $connection)
 	{
 		$this->connection = $connection;
-		$this->setFetchMode(PDO::FETCH_CLASS, 'NRow', array($this));
+		$this->setFetchMode(PDO::FETCH_CLASS, 'Nette\Database\Row', array($this));
 	}
 
 
 
 	/**
-	 * @return NConnection
+	 * @return Connection
 	 */
 	public function getConnection()
 	{
@@ -51,7 +56,7 @@ class NStatement extends PDOStatement
 	/**
 	 * Executes statement.
 	 * @param  array
-	 * @return NStatement  provides a fluent interface
+	 * @return Statement  provides a fluent interface
 	 */
 	public function execute($params = array())
 	{
@@ -66,7 +71,7 @@ class NStatement extends PDOStatement
 		$time = microtime(TRUE);
 		try {
 			parent::execute();
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			$e->queryString = $this->queryString;
 			throw $e;
 		}
@@ -97,28 +102,29 @@ class NStatement extends PDOStatement
 	public function normalizeRow($row)
 	{
 		if ($this->types === NULL) {
-			try {
-				$this->types = array();
+			$this->types = array();
+			if ($this->connection->getSupplementalDriver()->supports['meta']) { // workaround for PHP bugs #53782, #54695
+				$col = 0;
 				foreach ($row as $key => $foo) {
-					$type = $this->getColumnMeta(count($this->types));
+					$type = $this->getColumnMeta($col++);
 					if (isset($type['native_type'])) {
-						$this->types[$key] = NDatabaseReflection::detectType($type['native_type']);
+						$this->types[$key] = Reflection\DatabaseReflection::detectType($type['native_type']);
 					}
 				}
-			} catch (PDOException $e) {
 			}
 		}
+
 		foreach ($this->types as $key => $type) {
 			$value = $row[$key];
-			if ($value === NULL || $value === FALSE || $type === NDatabaseReflection::FIELD_TEXT) {
+			if ($value === NULL || $value === FALSE || $type === Reflection\DatabaseReflection::FIELD_TEXT) {
 
-			} elseif ($type === NDatabaseReflection::FIELD_INTEGER) {
+			} elseif ($type === Reflection\DatabaseReflection::FIELD_INTEGER) {
 				$row[$key] = is_float($tmp = $value * 1) ? $value : $tmp;
 
-			} elseif ($type === NDatabaseReflection::FIELD_FLOAT) {
+			} elseif ($type === Reflection\DatabaseReflection::FIELD_FLOAT) {
 				$row[$key] = (string) ($tmp = (float) $value) === $value ? $tmp : $value;
 
-			} elseif ($type === NDatabaseReflection::FIELD_BOOL) {
+			} elseif ($type === Reflection\DatabaseReflection::FIELD_BOOL) {
 				$row[$key] = ((bool) $value) && $value !== 'f' && $value !== 'F';
 			}
 		}
@@ -170,51 +176,51 @@ class NStatement extends PDOStatement
 
 
 
-	/********************* NObject behaviour ****************d*g**/
+	/********************* Nette\Object behaviour ****************d*g**/
 
 
 
 	/**
-	 * @return NClassReflection
+	 * @return Nette\Reflection\ClassType
 	 */
-	public function getReflection()
+	public static function getReflection()
 	{
-		return new NClassReflection($this);
+		return new Nette\Reflection\ClassType(get_called_class());
 	}
 
 
 
 	public function __call($name, $args)
 	{
-		return NObjectMixin::call($this, $name, $args);
+		return ObjectMixin::call($this, $name, $args);
 	}
 
 
 
 	public function &__get($name)
 	{
-		return NObjectMixin::get($this, $name);
+		return ObjectMixin::get($this, $name);
 	}
 
 
 
 	public function __set($name, $value)
 	{
-		return NObjectMixin::set($this, $name, $value);
+		return ObjectMixin::set($this, $name, $value);
 	}
 
 
 
 	public function __isset($name)
 	{
-		return NObjectMixin::has($this, $name);
+		return ObjectMixin::has($this, $name);
 	}
 
 
 
 	public function __unset($name)
 	{
-		NObjectMixin::remove($this, $name);
+		ObjectMixin::remove($this, $name);
 	}
 
 }

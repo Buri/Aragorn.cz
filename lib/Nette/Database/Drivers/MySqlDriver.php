@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -17,9 +20,12 @@
  *
  * @author     David Grudl
  */
-class NPdoMySqlDriver extends NObject implements ISupplementalDriver
+class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
-	/** @var NConnection */
+	/** @var array */
+	public $supports = array('meta' => TRUE);
+
+	/** @var Nette\Database\Connection */
 	private $connection;
 
 
@@ -29,7 +35,7 @@ class NPdoMySqlDriver extends NObject implements ISupplementalDriver
 	 *   - charset => character encoding to set (default is utf8)
 	 *   - sqlmode => see http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html
 	 */
-	public function __construct(NConnection $connection, array $options)
+	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 		$charset = isset($options['charset']) ? $options['charset'] : 'utf8';
@@ -62,7 +68,7 @@ class NPdoMySqlDriver extends NObject implements ISupplementalDriver
 	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(DateTime $value)
+	public function formatDateTime(\DateTime $value)
 	{
 		return $value->format("'Y-m-d H:i:s'");
 	}
@@ -85,11 +91,11 @@ class NPdoMySqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function applyLimit(&$sql, $limit, $offset)
 	{
-		if ($limit < 0 && $offset < 1) return;
-
-		// see http://dev.mysql.com/doc/refman/5.0/en/select.html
-		$sql .= ' LIMIT ' . ($limit < 0 ? '18446744073709551615' : (int) $limit)
-			. ($offset > 0 ? ' OFFSET ' . (int) $offset : '');
+		if ($limit >= 0 || $offset > 0) {
+			// see http://dev.mysql.com/doc/refman/5.0/en/select.html
+			$sql .= ' LIMIT ' . ($limit < 0 ? '18446744073709551615' : (int) $limit)
+				. ($offset > 0 ? ' OFFSET ' . (int) $offset : '');
+		}
 	}
 
 

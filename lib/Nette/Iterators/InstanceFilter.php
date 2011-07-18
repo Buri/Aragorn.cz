@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Iterators;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NInstanceFilterIterator extends FilterIterator implements Countable
+class InstanceFilter extends \FilterIterator implements \Countable
 {
 	/** @var string */
 	private $type;
@@ -25,10 +28,10 @@ class NInstanceFilterIterator extends FilterIterator implements Countable
 
 	/**
 	 * Constructs a filter around another iterator.
-	 * @param  NIterator
+	 * @param  Nette\Iterator
 	 * @param  string  class/interface name
 	 */
-	public function __construct(Iterator $iterator, $type)
+	public function __construct(\Iterator $iterator, $type)
 	{
 		$this->type = $type;
 		parent::__construct($iterator);

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Http;
+
+use Nette;
 
 
 
@@ -16,20 +19,20 @@
  * URI Syntax (RFC 3986).
  *
  * <pre>
- * scheme  user  password  host  port  basePath   relativeUri
+ * scheme  user  password  host  port  basePath   relativeUrl
  *   |      |      |        |      |    |             |
  * /--\   /--\ /------\ /-------\ /--\/--\/----------------------------\
- * http://john:x0y17575@nette.org:8042/en/manual.php?name=param#fragment  <-- absoluteUri
+ * http://john:x0y17575@nette.org:8042/en/manual.php?name=param#fragment  <-- absoluteUrl
  *        \__________________________/\____________/^\________/^\______/
  *                     |                     |           |         |
  *                 authority               path        query    fragment
  * </pre>
  *
  * - authority:   [user[:password]@]host[:port]
- * - hostUri:     http://user:password@nette.org:8042
+ * - hostUrl:     http://user:password@nette.org:8042
  * - basePath:    /en/ (everything before relative URI not including the script name)
- * - baseUri:     http://user:password@nette.org:8042/en/
- * - relativeUri: manual.php
+ * - baseUrl:     http://user:password@nette.org:8042/en/
+ * - relativeUrl: manual.php
  *
  * @author     David Grudl
  *
@@ -41,14 +44,14 @@
  * @property   string $path
  * @property   string $query
  * @property   string $fragment
- * @property-read string $absoluteUri
+ * @property-read string $absoluteUrl
  * @property-read string $authority
- * @property-read string $hostUri
+ * @property-read string $hostUrl
  * @property-read string $basePath
- * @property-read string $baseUri
- * @property-read string $relativeUri
+ * @property-read string $baseUrl
+ * @property-read string $relativeUrl
  */
-class NUri extends NFreezableObject
+class Url extends Nette\FreezableObject
 {
 	/** @var array */
 	public static $defaultPorts = array(
@@ -87,14 +90,14 @@ class NUri extends NFreezableObject
 
 	/**
 	 * @param  string  URL
-	 * @throws NInvalidArgumentException
+	 * @throws Nette\WebNette\InvalidArgumentException
 	 */
-	public function __construct($uri = NULL)
+	public function __construct($url = NULL)
 	{
-		if (is_string($uri)) {
-			$parts = @parse_url($uri); // @ - is escalated to exception
+		if (is_string($url)) {
+			$parts = @parse_url($url); // @ - is escalated to exception
 			if ($parts === FALSE) {
-				throw new InvalidArgumentException("Malformed or unsupported URI '$uri'.");
+				throw new Nette\InvalidArgumentException("Malformed or unsupported URI '$url'.");
 			}
 
 			foreach ($parts as $key => $val) {
@@ -109,9 +112,9 @@ class NUri extends NFreezableObject
 				$this->path = '/';
 			}
 
-		} elseif ($uri instanceof self) {
+		} elseif ($url instanceof self) {
 			foreach ($this as $key => $val) {
-				$this->$key = $uri->$key;
+				$this->$key = $url->$key;
 			}
 		}
 	}
@@ -121,7 +124,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the scheme part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setScheme($value)
 	{
@@ -146,7 +149,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the user name part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setUser($value)
 	{
@@ -171,7 +174,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the password part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setPassword($value)
 	{
@@ -196,7 +199,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the host part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setHost($value)
 	{
@@ -221,7 +224,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the port part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setPort($value)
 	{
@@ -246,7 +249,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the path part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setPath($value)
 	{
@@ -271,7 +274,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the query part of URI.
 	 * @param  string|array
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setQuery($value)
 	{
@@ -310,7 +313,7 @@ class NUri extends NFreezableObject
 	/**
 	 * Sets the fragment part of URI.
 	 * @param  string
-	 * @return NUri  provides a fluent interface
+	 * @return Url  provides a fluent interface
 	 */
 	public function setFragment($value)
 	{
@@ -336,7 +339,7 @@ class NUri extends NFreezableObject
 	 * Returns the entire URI including query string and fragment.
 	 * @return string
 	 */
-	public function getAbsoluteUri()
+	public function getAbsoluteUrl()
 	{
 		return $this->scheme . '://' . $this->getAuthority() . $this->path
 			. ($this->query === '' ? '' : '?' . $this->query)
@@ -369,7 +372,7 @@ class NUri extends NFreezableObject
 	 * Returns the scheme and authority part of URI.
 	 * @return string
 	 */
-	public function getHostUri()
+	public function getHostUrl()
 	{
 		return $this->scheme . '://' . $this->getAuthority();
 	}
@@ -392,7 +395,7 @@ class NUri extends NFreezableObject
 	 * Returns the base-URI.
 	 * @return string
 	 */
-	public function getBaseUri()
+	public function getBaseUrl()
 	{
 		return $this->scheme . '://' . $this->getAuthority() . $this->getBasePath();
 	}
@@ -403,9 +406,9 @@ class NUri extends NFreezableObject
 	 * Returns the relative-URI.
 	 * @return string
 	 */
-	public function getRelativeUri()
+	public function getRelativeUrl()
 	{
-		return (string) substr($this->getAbsoluteUri(), strlen($this->getBaseUri()));
+		return (string) substr($this->getAbsoluteUrl(), strlen($this->getBaseUrl()));
 	}
 
 
@@ -415,18 +418,24 @@ class NUri extends NFreezableObject
 	 * @param  string
 	 * @return bool
 	 */
-	public function isEqual($uri)
+	public function isEqual($url)
 	{
 		// compare host + path
-		$part = self::unescape(strtok($uri, '?#'), '%/');
+		$part = self::unescape(strtok($url, '?#'), '%/');
 		if (strncmp($part, '//', 2) === 0) { // absolute URI without scheme
-			if ($part !== '//' . $this->getAuthority() . $this->path) return FALSE;
+			if ($part !== '//' . $this->getAuthority() . $this->path) {
+				return FALSE;
+			}
 
 		} elseif (strncmp($part, '/', 1) === 0) { // absolute path
-			if ($part !== $this->path) return FALSE;
+			if ($part !== $this->path) {
+				return FALSE;
+			}
 
 		} else {
-			if ($part !== $this->scheme . '://' . $this->getAuthority() . $this->path) return FALSE;
+			if ($part !== $this->scheme . '://' . $this->getAuthority() . $this->path) {
+				return FALSE;
+			}
 		}
 
 		// compare query strings
@@ -458,7 +467,7 @@ class NUri extends NFreezableObject
 	 */
 	public function __toString()
 	{
-		return $this->getAbsoluteUri();
+		return $this->getAbsoluteUrl();
 	}
 
 
@@ -482,6 +491,36 @@ class NUri extends NFreezableObject
 			}
 		}
 		return $s;
+	}
+
+
+
+	/** @deprecated */
+	function getRelativeUri()
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use ' . __CLASS__ . '::getRelativeUrl() instead.', E_USER_WARNING);
+		return $this->getRelativeUrl();
+	}
+
+	/** @deprecated */
+	function getAbsoluteUri()
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use ' . __CLASS__ . '::getAbsoluteUrl() instead.', E_USER_WARNING);
+		return $this->getAbsoluteUrl();
+	}
+
+	/** @deprecated */
+	function getHostUri()
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use ' . __CLASS__ . '::getHostUrl() instead.', E_USER_WARNING);
+		return $this->getHostUrl();
+	}
+
+	/** @deprecated */
+	function getBaseUri()
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use ' . __CLASS__ . '::getBaseUrl() instead.', E_USER_WARNING);
+		return $this->getBaseUrl();
 	}
 
 }

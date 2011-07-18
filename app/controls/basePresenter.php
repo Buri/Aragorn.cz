@@ -1,12 +1,13 @@
 <?php
 
-class BasePresenter extends NPresenter{
+class BasePresenter extends Nette\Application\UI\Presenter{
 
-    public function  __construct(IComponentContainer $parent = NULL, $name = NULL) {
+    public function startup(){
         $t = $this->getTemplate();
-        $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . NEnvironment::getVariable("staticServer", "www.aragorn.cz");
-        $t->user = NEnvironment::getUser();
-        parent::__construct($parent, $name);
+        $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
+        $t->ajax = $this->isAjax();
+        #sleep(1);
+        parent::startup();
     }
     protected function createComponent($name) {
         $class = ucfirst($name);
@@ -21,28 +22,47 @@ class BasePresenter extends NPresenter{
     }
 
     public function createComponentLogInForm(){
-        $form = new NAppForm;
+        $form = new Nette\Application\UI\Form;
         $form->getElementPrototype()->class = "logInForm";
         $form->addText("username", "Nick:");
         $form->addPassword("password", "Heslo:");
+        $form->addCheckbox('forever', "Trvalé přihlášení");
         $form->addSubmit("login", "Přihlásit");
-        $form->onSubmit[] = callback($this, "handleLogin");
+        $form->addImage('google', $this->getTemplate()->staticPath . '/images/google-login-button.png', 'Přihlásit pomocí účtu Google')
+                ->onClick[] = callback($this, "googleLogin");
+        $form->onSuccess[] = callback($this, "userLogin");
         return $form;
     }
-
-    public function handleLogin($form){
+    
+    public function actionLogin(){
+        $this->handleLogin(array("username"=>"", "password"=>""), 'google');
+    }
+    
+    public function userLogin($form){
         $v = $form->getValues();
+        $this->handleLogin($v, 'user');
+    }
+    
+    public function googleLogin($form){
+        $this->handleLogin(array("username"=>"google.com", "password"=>""), 'google');
+    }
+    public function handleLogin($v, $btn = 'login'){
+        $user = Nette\Environment::getUser();
+        switch($btn){
+            case 'google':
+                $user->setAuthenticator(new GoogleAuthenticator);
+                break;
+            case 'user':
+            default:
+                $user->setAuthenticator(new UserAuthenticator);
+                break;
+        }
         try{
-            NEnvironment::getUser()->login($v["username"], $v["password"]);
-            /* Sync with node.js */
-            $data = json_encode(array("command" => "user-login",
-                "data" => array("PHPSESSID" => session_id(),
-                    "nodeSession" => $_COOKIE["sid"],
-                    "id" => NEnvironment::getUser()->getIdentity()->getId(),
-                    "username" => NEnvironment::getUser()->getIdentity()->username,
-                    "preferences" => NEnvironment::getUser()->getIdentity()->preferences
-                )));
-            usock::writeReadClose($data, 4096);
+            $user->login($v["username"], $v["password"]);
+            if($v['forever']){
+                $user->setExpiration(0, false);
+            }
+            Node::userlogin();
             $this->redirect(301, 'this');
         }
         catch(BanAuthenticationException $e){
@@ -65,7 +85,7 @@ class BasePresenter extends NPresenter{
 
     public function actionLogout(){
         Permissions::unload();
-        NEnvironment::getUser()->logout(true);
+        Nette\Environment::getUser()->logout(true);
         $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE["sid"].'"}}';
         usock::writeReadClose($data, 4096);
         $this->redirect(301, "dashboard:default");

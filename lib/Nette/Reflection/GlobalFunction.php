@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Reflection
  */
+
+namespace Nette\Reflection;
+
+use Nette,
+	Nette\ObjectMixin;
 
 
 
@@ -17,7 +21,7 @@
  *
  * @author     David Grudl
  */
-class NFunctionReflection extends ReflectionFunction
+class GlobalFunction extends \ReflectionFunction
 {
 	/** @var string|Closure */
 	private $value;
@@ -26,6 +30,38 @@ class NFunctionReflection extends ReflectionFunction
 	public function __construct($name)
 	{
 		parent::__construct($this->value = $name);
+	}
+
+
+
+	/**
+	 * @return array
+	 */
+	public function getDefaultParameters()
+	{
+		return Method::buildDefaultParameters(parent::getParameters());
+	}
+
+
+
+	/**
+	 * Invokes function using named parameters.
+	 * @param  array
+	 * @return mixed
+	 */
+	public function invokeNamedArgs($args)
+	{
+		return $this->invokeArgs(Method::combineArgs($this->getDefaultParameters(), $args));
+	}
+
+
+
+	/**
+	 * @return Nette\Callback
+	 */
+	public function toCallback()
+	{
+		return new Nette\Callback($this->value);
 	}
 
 
@@ -49,11 +85,11 @@ class NFunctionReflection extends ReflectionFunction
 
 
 	/**
-	 * @return NExtensionReflection
+	 * @return Extension
 	 */
 	public function getExtension()
 	{
-		return ($name = $this->getExtensionName()) ? new NExtensionReflection($name) : NULL;
+		return ($name = $this->getExtensionName()) ? new Extension($name) : NULL;
 	}
 
 
@@ -61,58 +97,58 @@ class NFunctionReflection extends ReflectionFunction
 	public function getParameters()
 	{
 		foreach ($res = parent::getParameters() as $key => $val) {
-			$res[$key] = new NParameterReflection($this->value, $val->getName());
+			$res[$key] = new Parameter($this->value, $val->getName());
 		}
 		return $res;
 	}
 
 
 
-	/********************* NObject behaviour ****************d*g**/
+	/********************* Nette\Object behaviour ****************d*g**/
 
 
 
 	/**
-	 * @return NClassReflection
+	 * @return ClassType
 	 */
-	public function getReflection()
+	public static function getReflection()
 	{
-		return new NClassReflection($this);
+		return new ClassType(get_called_class());
 	}
 
 
 
 	public function __call($name, $args)
 	{
-		return NObjectMixin::call($this, $name, $args);
+		return ObjectMixin::call($this, $name, $args);
 	}
 
 
 
 	public function &__get($name)
 	{
-		return NObjectMixin::get($this, $name);
+		return ObjectMixin::get($this, $name);
 	}
 
 
 
 	public function __set($name, $value)
 	{
-		return NObjectMixin::set($this, $name, $value);
+		return ObjectMixin::set($this, $name, $value);
 	}
 
 
 
 	public function __isset($name)
 	{
-		return NObjectMixin::has($this, $name);
+		return ObjectMixin::has($this, $name);
 	}
 
 
 
 	public function __unset($name)
 	{
-		NObjectMixin::remove($this, $name);
+		ObjectMixin::remove($this, $name);
 	}
 
 }

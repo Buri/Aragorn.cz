@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -17,9 +20,12 @@
  *
  * @author     David Grudl
  */
-class NPdoOciDriver extends NObject implements ISupplementalDriver
+class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
-	/** @var NConnection */
+	/** @var array */
+	public $supports = array('meta' => TRUE);
+
+	/** @var Nette\Database\Connection */
 	private $connection;
 
 	/** @var string  Datetime format */
@@ -27,7 +33,7 @@ class NPdoOciDriver extends NObject implements ISupplementalDriver
 
 
 
-	public function __construct(NConnection $connection, array $options)
+	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 		$this->fmtDateTime = isset($options['formatDateTime']) ? $options['formatDateTime'] : 'U';
@@ -53,7 +59,7 @@ class NPdoOciDriver extends NObject implements ISupplementalDriver
 	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(DateTime $value)
+	public function formatDateTime(\DateTime $value)
 	{
 		return $value->format($this->fmtDateTime);
 	}
@@ -65,7 +71,7 @@ class NPdoOciDriver extends NObject implements ISupplementalDriver
 	 */
 	public function formatLike($value, $pos)
 	{
-		throw new NotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 

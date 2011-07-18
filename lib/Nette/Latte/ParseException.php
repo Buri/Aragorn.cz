@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Templates
  */
+
+namespace Nette\Latte;
+
+use Nette;
 
 
 
@@ -17,6 +20,6 @@
  *
  * @author     David Grudl
  */
-class NLatteException extends NTemplateException
+class ParseException extends Nette\Templating\FilterException
 {
 }

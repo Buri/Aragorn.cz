@@ -7,13 +7,16 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette;
+
+use Nette;
 
 
 
 /**
- * NObject is the ultimate ancestor of all instantiable classes.
+ * Nette\Object is the ultimate ancestor of all instantiable classes.
  *
  * It defines some handful methods and enhances object core of PHP:
  *   - access to undeclared members throws exceptions
@@ -43,26 +46,25 @@
  * Adding method to class (i.e. to all instances) works similar to JavaScript
  * prototype property. The syntax for adding a new method is:
  * <code>
- * NMyClass::extensionMethod('newMethod', function(MyClass $obj, $arg, ...) { ... });
+ * MyClass::extensionMethod('newMethod', function(MyClass $obj, $arg, ...) { ... });
  * $obj = new MyClass;
  * $obj->newMethod($x);
  * </code>
  *
  * @author     David Grudl
  *
- * @property-read string $class
- * @property-read NClassReflection $reflection
+ * @property-read Nette\Reflection\ClassType $reflection
  */
-abstract class NObject
+abstract class Object
 {
 
 	/**
 	 * Access to reflection.
-	 * @return NClassReflection
+	 * @return Nette\Reflection\ClassType
 	 */
-	public function getReflection()
+	public static function getReflection()
 	{
-		return new NClassReflection($this);
+		return new Reflection\ClassType(get_called_class());
 	}
 
 
@@ -76,7 +78,7 @@ abstract class NObject
 	 */
 	public function __call($name, $args)
 	{
-		return NObjectMixin::call($this, $name, $args);
+		return ObjectMixin::call($this, $name, $args);
 	}
 
 
@@ -90,7 +92,7 @@ abstract class NObject
 	 */
 	public static function __callStatic($name, $args)
 	{
-		return NObjectMixin::callStatic(get_called_class(), $name, $args);
+		return ObjectMixin::callStatic(get_called_class(), $name, $args);
 	}
 
 
@@ -108,7 +110,7 @@ abstract class NObject
 		} else {
 			list($class, $name) = explode('::', $name);
 		}
-		$class = new NClassReflection($class);
+		$class = new Reflection\ClassType($class);
 		if ($callback === NULL) {
 			return $class->getExtensionMethod($name);
 		} else {
@@ -126,7 +128,7 @@ abstract class NObject
 	 */
 	public function &__get($name)
 	{
-		return NObjectMixin::get($this, $name);
+		return ObjectMixin::get($this, $name);
 	}
 
 
@@ -140,7 +142,7 @@ abstract class NObject
 	 */
 	public function __set($name, $value)
 	{
-		return NObjectMixin::set($this, $name, $value);
+		return ObjectMixin::set($this, $name, $value);
 	}
 
 
@@ -152,7 +154,7 @@ abstract class NObject
 	 */
 	public function __isset($name)
 	{
-		return NObjectMixin::has($this, $name);
+		return ObjectMixin::has($this, $name);
 	}
 
 
@@ -165,7 +167,7 @@ abstract class NObject
 	 */
 	public function __unset($name)
 	{
-		NObjectMixin::remove($this, $name);
+		ObjectMixin::remove($this, $name);
 	}
 
 }

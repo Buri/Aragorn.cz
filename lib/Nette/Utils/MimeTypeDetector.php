@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-final class NMimeTypeDetector
+final class MimeTypeDetector
 {
 
 	/**
@@ -25,7 +28,7 @@ final class NMimeTypeDetector
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -38,7 +41,7 @@ final class NMimeTypeDetector
 	public static function fromFile($file)
 	{
 		if (!is_file($file)) {
-			throw new FileNotFoundException("File '$file' not found.");
+			throw new Nette\FileNotFoundException("File '$file' not found.");
 		}
 
 		$info = @getimagesize($file); // @ - files smaller than 12 bytes causes read error

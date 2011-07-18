@@ -15,6 +15,7 @@ exports.ChatServer = new Class({
     sysMsg:function(channel, message, store){
         message.user = {id:0, name:'System'};
         message.time = new Date().getTime();
+        message.data = message.data || {};
         message.data.color = '#7B6200';
         message.data.size = 'small';
         message.data.id = this.newMsgId(channel);
@@ -152,6 +153,25 @@ exports.ChatServer = new Class({
                     this.updateUser(cname, client.session.user.name, u);
                 }
                 break;
+            case 'cmd':
+                switch(message.data.params.cmd){
+                    case 'kick':
+                        if(client.session.isAllowed('chat', 'kick'))
+                            this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                        else
+                            client.send('notify', {code:403,msg:'Not allowed'});
+                        break;
+                    case 'kickall':
+                        if(client.session.isAllowed('chat', 'kickall')){
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
+                        }else
+                            client.send('notify', {code:403,msg:'Not allowed'});
+                        break;
+                    default:
+                        console.log(message);
+                }
+                break;
             case 'delete':
                 var usr = this.getUserInfo(client.session.user.name);
                 if(usr && usr.permissions['delete']){
@@ -183,10 +203,11 @@ exports.ChatServer = new Class({
             case "leave":
                 if(this.getUsers(cname).binarySearch(message.data.name) != -1){
                     this.removeUser(cname, message.data.name);
-                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                    if(!message.data.silent)
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
                 }
                 cname += '/' + message.data.name;
-                this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', url:'/chat'}});
+                this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', silent:true}});
                 break;
             default:
                 return ('BAD_PARAM');

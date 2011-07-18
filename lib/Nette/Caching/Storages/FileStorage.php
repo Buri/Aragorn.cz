@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Caching
  */
+
+namespace Nette\Caching\Storages;
+
+use Nette,
+	Nette\Caching\Cache;
 
 
 
@@ -17,7 +21,7 @@
  *
  * @author     David Grudl
  */
-class NFileStorage extends NObject implements ICacheStorage
+class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 {
 	/**
 	 * Atomic thread safe logic:
@@ -49,7 +53,7 @@ class NFileStorage extends NObject implements ICacheStorage
 	public static $gcProbability = 0.001;
 
 	/** @var bool */
-	public static $useDirectories;
+	public static $useDirectories = TRUE;
 
 	/** @var string */
 	private $dir;
@@ -57,33 +61,16 @@ class NFileStorage extends NObject implements ICacheStorage
 	/** @var bool */
 	private $useDirs;
 
-	/** @var ICacheJournal */
+	/** @var IJournal */
 	private $journal;
 
 
 
-	public function __construct($dir, ICacheJournal $journal = NULL)
+	public function __construct($dir, IJournal $journal = NULL)
 	{
 		$this->dir = realpath($dir);
 		if ($this->dir === FALSE) {
-			throw new DirectoryNotFoundException("Directory '$dir' not found.");
-		}
-
-		if (self::$useDirectories === NULL) {
-			// checks whether directory is writable
-			$uniq = uniqid('_', TRUE);
-			umask(0000);
-			if (!@mkdir("$dir/$uniq", 0777)) { // @ - is escalated to exception
-				throw new InvalidStateException("Unable to write to directory '$dir'. Make this directory writable.");
-			}
-
-			// tests subdirectory mode
-			self::$useDirectories = !ini_get('safe_mode');
-			if (!self::$useDirectories && @file_put_contents("$dir/$uniq/_", '') !== FALSE) { // @ - error is expected
-				self::$useDirectories = TRUE;
-				unlink("$dir/$uniq/_");
-			}
-			@rmdir("$dir/$uniq"); // @ - directory may not already exist
+			throw new Nette\DirectoryNotFoundException("Directory '$dir' not found.");
 		}
 
 		$this->useDirs = (bool) self::$useDirectories;
@@ -124,22 +111,25 @@ class NFileStorage extends NObject implements ICacheStorage
 		do {
 			if (!empty($meta[self::META_DELTA])) {
 				// meta[file] was added by readMetaAndLock()
-				if (filemtime($meta[self::FILE]) + $meta[self::META_DELTA] < time()) break;
+				if (filemtime($meta[self::FILE]) + $meta[self::META_DELTA] < time()) {
+					break;
+				}
 				touch($meta[self::FILE]);
 
 			} elseif (!empty($meta[self::META_EXPIRE]) && $meta[self::META_EXPIRE] < time()) {
 				break;
 			}
 
-			if (!empty($meta[self::META_CALLBACKS]) && !NCache::checkCallbacks($meta[self::META_CALLBACKS])) {
+			if (!empty($meta[self::META_CALLBACKS]) && !Cache::checkCallbacks($meta[self::META_CALLBACKS])) {
 				break;
 			}
 
 			if (!empty($meta[self::META_ITEMS])) {
 				foreach ($meta[self::META_ITEMS] as $depFile => $time) {
 					$m = $this->readMetaAndLock($depFile, LOCK_SH);
-					if ($m[self::META_TIME] !== $time) break 2;
-					if ($m && !$this->verify($m)) break 2;
+					if ($m[self::META_TIME] !== $time || ($m && !$this->verify($m))) {
+						break 2;
+					}
 				}
 			}
 
@@ -165,25 +155,25 @@ class NFileStorage extends NObject implements ICacheStorage
 			self::META_TIME => microtime(),
 		);
 
-		if (isset($dp[NCache::EXPIRATION])) {
-			if (empty($dp[NCache::SLIDING])) {
-				$meta[self::META_EXPIRE] = $dp[NCache::EXPIRATION] + time(); // absolute time
+		if (isset($dp[Cache::EXPIRATION])) {
+			if (empty($dp[Cache::SLIDING])) {
+				$meta[self::META_EXPIRE] = $dp[Cache::EXPIRATION] + time(); // absolute time
 			} else {
-				$meta[self::META_DELTA] = (int) $dp[NCache::EXPIRATION]; // sliding time
+				$meta[self::META_DELTA] = (int) $dp[Cache::EXPIRATION]; // sliding time
 			}
 		}
 
-		if (isset($dp[NCache::ITEMS])) {
-			foreach ((array) $dp[NCache::ITEMS] as $item) {
+		if (isset($dp[Cache::ITEMS])) {
+			foreach ((array) $dp[Cache::ITEMS] as $item) {
 				$depFile = $this->getCacheFile($item);
 				$m = $this->readMetaAndLock($depFile, LOCK_SH);
-				$meta[self::META_ITEMS][$depFile] = $m[self::META_TIME];
+				$meta[self::META_ITEMS][$depFile] = $m[self::META_TIME]; // may be NULL
 				unset($m);
 			}
 		}
 
-		if (isset($dp[NCache::CALLBACKS])) {
-			$meta[self::META_CALLBACKS] = $dp[NCache::CALLBACKS];
+		if (isset($dp[Cache::CALLBACKS])) {
+			$meta[self::META_CALLBACKS] = $dp[Cache::CALLBACKS];
 		}
 
 		$cacheFile = $this->getCacheFile($key);
@@ -201,9 +191,9 @@ class NFileStorage extends NObject implements ICacheStorage
 			}
 		}
 
-		if (isset($dp[NCache::TAGS]) || isset($dp[NCache::PRIORITY])) {
+		if (isset($dp[Cache::TAGS]) || isset($dp[Cache::PRIORITY])) {
 			if (!$this->journal) {
-				throw new InvalidStateException('CacheJournal has not been provided.');
+				throw new Nette\InvalidStateException('CacheJournal has not been provided.');
 			}
 			$this->journal->write($cacheFile, $dp);
 		}
@@ -264,13 +254,13 @@ class NFileStorage extends NObject implements ICacheStorage
 	 */
 	public function clean(array $conds)
 	{
-		$all = !empty($conds[NCache::ALL]);
+		$all = !empty($conds[Cache::ALL]);
 		$collector = empty($conds);
 
 		// cleaning using file iterator
 		if ($all || $collector) {
 			$now = time();
-			foreach (NFinder::find('*')->from($this->dir)->childFirst() as $entry) {
+			foreach (Nette\Utils\Finder::find('*')->from($this->dir)->childFirst() as $entry) {
 				$path = (string) $entry;
 				if ($entry->isDir()) { // collector: remove empty dirs
 					@rmdir($path); // @ - removing dirs is not necessary
@@ -281,9 +271,13 @@ class NFileStorage extends NObject implements ICacheStorage
 
 				} else { // collector
 					$meta = $this->readMetaAndLock($path, LOCK_SH);
-					if (!$meta) continue;
+					if (!$meta) {
+						continue;
+					}
 
-					if (!empty($meta[self::META_EXPIRE]) && $meta[self::META_EXPIRE] < $now) {
+					if ((!empty($meta[self::META_DELTA]) && filemtime($meta[self::FILE]) + $meta[self::META_DELTA] < $now)
+						|| (!empty($meta[self::META_EXPIRE]) && $meta[self::META_EXPIRE] < $now)
+					) {
 						$this->delete($path, $meta[self::HANDLE]);
 						continue;
 					}
@@ -318,7 +312,9 @@ class NFileStorage extends NObject implements ICacheStorage
 	protected function readMetaAndLock($file, $lock)
 	{
 		$handle = @fopen($file, 'r+b'); // @ - file may not exist
-		if (!$handle) return NULL;
+		if (!$handle) {
+			return NULL;
+		}
 
 		flock($handle, $lock);
 
@@ -369,11 +365,11 @@ class NFileStorage extends NObject implements ICacheStorage
 	 */
 	protected function getCacheFile($key)
 	{
-		if ($this->useDirs) {
-			return $this->dir . '/_' . str_replace('%00', '/_', urlencode($key)); // %00 = urlencode(NCache::NAMESPACE_SEPARATOR)
-		} else {
-			return $this->dir . '/_' . urlencode($key);
+		$file = urlencode($key);
+		if ($this->useDirs && $a = strrpos($file, '%00')) { // %00 = urlencode(Nette\Caching\Cache::NAMESPACE_SEPARATOR)
+			$file = substr_replace($file, '/_', $a, 3);
 		}
+		return $this->dir . '/_' . $file;
 	}
 
 

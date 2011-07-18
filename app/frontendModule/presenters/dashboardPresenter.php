@@ -1,7 +1,9 @@
 <?php
 
-class frontend_dashboardPresenter extends BasePresenter {
+namespace frontendModule{
+    class dashboardPresenter extends \BasePresenter {
 
-    public function renderDefault() {
+        public function renderDefault() {
+        }
     }
 }

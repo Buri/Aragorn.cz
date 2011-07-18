@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
@@ -22,7 +25,7 @@
  * @property-read mixed $selectedItem
  * @property-read bool $firstSkipped
  */
-class NSelectBox extends NFormControl
+class SelectBox extends BaseControl
 {
 	/** @var array */
 	private $items = array();
@@ -31,7 +34,7 @@ class NSelectBox extends NFormControl
 	protected $allowed = array();
 
 	/** @var bool */
-	private $skipFirst = FALSE;
+	private $prompt = FALSE;
 
 	/** @var bool */
 	private $useKeys = TRUE;
@@ -62,7 +65,7 @@ class NSelectBox extends NFormControl
 	public function getValue()
 	{
 		$allowed = $this->allowed;
-		if ($this->skipFirst) {
+		if ($this->prompt) {
 			$allowed = array_slice($allowed, 1, count($allowed), TRUE);
 		}
 
@@ -97,16 +100,16 @@ class NSelectBox extends NFormControl
 	/**
 	 * Ignores the first item in select box.
 	 * @param  string
-	 * @return NSelectBox  provides a fluent interface
+	 * @return SelectBox  provides a fluent interface
 	 */
-	public function skipFirst($item = NULL)
+	public function setPrompt($prompt)
 	{
-		if (is_bool($item)) {
-			$this->skipFirst = $item;
+		if (is_bool($prompt)) {
+			$this->prompt = $prompt;
 		} else {
-			$this->skipFirst = TRUE;
-			if ($item !== NULL) {
-				$this->items = array('' => $item) + $this->items;
+			$this->prompt = TRUE;
+			if ($prompt !== NULL) {
+				$this->items = array('' => $prompt) + $this->items;
 				$this->allowed = array('' => '') + $this->allowed;
 			}
 		}
@@ -115,13 +118,22 @@ class NSelectBox extends NFormControl
 
 
 
+	/** @deprecated */
+	function skipFirst($v = NULL)
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use setPrompt() instead.', E_USER_WARNING);
+		return $this->setPrompt($v);
+	}
+
+
+
 	/**
 	 * Is first item in select box ignored?
 	 * @return bool
 	 */
-	final public function isFirstSkipped()
+	final public function getPrompt()
 	{
-		return $this->skipFirst;
+		return $this->prompt;
 	}
 
 
@@ -140,7 +152,7 @@ class NSelectBox extends NFormControl
 	/**
 	 * Sets items from which to choose.
 	 * @param  array
-	 * @return NSelectBox  provides a fluent interface
+	 * @return SelectBox  provides a fluent interface
 	 */
 	public function setItems(array $items, $useKeys = TRUE)
 	{
@@ -156,13 +168,13 @@ class NSelectBox extends NFormControl
 			foreach ($value as $key2 => $value2) {
 				if (!$this->useKeys) {
 					if (!is_scalar($value2)) {
-						throw new InvalidArgumentException("All items must be scalar.");
+						throw new Nette\InvalidArgumentException("All items must be scalar.");
 					}
 					$key2 = $value2;
 				}
 
 				if (isset($this->allowed[$key2])) {
-					throw new InvalidArgumentException("Items contain duplication for key '$key2'.");
+					throw new Nette\InvalidArgumentException("Items contain duplication for key '$key2'.");
 				}
 
 				$this->allowed[$key2] = $value2;
@@ -203,18 +215,18 @@ class NSelectBox extends NFormControl
 
 	/**
 	 * Generates control's HTML element.
-	 * @return NHtml
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{
 		$control = parent::getControl();
-		if ($this->skipFirst) {
+		if ($this->prompt) {
 			reset($this->items);
 			$control->data('nette-empty-value', $this->useKeys ? key($this->items) : current($this->items));
 		}
 		$selected = $this->getValue();
 		$selected = is_array($selected) ? array_flip($selected) : array($selected => TRUE);
-		$option = NHtml::el('option');
+		$option = Nette\Utils\Html::el('option');
 
 		foreach ($this->items as $key => $value) {
 			if (!is_array($value)) {
@@ -222,11 +234,11 @@ class NSelectBox extends NFormControl
 				$dest = $control;
 
 			} else {
-				$dest = $control->create('optgroup')->label($key);
+				$dest = $control->create('optgroup')->label($this->translate($key));
 			}
 
 			foreach ($value as $key2 => $value2) {
-				if ($value2 instanceof NHtml) {
+				if ($value2 instanceof Nette\Utils\Html) {
 					$dest->add((string) $value2->selected(isset($selected[$key2])));
 
 				} else {

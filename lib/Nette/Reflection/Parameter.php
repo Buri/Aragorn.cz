@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Reflection
  */
+
+namespace Nette\Reflection;
+
+use Nette,
+	Nette\ObjectMixin;
 
 
 
@@ -17,7 +21,7 @@
  *
  * @author     David Grudl
  */
-class NParameterReflection extends ReflectionParameter
+class Parameter extends \ReflectionParameter
 {
 	/** @var mixed */
 	private $function;
@@ -31,11 +35,11 @@ class NParameterReflection extends ReflectionParameter
 
 
 	/**
-	 * @return NClassReflection
+	 * @return ClassType
 	 */
 	public function getClass()
 	{
-		return ($ref = parent::getClass()) ? new NClassReflection($ref->getName()) : NULL;
+		return ($ref = parent::getClass()) ? new ClassType($ref->getName()) : NULL;
 	}
 
 
@@ -45,78 +49,78 @@ class NParameterReflection extends ReflectionParameter
 	 */
 	public function getClassName()
 	{
-		return ($tmp = NString::match($this, '#>\s+([a-z0-9_\\\\]+)#i')) ? $tmp[1] : NULL;
+		return ($tmp = Nette\Utils\Strings::match($this, '#>\s+([a-z0-9_\\\\]+)#i')) ? $tmp[1] : NULL;
 	}
 
 
 
 	/**
-	 * @return NClassReflection
+	 * @return ClassType
 	 */
 	public function getDeclaringClass()
 	{
-		return ($ref = parent::getDeclaringClass()) ? new NClassReflection($ref->getName()) : NULL;
+		return ($ref = parent::getDeclaringClass()) ? new ClassType($ref->getName()) : NULL;
 	}
 
 
 
 	/**
-	 * @return NMethodReflection | FunctionReflection
+	 * @return Method | FunctionReflection
 	 */
 	public function getDeclaringFunction()
 	{
 		return is_array($this->function)
-			? new NMethodReflection($this->function[0], $this->function[1])
-			: new NFunctionReflection($this->function);
+			? new Method($this->function[0], $this->function[1])
+			: new GlobalFunction($this->function);
 	}
 
 
 
-	/********************* NObject behaviour ****************d*g**/
+	/********************* Nette\Object behaviour ****************d*g**/
 
 
 
 	/**
-	 * @return NClassReflection
+	 * @return ClassType
 	 */
-	public function getReflection()
+	public static function getReflection()
 	{
-		return new NClassReflection($this);
+		return new ClassType(get_called_class());
 	}
 
 
 
 	public function __call($name, $args)
 	{
-		return NObjectMixin::call($this, $name, $args);
+		return ObjectMixin::call($this, $name, $args);
 	}
 
 
 
 	public function &__get($name)
 	{
-		return NObjectMixin::get($this, $name);
+		return ObjectMixin::get($this, $name);
 	}
 
 
 
 	public function __set($name, $value)
 	{
-		return NObjectMixin::set($this, $name, $value);
+		return ObjectMixin::set($this, $name, $value);
 	}
 
 
 
 	public function __isset($name)
 	{
-		return NObjectMixin::has($this, $name);
+		return ObjectMixin::has($this, $name);
 	}
 
 
 
 	public function __unset($name)
 	{
-		NObjectMixin::remove($this, $name);
+		ObjectMixin::remove($this, $name);
 	}
 
 }

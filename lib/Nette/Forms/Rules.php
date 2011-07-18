@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms
  */
+
+namespace Nette\Forms;
+
+use Nette;
 
 
 
@@ -17,43 +20,43 @@
  *
  * @author     David Grudl
  */
-final class NRules extends NObject implements IteratorAggregate
+final class Rules extends Nette\Object implements \IteratorAggregate
 {
 	/** @internal */
 	const VALIDATE_PREFIX = 'validate';
 
 	/** @var array */
 	public static $defaultMessages = array(
-		NForm::PROTECTION => 'Security token did not match. Possible CSRF attack.',
-		NForm::EQUAL => 'Please enter %s.',
-		NForm::FILLED => 'Please complete mandatory field.',
-		NForm::MIN_LENGTH => 'Please enter a value of at least %d characters.',
-		NForm::MAX_LENGTH => 'Please enter a value no longer than %d characters.',
-		NForm::LENGTH => 'Please enter a value between %d and %d characters long.',
-		NForm::EMAIL => 'Please enter a valid email address.',
-		NForm::URL => 'Please enter a valid URL.',
-		NForm::INTEGER => 'Please enter a numeric value.',
-		NForm::FLOAT => 'Please enter a numeric value.',
-		NForm::RANGE => 'Please enter a value between %d and %d.',
-		NForm::MAX_FILE_SIZE => 'The size of the uploaded file can be up to %d bytes.',
-		NForm::IMAGE => 'The uploaded file must be image in format JPEG, GIF or PNG.',
+		Form::PROTECTION => 'Security token did not match. Possible CSRF attack.',
+		Form::EQUAL => 'Please enter %s.',
+		Form::FILLED => 'Please complete mandatory field.',
+		Form::MIN_LENGTH => 'Please enter a value of at least %d characters.',
+		Form::MAX_LENGTH => 'Please enter a value no longer than %d characters.',
+		Form::LENGTH => 'Please enter a value between %d and %d characters long.',
+		Form::EMAIL => 'Please enter a valid email address.',
+		Form::URL => 'Please enter a valid URL.',
+		Form::INTEGER => 'Please enter a numeric value.',
+		Form::FLOAT => 'Please enter a numeric value.',
+		Form::RANGE => 'Please enter a value between %d and %d.',
+		Form::MAX_FILE_SIZE => 'The size of the uploaded file can be up to %d bytes.',
+		Form::IMAGE => 'The uploaded file must be image in format JPEG, GIF or PNG.',
 	);
 
-	/** @var array of NRule */
+	/** @var array of Rule */
 	private $rules = array();
 
-	/** @var NRules */
+	/** @var Rules */
 	private $parent;
 
 	/** @var array */
 	private $toggles = array();
 
-	/** @var IFormControl */
+	/** @var IControl */
 	private $control;
 
 
 
-	public function __construct(IFormControl $control)
+	public function __construct(IControl $control)
 	{
 		$this->control = $control;
 	}
@@ -65,16 +68,16 @@ final class NRules extends NObject implements IteratorAggregate
 	 * @param  mixed      rule type
 	 * @param  string     message to display for invalid data
 	 * @param  mixed      optional rule arguments
-	 * @return NRules      provides a fluent interface
+	 * @return Rules      provides a fluent interface
 	 */
 	public function addRule($operation, $message = NULL, $arg = NULL)
 	{
-		$rule = new NRule;
+		$rule = new Rule;
 		$rule->control = $this->control;
 		$rule->operation = $operation;
 		$this->adjustOperation($rule);
 		$rule->arg = $arg;
-		$rule->type = NRule::VALIDATOR;
+		$rule->type = Rule::VALIDATOR;
 		if ($message === NULL && is_string($rule->operation) && isset(self::$defaultMessages[$rule->operation])) {
 			$rule->message = self::$defaultMessages[$rule->operation];
 		} else {
@@ -90,7 +93,7 @@ final class NRules extends NObject implements IteratorAggregate
 	 * Adds a validation condition a returns new branch.
 	 * @param  mixed      condition type
 	 * @param  mixed      optional condition arguments
-	 * @return NRules      new branch
+	 * @return Rules      new branch
 	 */
 	public function addCondition($operation, $arg = NULL)
 	{
@@ -101,20 +104,20 @@ final class NRules extends NObject implements IteratorAggregate
 
 	/**
 	 * Adds a validation condition on specified control a returns new branch.
-	 * @param  IFormControl form control
+	 * @param  IControl form control
 	 * @param  mixed      condition type
 	 * @param  mixed      optional condition arguments
-	 * @return NRules      new branch
+	 * @return Rules      new branch
 	 */
-	public function addConditionOn(IFormControl $control, $operation, $arg = NULL)
+	public function addConditionOn(IControl $control, $operation, $arg = NULL)
 	{
-		$rule = new NRule;
+		$rule = new Rule;
 		$rule->control = $control;
 		$rule->operation = $operation;
 		$this->adjustOperation($rule);
 		$rule->arg = $arg;
-		$rule->type = NRule::CONDITION;
-		$rule->subRules = new self($this->control);
+		$rule->type = Rule::CONDITION;
+		$rule->subRules = new static($this->control);
 		$rule->subRules->parent = $this;
 
 		$this->rules[] = $rule;
@@ -125,13 +128,13 @@ final class NRules extends NObject implements IteratorAggregate
 
 	/**
 	 * Adds a else statement.
-	 * @return NRules      else branch
+	 * @return Rules      else branch
 	 */
 	public function elseCondition()
 	{
 		$rule = clone end($this->parent->rules);
 		$rule->isNegative = !$rule->isNegative;
-		$rule->subRules = new self($this->parent->control);
+		$rule->subRules = new static($this->parent->control);
 		$rule->subRules->parent = $this->parent;
 		$this->parent->rules[] = $rule;
 		return $rule->subRules;
@@ -141,7 +144,7 @@ final class NRules extends NObject implements IteratorAggregate
 
 	/**
 	 * Ends current validation condition.
-	 * @return NRules      parent branch
+	 * @return Rules      parent branch
 	 */
 	public function endCondition()
 	{
@@ -154,7 +157,7 @@ final class NRules extends NObject implements IteratorAggregate
 	 * Toggles HTML elememnt visibility.
 	 * @param  string     element id
 	 * @param  bool       hide element?
-	 * @return NRules      provides a fluent interface
+	 * @return Rules      provides a fluent interface
 	 */
 	public function toggle($id, $hide = TRUE)
 	{
@@ -172,16 +175,18 @@ final class NRules extends NObject implements IteratorAggregate
 	public function validate($onlyCheck = FALSE)
 	{
 		foreach ($this->rules as $rule) {
-			if ($rule->control->isDisabled()) continue;
+			if ($rule->control->isDisabled()) {
+				continue;
+			}
 
 			$success = ($rule->isNegative xor $this->getCallback($rule)->invoke($rule->control, $rule->arg));
 
-			if ($rule->type === NRule::CONDITION && $success) {
+			if ($rule->type === Rule::CONDITION && $success) {
 				if (!$rule->subRules->validate($onlyCheck)) {
 					return FALSE;
 				}
 
-			} elseif ($rule->type === NRule::VALIDATOR && !$success) {
+			} elseif ($rule->type === Rule::VALIDATOR && !$success) {
 				if (!$onlyCheck) {
 					$rule->control->addError(self::formatMessage($rule, TRUE));
 				}
@@ -195,11 +200,11 @@ final class NRules extends NObject implements IteratorAggregate
 
 	/**
 	 * Iterates over ruleset.
-	 * @return ArrayIterator
+	 * @return \ArrayIterator
 	 */
 	final public function getIterator()
 	{
-		return new ArrayIterator($this->rules);
+		return new \ArrayIterator($this->rules);
 	}
 
 
@@ -216,7 +221,7 @@ final class NRules extends NObject implements IteratorAggregate
 
 	/**
 	 * Process 'operation' string.
-	 * @param  NRule
+	 * @param  Rule
 	 * @return void
 	 */
 	private function adjustOperation($rule)
@@ -228,7 +233,7 @@ final class NRules extends NObject implements IteratorAggregate
 
 		if (!$this->getCallback($rule)->isCallable()) {
 			$operation = is_scalar($rule->operation) ? " '$rule->operation'" : '';
-			throw new InvalidArgumentException("Unknown operation$operation for control '{$rule->control->name}'.");
+			throw new Nette\InvalidArgumentException("Unknown operation$operation for control '{$rule->control->name}'.");
 		}
 	}
 

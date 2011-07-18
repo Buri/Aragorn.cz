@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Http;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-interface IHttpResponse
+interface IResponse
 {
 	/** @var int cookie expiration: forever (23.1.2037) */
 	const PERMANENT = 2116333333;

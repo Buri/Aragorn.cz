@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application\Routers;
+
+use Nette,
+	Nette\Application;
 
 
 
@@ -17,7 +21,7 @@
  *
  * @author     David Grudl
  */
-class NSimpleRouter extends NObject implements IRouter
+class SimpleRouter extends Nette\Object implements Application\IRouter
 {
 	const PRESENTER_KEY = 'presenter';
 	const MODULE_KEY = 'module';
@@ -42,11 +46,11 @@ class NSimpleRouter extends NObject implements IRouter
 		if (is_string($defaults)) {
 			$a = strrpos($defaults, ':');
 			if (!$a) {
-				throw new InvalidArgumentException("Argument must be array or string in format Presenter:action, '$defaults' given.");
+				throw new Nette\InvalidArgumentException("Argument must be array or string in format Presenter:action, '$defaults' given.");
 			}
 			$defaults = array(
 				self::PRESENTER_KEY => substr($defaults, 0, $a),
-				'action' => $a === strlen($defaults) - 1 ? NPresenter::DEFAULT_ACTION : substr($defaults, $a + 1),
+				'action' => $a === strlen($defaults) - 1 ? Application\UI\Presenter::DEFAULT_ACTION : substr($defaults, $a + 1),
 			);
 		}
 
@@ -62,13 +66,13 @@ class NSimpleRouter extends NObject implements IRouter
 
 
 	/**
-	 * Maps HTTP request to a PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @return NPresenterRequest|NULL
+	 * Maps HTTP request to a Request object.
+	 * @param  Nette\Http\IRequest
+	 * @return Nette\Application\Request|NULL
 	 */
-	public function match(IHttpRequest $httpRequest)
+	public function match(Nette\Http\IRequest $httpRequest)
 	{
-		if ($httpRequest->getUri()->getPathInfo() !== '') {
+		if ($httpRequest->getUrl()->getPathInfo() !== '') {
 			return NULL;
 		}
 		// combine with precedence: get, (post,) defaults
@@ -76,31 +80,31 @@ class NSimpleRouter extends NObject implements IRouter
 		$params += $this->defaults;
 
 		if (!isset($params[self::PRESENTER_KEY])) {
-			throw new InvalidStateException('Missing presenter.');
+			throw new Nette\InvalidStateException('Missing presenter.');
 		}
 
 		$presenter = $this->module . $params[self::PRESENTER_KEY];
 		unset($params[self::PRESENTER_KEY]);
 
-		return new NPresenterRequest(
+		return new Application\Request(
 			$presenter,
 			$httpRequest->getMethod(),
 			$params,
 			$httpRequest->getPost(),
 			$httpRequest->getFiles(),
-			array(NPresenterRequest::SECURED => $httpRequest->isSecured())
+			array(Application\Request::SECURED => $httpRequest->isSecured())
 		);
 	}
 
 
 
 	/**
-	 * Constructs absolute URL from PresenterRequest object.
-	 * @param  NPresenterRequest
-	 * @param  NUri
+	 * Constructs absolute URL from Request object.
+	 * @param  Nette\Application\Request
+	 * @param  Nette\Http\Url
 	 * @return string|NULL
 	 */
-	public function constructUrl(NPresenterRequest $appRequest, NUri $refUri)
+	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
 		$params = $appRequest->getParams();
 
@@ -119,13 +123,13 @@ class NSimpleRouter extends NObject implements IRouter
 			}
 		}
 
-		$uri = ($this->flags & self::SECURED ? 'https://' : 'http://') . $refUri->getAuthority() . $refUri->getPath();
+		$url = ($this->flags & self::SECURED ? 'https://' : 'http://') . $refUrl->getAuthority() . $refUrl->getPath();
 		$sep = ini_get('arg_separator.input');
 		$query = http_build_query($params, '', $sep ? $sep[0] : '&');
 		if ($query != '') { // intentionally ==
-			$uri .= '?' . $query;
+			$url .= '?' . $query;
 		}
-		return $uri;
+		return $url;
 	}
 
 

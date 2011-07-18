@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Http;
+
+use Nette;
 
 
 
@@ -21,12 +24,12 @@
  * @property-read string $contentType
  * @property-read int $size
  * @property-read string $temporaryFile
- * @property-read NImage $image
+ * @property-read Nette\Image $image
  * @property-read int $error
  * @property-read array $imageSize
  * @property-read bool $ok
  */
-class NHttpUploadedFile extends NObject
+class FileUpload extends Nette\Object
 {
 	/** @var string */
 	private $name;
@@ -73,13 +76,24 @@ class NHttpUploadedFile extends NObject
 
 
 	/**
+	 * Returns the sanitized file name.
+	 * @return string
+	 */
+	public function getSanitizedName()
+	{
+		return trim(Nette\Utils\Strings::webalize($this->name, '.', FALSE), '.-');
+	}
+
+
+
+	/**
 	 * Returns the MIME content type of an uploaded file.
 	 * @return string
 	 */
 	public function getContentType()
 	{
 		if ($this->isOk() && $this->type === NULL) {
-			$this->type = NMimeTypeDetector::fromFile($this->tmpName);
+			$this->type = Nette\Utils\MimeTypeDetector::fromFile($this->tmpName);
 		}
 		return $this->type;
 	}
@@ -144,7 +158,7 @@ class NHttpUploadedFile extends NObject
 	/**
 	 * Move uploaded file to new location.
 	 * @param  string
-	 * @return NHttpUploadedFile  provides a fluent interface
+	 * @return FileUpload  provides a fluent interface
 	 */
 	public function move($dest)
 	{
@@ -153,9 +167,8 @@ class NHttpUploadedFile extends NObject
 			chmod($dir, 0755);
 		}
 		$func = is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename';
-		if (substr(PHP_OS, 0, 3) === 'WIN') { @unlink($dest); }
 		if (!$func($this->tmpName, $dest)) {
-			throw new InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'.");
+			throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'.");
 		}
 		chmod($dest, 0644);
 		$this->tmpName = $dest;
@@ -177,11 +190,11 @@ class NHttpUploadedFile extends NObject
 
 	/**
 	 * Returns the image.
-	 * @return NImage
+	 * @return Nette\Image
 	 */
 	public function toImage()
 	{
-		return NImage::fromFile($this->tmpName);
+		return Nette\Image::fromFile($this->tmpName);
 	}
 
 
@@ -198,7 +211,7 @@ class NHttpUploadedFile extends NObject
 
 
 	/**
-	 * Get file contents
+	 * Get file contents.
 	 * @return string
 	 */
 	public function getContents()

@@ -1,0 +1,39 @@
+{**
+ * Aragorn.cz v4 admin layout template.
+ *
+ * @copyright  Copyright (c) 2011 Aragorn Team
+ * @package    Aragorn.cz
+ *
+ * @param string   $basePath web base path
+ * @param string   $robots   tell robots how to index the content of a page (optinal)
+ * @param string   $title    page title
+ *}
+<!DOCTYPE html>
+<html lang="cs" xml:lang="cs" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        {include '../../templates/head.latte'}
+        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/admin.css" />
+        <style>
+            *{
+                color: #000;
+            }
+        </style>
+        <script type="text/javascript" charset="utf-8" n:syntax="double">
+            window.AUTHENTICATED = {{$isLogedIn = NEnvironment::getUser()->isLoggedIn()}};
+            window.addEvent('domready', function(){
+                new FloatingTips('div#constat',{
+                    position:'bottom',
+                    center:false
+                });
+            });
+        </script>
+        <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
+    </head>
+    <body class=''>
+        <div id="constat" title="Connection status: offline">&nbsp;</div>
+        {include #content}
+        <div style="float:right;">
+            <a n:href=":frontend:dashboard:">Zpět na Aragorn.cz</a>
+        </div>
+    </body>
+</html>

@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Templates
  */
+
+namespace Nette\Templating;
+
+use Nette,
+	Nette\Caching;
 
 
 
@@ -17,13 +21,16 @@
  *
  * @author     David Grudl
  */
-abstract class NTemplate extends NObject implements ITemplate
+class Template extends Nette\Object implements ITemplate
 {
 	/** @var bool */
 	public $warnOnUndefined = TRUE;
 
 	/** @var array of function(Template $sender); Occurs before a template is compiled - implement to customize the filters */
 	public $onPrepareFilters = array();
+
+	/** @var string */
+	private $source;
 
 	/** @var array */
 	private $params = array();
@@ -37,6 +44,127 @@ abstract class NTemplate extends NObject implements ITemplate
 	/** @var array */
 	private $helperLoaders = array();
 
+	/** @var Nette\Caching\IStorage */
+	private $cacheStorage;
+
+
+
+	/**
+	 * Sets template source code.
+	 * @param  string
+	 * @return Template  provides a fluent interface
+	 */
+	public function setSource($source)
+	{
+		$this->source = $source;
+		return $this;
+	}
+
+
+
+	/**
+	 * Returns template source code.
+	 * @return source
+	 */
+	public function getSource()
+	{
+		return $this->source;
+	}
+
+
+
+	/********************* rendering ****************d*g**/
+
+
+
+	/**
+	 * Renders template to output.
+	 * @return void
+	 */
+	public function render()
+	{
+		$cache = new Caching\Cache($storage = $this->getCacheStorage(), 'Nette.Template');
+		$cached = $compiled = $cache->load($this->source);
+
+		if ($compiled === NULL) {
+			$compiled = $this->compile();
+			$cache->save($this->source, $compiled, array(Caching\Cache::CONSTS => 'Nette\Framework::REVISION'));
+			$cache->release();
+			$cached = $cache->load($this->source);
+		}
+
+		if ($cached !== NULL && $storage instanceof Caching\Storages\PhpFileStorage) {
+			Nette\Utils\LimitedScope::load($cached['file'], $this->getParams());
+		} else {
+			Nette\Utils\LimitedScope::evaluate($compiled, $this->getParams());
+		}
+	}
+
+
+
+	/**
+	 * Renders template to file.
+	 * @param  string
+	 * @return void
+	 */
+	public function save($file)
+	{
+		if (file_put_contents($file, $this->__toString(TRUE)) === FALSE) {
+			throw new Nette\IOException("Unable to save file '$file'.");
+		}
+	}
+
+
+
+	/**
+	 * Renders template to string.
+	 * @param  bool  can throw exceptions? (hidden parameter)
+	 * @return string
+	 */
+	public function __toString()
+	{
+		$args = func_get_args();
+		ob_start();
+		try {
+			$this->render();
+			return ob_get_clean();
+
+		} catch (\Exception $e) {
+			ob_end_clean();
+			if ($args && $args[0]) {
+				throw $e;
+			} else {
+				Nette\Diagnostics\Debugger::toStringException($e);
+			}
+		}
+	}
+
+
+
+	/**
+	 * Applies filters on template content.
+	 * @return string
+	 */
+	public function compile()
+	{
+		if (!$this->filters) {
+			$this->onPrepareFilters($this);
+		}
+
+		$code = $this->getSource();
+		foreach ($this->filters as $filter) {
+			$code = self::extractPhp($code, $blocks);
+			$code = $filter($code);
+			$code = strtr($code, $blocks); // put PHP code back
+		}
+
+		return self::optimizePhp($code);
+	}
+
+
+
+	/********************* template filters & helpers ****************d*g**/
+
 
 
 	/**
@@ -48,7 +176,7 @@ abstract class NTemplate extends NObject implements ITemplate
 	{
 		$callback = callback($callback);
 		if (in_array($callback, $this->filters)) {
-			throw new InvalidStateException("Filter '$callback' was registered twice.");
+			throw new Nette\InvalidStateException("Filter '$callback' was registered twice.");
 		}
 		$this->filters[] = $callback;
 	}
@@ -63,86 +191,6 @@ abstract class NTemplate extends NObject implements ITemplate
 	{
 		return $this->filters;
 	}
-
-
-
-	/********************* rendering ****************d*g**/
-
-
-
-	/**
-	 * Renders template to output.
-	 * @return void
-	 * @abstract
-	 */
-	public function render()
-	{
-		throw new NotImplementedException;
-	}
-
-
-
-	/**
-	 * Renders template to file.
-	 * @param  string
-	 * @return void
-	 */
-	public function save($file)
-	{
-		if (file_put_contents($file, $this->__toString(TRUE)) === FALSE) {
-			throw new IOException("Unable to save file '$file'.");
-		}
-	}
-
-
-
-	/**
-	 * Renders template to string.
-	 * @param  bool  can throw exceptions? (hidden parameter)
-	 * @return string
-	 */
-	public function __toString()
-	{
-		ob_start();
-		try {
-			$this->render();
-			return ob_get_clean();
-
-		} catch (Exception $e) {
-			ob_end_clean();
-			if (func_num_args() && func_get_arg(0)) {
-				throw $e;
-			} else {
-				NDebug::toStringException($e);
-			}
-		}
-	}
-
-
-
-	/**
-	 * Applies filters on template content.
-	 * @param  string
-	 * @return string
-	 */
-	public function compile($content)
-	{
-		if (!$this->filters) {
-			$this->onPrepareFilters($this);
-		}
-
-		foreach ($this->filters as $filter) {
-			$content = self::extractPhp($content, $blocks);
-			$content = $filter->invoke($content);
-			$content = strtr($content, $blocks); // put PHP code back
-		}
-
-		return self::optimizePhp($content);
-	}
-
-
-
-	/********************* template helpers ****************d*g**/
 
 
 
@@ -193,7 +241,7 @@ abstract class NTemplate extends NObject implements ITemplate
 		$lname = strtolower($name);
 		if (!isset($this->helpers[$lname])) {
 			foreach ($this->helperLoaders as $loader) {
-				$helper = $loader->invoke($lname);
+				$helper = $loader($lname);
 				if ($helper) {
 					$this->registerHelper($lname, $helper);
 					return $this->helpers[$lname]->invokeArgs($args);
@@ -209,10 +257,10 @@ abstract class NTemplate extends NObject implements ITemplate
 
 	/**
 	 * Sets translate adapter.
-	 * @param  ITranslator
-	 * @return NTemplate  provides a fluent interface
+	 * @param  Nette\Localization\ITranslator
+	 * @return Template  provides a fluent interface
 	 */
-	public function setTranslator(ITranslator $translator = NULL)
+	public function setTranslator(Nette\Localization\ITranslator $translator = NULL)
 	{
 		$this->registerHelper('translate', $translator === NULL ? NULL : array($translator, 'translate'));
 		return $this;
@@ -233,7 +281,7 @@ abstract class NTemplate extends NObject implements ITemplate
 	public function add($name, $value)
 	{
 		if (array_key_exists($name, $this->params)) {
-			throw new InvalidStateException("The variable '$name' already exists.");
+			throw new Nette\InvalidStateException("The variable '$name' already exists.");
 		}
 
 		$this->params[$name] = $value;
@@ -244,11 +292,11 @@ abstract class NTemplate extends NObject implements ITemplate
 	/**
 	 * Sets all parameters.
 	 * @param  array
-	 * @return NTemplate  provides a fluent interface
+	 * @return Template  provides a fluent interface
 	 */
 	public function setParams(array $params)
 	{
-		$this->params = $params;
+		$this->params = $params + $this->params;
 		return $this;
 	}
 
@@ -260,6 +308,7 @@ abstract class NTemplate extends NObject implements ITemplate
 	 */
 	public function getParams()
 	{
+		$this->params['template'] = $this;
 		return $this->params;
 	}
 
@@ -318,6 +367,35 @@ abstract class NTemplate extends NObject implements ITemplate
 
 
 
+	/********************* caching ****************d*g**/
+
+
+
+	/**
+	 * Set cache storage.
+	 * @param  Nette\Caching\Cache
+	 * @return void
+	 */
+	public function setCacheStorage(Caching\IStorage $storage)
+	{
+		$this->cacheStorage = $storage;
+	}
+
+
+
+	/**
+	 * @return Nette\Caching\IStorage
+	 */
+	public function getCacheStorage()
+	{
+		if ($this->cacheStorage === NULL) {
+			return new Caching\Storages\DevNullStorage;
+		}
+		return $this->cacheStorage;
+	}
+
+
+
 	/********************* tools ****************d*g**/
 
 
@@ -335,7 +413,7 @@ abstract class NTemplate extends NObject implements ITemplate
 		$tokens = token_get_all($source);
 		foreach ($tokens as $n => $token) {
 			if (is_array($token)) {
-				if ($token[0] === T_INLINE_HTML) {
+				if ($token[0] === T_INLINE_HTML || $token[0] === T_CLOSE_TAG) {
 					$res .= $token[1];
 					continue;
 
@@ -344,7 +422,7 @@ abstract class NTemplate extends NObject implements ITemplate
 					$token[1] = '<<?php ?>?';
 
 				} elseif ($token[0] === T_OPEN_TAG || $token[0] === T_OPEN_TAG_WITH_ECHO) {
-					$res .= $id = "\x01@php:p" . count($blocks) . "@\x02";
+					$res .= $id = "<?php \x01@php:p" . count($blocks) . "@\x02";
 					$php = & $blocks[$id];
 				}
 				$php .= $token[1];
@@ -363,11 +441,11 @@ abstract class NTemplate extends NObject implements ITemplate
 	 * @param  string
 	 * @return string
 	 */
-	public static function optimizePhp($source)
+	public static function optimizePhp($source, $lineLength = 80, $existenceOfThisParameterSolvesDamnBugInPHP535 = NULL)
 	{
 		$res = $php = '';
 		$lastChar = ';';
-		$tokens = new ArrayIterator(token_get_all($source));
+		$tokens = new \ArrayIterator(token_get_all($source));
 		foreach ($tokens as $key => $token) {
 			if (is_array($token)) {
 				if ($token[0] === T_INLINE_HTML) {
@@ -390,6 +468,11 @@ abstract class NTemplate extends NObject implements ITemplate
 
 					} elseif ($next) {
 						$res .= preg_replace('#;?(\s)*$#', '$1', $php) . $token[1]; // remove last semicolon before ?)
+						if (strlen($res) - strrpos($res, "\n") > $lineLength
+							&& (!is_array($next) || strpos($next[1], "\n") === FALSE)
+						) {
+							$res .= "\n";
+						}
 						$php = '';
 
 					} else { // remove last ?)

@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Reflection
  */
+
+namespace Nette\Reflection;
+
+use Nette,
+	Nette\ObjectMixin;
 
 
 
@@ -17,7 +21,7 @@
  *
  * @author     David Grudl
  */
-class NExtensionReflection extends ReflectionExtension
+class Extension extends \ReflectionExtension
 {
 
 	public function __toString()
@@ -35,7 +39,7 @@ class NExtensionReflection extends ReflectionExtension
 	{
 		$res = array();
 		foreach (parent::getClassNames() as $val) {
-			$res[$val] = new NClassReflection($val);
+			$res[$val] = new ClassType($val);
 		}
 		return $res;
 	}
@@ -45,58 +49,58 @@ class NExtensionReflection extends ReflectionExtension
 	public function getFunctions()
 	{
 		foreach ($res = parent::getFunctions() as $key => $val) {
-			$res[$key] = new NFunctionReflection($key);
+			$res[$key] = new GlobalFunction($key);
 		}
 		return $res;
 	}
 
 
 
-	/********************* NObject behaviour ****************d*g**/
+	/********************* Nette\Object behaviour ****************d*g**/
 
 
 
 	/**
-	 * @return NClassReflection
+	 * @return ClassType
 	 */
-	public function getReflection()
+	public static function getReflection()
 	{
-		return new NClassReflection($this);
+		return new ClassType(get_called_class());
 	}
 
 
 
 	public function __call($name, $args)
 	{
-		return NObjectMixin::call($this, $name, $args);
+		return ObjectMixin::call($this, $name, $args);
 	}
 
 
 
 	public function &__get($name)
 	{
-		return NObjectMixin::get($this, $name);
+		return ObjectMixin::get($this, $name);
 	}
 
 
 
 	public function __set($name, $value)
 	{
-		return NObjectMixin::set($this, $name, $value);
+		return ObjectMixin::set($this, $name, $value);
 	}
 
 
 
 	public function __isset($name)
 	{
-		return NObjectMixin::has($this, $name);
+		return ObjectMixin::has($this, $name);
 	}
 
 
 
 	public function __unset($name)
 	{
-		NObjectMixin::remove($this, $name);
+		ObjectMixin::remove($this, $name);
 	}
 
 }

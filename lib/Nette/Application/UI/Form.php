@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application\UI;
+
+use Nette;
 
 
 
@@ -17,18 +20,18 @@
  *
  * @author     David Grudl
  *
- * @property-read NPresenter $presenter
+ * @property-read Presenter $presenter
  */
-class NAppForm extends NForm implements ISignalReceiver
+class Form extends Nette\Forms\Form implements ISignalReceiver
 {
 
 	/**
 	 * Application form constructor.
 	 */
-	public function __construct(IComponentContainer $parent = NULL, $name = NULL)
+	public function __construct(Nette\ComponentModel\IContainer $parent = NULL, $name = NULL)
 	{
 		parent::__construct();
-		$this->monitor('NPresenter');
+		$this->monitor('Nette\Application\UI\Presenter');
 		if ($parent !== NULL) {
 			$parent->addComponent($this, $name);
 		}
@@ -39,11 +42,11 @@ class NAppForm extends NForm implements ISignalReceiver
 	/**
 	 * Returns the presenter where this component belongs to.
 	 * @param  bool   throw exception if presenter doesn't exist?
-	 * @return NPresenter|NULL
+	 * @return Presenter|NULL
 	 */
 	public function getPresenter($need = TRUE)
 	{
-		return $this->lookup('NPresenter', $need);
+		return $this->lookup('Nette\Application\UI\Presenter', $need);
 	}
 
 
@@ -51,19 +54,19 @@ class NAppForm extends NForm implements ISignalReceiver
 	/**
 	 * This method will be called when the component (or component's parent)
 	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @param  IComponent
+	 * @param  Nette\Application\IComponent
 	 * @return void
 	 */
 	protected function attached($presenter)
 	{
-		if ($presenter instanceof NPresenter) {
-			$name = $this->lookupPath('NPresenter');
+		if ($presenter instanceof Presenter) {
+			$name = $this->lookupPath('Nette\Application\UI\Presenter');
 
 			if (!isset($this->getElementPrototype()->id)) {
 				$this->getElementPrototype()->id = 'frm-' . $name;
 			}
 
-			$this->setAction(new NLink(
+			$this->setAction(new Link(
 				$presenter,
 				$name . self::NAME_SEPARATOR . 'submit!',
 				array()
@@ -110,7 +113,7 @@ class NAppForm extends NForm implements ISignalReceiver
 		}
 
 		if ($isPost) {
-			return NArrayTools::mergeTree($request->getPost(), $request->getFiles());
+			return Nette\Utils\Arrays::mergeTree($request->getPost(), $request->getFiles());
 		} else {
 			return $request->getParams();
 		}
@@ -131,9 +134,9 @@ class NAppForm extends NForm implements ISignalReceiver
 	{
 		if ($signal === 'submit') {
 			$this->fireEvents();
-
 		} else {
-			throw new NBadSignalException("Missing handler for signal '$signal' in {$this->reflection->name}.");
+			$class = get_class($this);
+			throw new BadSignalException("Missing handler for signal '$signal' in $class.");
 		}
 	}
 

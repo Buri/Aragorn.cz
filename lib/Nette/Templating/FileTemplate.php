@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Templates
  */
+
+namespace Nette\Templating;
+
+use Nette,
+	Nette\Caching;
 
 
 
@@ -17,11 +21,8 @@
  *
  * @author     David Grudl
  */
-class NFileTemplate extends NTemplate implements IFileTemplate
+class FileTemplate extends Template implements IFileTemplate
 {
-	/** @var ICacheStorage */
-	private $cacheStorage;
-
 	/** @var string */
 	private $file;
 
@@ -43,13 +44,13 @@ class NFileTemplate extends NTemplate implements IFileTemplate
 	/**
 	 * Sets the path to the template file.
 	 * @param  string  template file path
-	 * @return NFileTemplate  provides a fluent interface
+	 * @return FileTemplate  provides a fluent interface
 	 */
 	public function setFile($file)
 	{
 		$this->file = realpath($file);
 		if (!$this->file) {
-			throw new FileNotFoundException("Missing template file '$file'.");
+			throw new Nette\FileNotFoundException("Missing template file '$file'.");
 		}
 		return $this;
 	}
@@ -67,6 +68,17 @@ class NFileTemplate extends NTemplate implements IFileTemplate
 
 
 
+	/**
+	 * Returns template source code.
+	 * @return source
+	 */
+	public function getSource()
+	{
+		return file_get_contents($this->file);
+	}
+
+
+
 	/********************* rendering ****************d*g**/
 
 
@@ -78,79 +90,37 @@ class NFileTemplate extends NTemplate implements IFileTemplate
 	public function render()
 	{
 		if ($this->file == NULL) { // intentionally ==
-			throw new InvalidStateException("Template file name was not specified.");
+			throw new Nette\InvalidStateException("Template file name was not specified.");
 		}
 
-		$this->__set('template', $this);
-
-		$cache = new NCache($storage = $this->getCacheStorage(), 'Nette.FileTemplate');
-		if ($storage instanceof NTemplateCacheStorage) {
+		$cache = new Caching\Cache($storage = $this->getCacheStorage(), 'Nette.FileTemplate');
+		if ($storage instanceof Caching\Storages\PhpFileStorage) {
 			$storage->hint = str_replace(dirname(dirname($this->file)), '', $this->file);
 		}
-		$cached = $content = $cache[$this->file];
+		$cached = $compiled = $cache->load($this->file);
 
-		if ($content === NULL) {
+		if ($compiled === NULL) {
 			try {
-				$content = $this->compile(file_get_contents($this->file));
-				$content = "<?php\n\n// source file: $this->file\n\n?>$content";
+				$compiled = "<?php\n\n// source file: $this->file\n\n?>" . $this->compile();
 
-			} catch (NTemplateException $e) {
+			} catch (FilterException $e) {
 				$e->setSourceFile($this->file);
 				throw $e;
 			}
 
-			$cache->save(
-				$this->file,
-				$content,
-				array(
-					NCache::FILES => $this->file,
-					NCache::CONSTS => 'NFramework::REVISION',
-				)
-			);
+			$cache->save($this->file, $compiled, array(
+				Caching\Cache::FILES => $this->file,
+				Caching\Cache::CONSTS => 'Nette\Framework::REVISION',
+			));
 			$cache->release();
-			$cached = $cache[$this->file];
+			$cached = $cache->load($this->file);
 		}
 
-		if ($cached !== NULL && $storage instanceof NTemplateCacheStorage) {
-			NLimitedScope::load($cached['file'], $this->getParams());
-			flock($cached['handle'], LOCK_UN);
-			fclose($cached['handle']);
-
+		if ($cached !== NULL && $storage instanceof Caching\Storages\PhpFileStorage) {
+			Nette\Utils\LimitedScope::load($cached['file'], $this->getParams());
 		} else {
-			NLimitedScope::evaluate($content, $this->getParams());
+			Nette\Utils\LimitedScope::evaluate($compiled, $this->getParams());
 		}
-	}
-
-
-
-	/********************* caching ****************d*g**/
-
-
-
-	/**
-	 * Set cache storage.
-	 * @param  NCache
-	 * @return void
-	 */
-	public function setCacheStorage(ICacheStorage $storage)
-	{
-		$this->cacheStorage = $storage;
-	}
-
-
-
-	/**
-	 * @return ICacheStorage
-	 */
-	public function getCacheStorage()
-	{
-		if ($this->cacheStorage === NULL) {
-			$dir = NEnvironment::getVariable('tempDir') . '/cache';
-			umask(0000);
-			@mkdir($dir, 0777); // @ - directory may exists
-			$this->cacheStorage = new NTemplateCacheStorage($dir);
-		}
-		return $this->cacheStorage;
 	}
 
 }

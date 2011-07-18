@@ -1,7 +1,8 @@
 <?php
+namespace frontendModule{
+    class denPresenter extends \BasePresenter {
 
-class frontend_denPresenter extends BasePresenter {
-
-    public function renderDefault() {
+        public function renderDefault() {
+        }
     }
 }

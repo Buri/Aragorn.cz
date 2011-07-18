@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-final class NCriticalSection
+final class CriticalSection
 {
 	/** @var array */
 	private static $criticalSections;
@@ -29,7 +32,7 @@ final class NCriticalSection
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -41,7 +44,7 @@ final class NCriticalSection
 	public static function enter()
 	{
 		if (self::$criticalSections) {
-			throw new InvalidStateException('Critical section has already been entered.');
+			throw new Nette\InvalidStateException('Critical section has already been entered.');
 		}
 		// locking on Windows causes that a file seems to be empty
 		$handle = substr(PHP_OS, 0, 3) === 'WIN'
@@ -49,7 +52,7 @@ final class NCriticalSection
 			: @fopen(__FILE__, 'r'); // @ - file may not already exist
 
 		if (!$handle) {
-			throw new InvalidStateException("Unable initialize critical section.");
+			throw new Nette\InvalidStateException("Unable initialize critical section.");
 		}
 		flock(self::$criticalSections = $handle, LOCK_EX);
 	}
@@ -63,7 +66,7 @@ final class NCriticalSection
 	public static function leave()
 	{
 		if (!self::$criticalSections) {
-			throw new InvalidStateException('Critical section has not been initialized.');
+			throw new Nette\InvalidStateException('Critical section has not been initialized.');
 		}
 		flock(self::$criticalSections, LOCK_UN);
 		fclose(self::$criticalSections);

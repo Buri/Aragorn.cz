@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : widget.xml
+    Created on : 13. červenec 2011, 18:46
+    Author     : Buri
+    Description:
+        Purpose of the document follows.
+-->
+<widget>
+    <info>
+        <author>Buri the Great</author>
+        <id>1568-1861-9846-4980</id>
+    </info>
+    <system>
+        <display type="box" />
+        <template></template>
+    </system>
+</widget>

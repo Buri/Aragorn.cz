@@ -7,18 +7,23 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application\Routers;
+
+use Nette,
+	Nette\Application,
+	Nette\Utils\Strings;
 
 
 
 /**
  * The bidirectional route is responsible for mapping
- * HTTP request to a PresenterRequest object for dispatch and vice-versa.
+ * HTTP request to a Request object for dispatch and vice-versa.
  *
  * @author     David Grudl
  */
-class NRoute extends NObject implements IRouter
+class Route extends Nette\Object implements Application\IRouter
 {
 	const PRESENTER_KEY = 'presenter';
 	const MODULE_KEY = 'module';
@@ -26,19 +31,19 @@ class NRoute extends NObject implements IRouter
 	/** flag */
 	const CASE_SENSITIVE = 256;
 
-	/** @internal uri type */
+	/** @internal url type */
 	const HOST = 1,
 		PATH = 2,
 		RELATIVE = 3;
 
-	/** key used in {@link NRoute::$styles} or metadata {@link NRoute::__construct} */
+	/** key used in {@link Route::$styles} or metadata {@link Route::__construct} */
 	const VALUE = 'value';
 	const PATTERN = 'pattern';
 	const FILTER_IN = 'filterIn';
 	const FILTER_OUT = 'filterOut';
 	const FILTER_TABLE = 'filterTable';
 
-	/** @internal fixity types - how to handle default value? {@link NRoute::$metadata} */
+	/** @internal fixity types - how to handle default value? {@link Route::$metadata} */
 	const OPTIONAL = 0,
 		PATH_OPTIONAL = 1,
 		CONSTANT = 2;
@@ -111,11 +116,16 @@ class NRoute extends NObject implements IRouter
 		if (is_string($metadata)) {
 			$a = strrpos($metadata, ':');
 			if (!$a) {
-				throw new InvalidArgumentException("Second argument must be array or string in format Presenter:action, '$metadata' given.");
+				throw new Nette\InvalidArgumentException("Second argument must be array or string in format Presenter:action, '$metadata' given.");
 			}
 			$metadata = array(
 				self::PRESENTER_KEY => substr($metadata, 0, $a),
-				'action' => $a === strlen($metadata) - 1 ? NPresenter::DEFAULT_ACTION : substr($metadata, $a + 1),
+				'action' => $a === strlen($metadata) - 1 ? Application\UI\Presenter::DEFAULT_ACTION : substr($metadata, $a + 1),
+			);
+		} elseif ($metadata instanceof \Closure || $metadata instanceof Nette\Callback) {
+			$metadata = array(
+				self::PRESENTER_KEY => 'Nette:Micro',
+				'callback' => $metadata,
 			);
 		}
 
@@ -126,36 +136,36 @@ class NRoute extends NObject implements IRouter
 
 
 	/**
-	 * Maps HTTP request to a PresenterRequest object.
-	 * @param  IHttpRequest
-	 * @return NPresenterRequest|NULL
+	 * Maps HTTP request to a Request object.
+	 * @param  Nette\Http\IRequest
+	 * @return Nette\Application\Request|NULL
 	 */
-	public function match(IHttpRequest $httpRequest)
+	public function match(Nette\Http\IRequest $httpRequest)
 	{
 		// combine with precedence: mask (params in URL-path), fixity, query, (post,) defaults
 
 		// 1) URL MASK
-		$uri = $httpRequest->getUri();
+		$url = $httpRequest->getUrl();
 
 		if ($this->type === self::HOST) {
-			$path = '//' . $uri->getHost() . $uri->getPath();
+			$path = '//' . $url->getHost() . $url->getPath();
 
 		} elseif ($this->type === self::RELATIVE) {
-			$basePath = $uri->getBasePath();
-			if (strncmp($uri->getPath(), $basePath, strlen($basePath)) !== 0) {
+			$basePath = $url->getBasePath();
+			if (strncmp($url->getPath(), $basePath, strlen($basePath)) !== 0) {
 				return NULL;
 			}
-			$path = (string) substr($uri->getPath(), strlen($basePath));
+			$path = (string) substr($url->getPath(), strlen($basePath));
 
 		} else {
-			$path = $uri->getPath();
+			$path = $url->getPath();
 		}
 
 		if ($path !== '') {
 			$path = rtrim($path, '/') . '/';
 		}
 
-		if (!$matches = NString::match($path, $this->re)) {
+		if (!$matches = Strings::match($path, $this->re)) {
 			// stop, not matched
 			return NULL;
 		}
@@ -209,13 +219,13 @@ class NRoute extends NObject implements IRouter
 		}
 
 
-		// 5) BUILD PresenterRequest
+		// 5) BUILD Request
 		if (!isset($params[self::PRESENTER_KEY])) {
-			throw new InvalidStateException('Missing presenter in route definition.');
+			throw new Nette\InvalidStateException('Missing presenter in route definition.');
 		}
 		if (isset($this->metadata[self::MODULE_KEY])) {
 			if (!isset($params[self::MODULE_KEY])) {
-				throw new InvalidStateException('Missing module in route definition.');
+				throw new Nette\InvalidStateException('Missing module in route definition.');
 			}
 			$presenter = $params[self::MODULE_KEY] . ':' . $params[self::PRESENTER_KEY];
 			unset($params[self::MODULE_KEY], $params[self::PRESENTER_KEY]);
@@ -225,25 +235,25 @@ class NRoute extends NObject implements IRouter
 			unset($params[self::PRESENTER_KEY]);
 		}
 
-		return new NPresenterRequest(
+		return new Application\Request(
 			$presenter,
 			$httpRequest->getMethod(),
 			$params,
 			$httpRequest->getPost(),
 			$httpRequest->getFiles(),
-			array(NPresenterRequest::SECURED => $httpRequest->isSecured())
+			array(Application\Request::SECURED => $httpRequest->isSecured())
 		);
 	}
 
 
 
 	/**
-	 * Constructs absolute URL from PresenterRequest object.
-	 * @param  NPresenterRequest
-	 * @param  NUri
+	 * Constructs absolute URL from Request object.
+	 * @param  Nette\Application\Request
+	 * @param  Nette\Http\Url
 	 * @return string|NULL
 	 */
-	public function constructUrl(NPresenterRequest $appRequest, NUri $refUri)
+	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
 		if ($this->flags & self::ONE_WAY) {
 			return NULL;
@@ -271,11 +281,14 @@ class NRoute extends NObject implements IRouter
 		}
 
 		foreach ($metadata as $name => $meta) {
-			if (!isset($params[$name])) continue; // retains NULL values
+			if (!isset($params[$name])) {
+				continue; // retains NULL values
+			}
 
 			if (isset($meta['fixity'])) {
-				if (is_scalar($params[$name]) && strcasecmp($params[$name], $meta[self::VALUE]) === 0) {
-					// remove default values; NULL values are retain
+				if (is_scalar($params[$name]) ? strcasecmp($params[$name], $meta[self::VALUE]) === 0
+					: $params[$name] === $meta[self::VALUE]
+				) { // remove default values; NULL values are retain
 					unset($params[$name]);
 					continue;
 
@@ -302,23 +315,25 @@ class NRoute extends NObject implements IRouter
 		$sequence = $this->sequence;
 		$brackets = array();
 		$required = 0;
-		$uri = '';
+		$url = '';
 		$i = count($sequence) - 1;
 		do {
-			$uri = $sequence[$i] . $uri;
-			if ($i === 0) break;
+			$url = $sequence[$i] . $url;
+			if ($i === 0) {
+				break;
+			}
 			$i--;
 
 			$name = $sequence[$i]; $i--; // parameter name
 
 			if ($name === ']') { // opening optional part
-				$brackets[] = $uri;
+				$brackets[] = $url;
 
 			} elseif ($name[0] === '[') { // closing optional part
 				$tmp = array_pop($brackets);
 				if ($required < count($brackets) + 1) { // is this level optional?
 					if ($name !== '[!') { // and not "required"-optional
-						$uri = $tmp;
+						$url = $tmp;
 					}
 				} else {
 					$required = count($brackets);
@@ -329,11 +344,11 @@ class NRoute extends NObject implements IRouter
 
 			} elseif (isset($params[$name]) && $params[$name] != '') { // intentionally ==
 				$required = count($brackets); // make this level required
-				$uri = $params[$name] . $uri;
+				$url = $params[$name] . $url;
 				unset($params[$name]);
 
 			} elseif (isset($metadata[$name]['fixity'])) { // has default value?
-				$uri = $metadata[$name]['defOut'] . $uri;
+				$url = $metadata[$name]['defOut'] . $url;
 
 			} else {
 				return NULL; // missing parameter '$name'
@@ -348,23 +363,25 @@ class NRoute extends NObject implements IRouter
 
 		$sep = ini_get('arg_separator.input');
 		$query = http_build_query($params, '', $sep ? $sep[0] : '&');
-		if ($query != '') $uri .= '?' . $query; // intentionally ==
+		if ($query != '') { // intentionally ==
+			$url .= '?' . $query;
+		}
 
 		// absolutize path
 		if ($this->type === self::RELATIVE) {
-			$uri = '//' . $refUri->getAuthority() . $refUri->getBasePath() . $uri;
+			$url = '//' . $refUrl->getAuthority() . $refUrl->getBasePath() . $url;
 
 		} elseif ($this->type === self::PATH) {
-			$uri = '//' . $refUri->getAuthority() . $uri;
+			$url = '//' . $refUrl->getAuthority() . $url;
 		}
 
-		if (strpos($uri, '//', 2) !== FALSE) {
+		if (strpos($url, '//', 2) !== FALSE) {
 			return NULL; // TODO: implement counterpart in match() ?
 		}
 
-		$uri = ($this->flags & self::SECURED ? 'https:' : 'http:') . $uri;
+		$url = ($this->flags & self::SECURED ? 'https:' : 'http:') . $url;
 
-		return $uri;
+		return $url;
 	}
 
 
@@ -401,7 +418,7 @@ class NRoute extends NObject implements IRouter
 
 		// PARSE MASK
 		// <parameter-name[=default] [pattern] [#class]> or [ or ] or ?...
-		$parts = NString::split($mask, '/<([^>#= ]+)(=[^># ]*)? *([^>#]*)(#?[^>\[\]]*)>|(\[!?|\]|\s*\?.*)/');
+		$parts = Strings::split($mask, '/<([^>#= ]+)(=[^># ]*)? *([^>#]*)(#?[^>\[\]]*)>|(\[!?|\]|\s*\?.*)/');
 
 		$this->xlat = array();
 		$i = count($parts) - 1;
@@ -409,14 +426,14 @@ class NRoute extends NObject implements IRouter
 		// PARSE QUERY PART OF MASK
 		if (isset($parts[$i - 1]) && substr(ltrim($parts[$i - 1]), 0, 1) === '?') {
 			// name=<parameter-name [pattern][#class]>
-			$matches = NString::matchAll($parts[$i - 1], '/(?:([a-zA-Z0-9_.-]+)=)?<([^># ]+) *([^>#]*)(#?[^>]*)>/');
+			$matches = Strings::matchAll($parts[$i - 1], '/(?:([a-zA-Z0-9_.-]+)=)?<([^># ]+) *([^>#]*)(#?[^>]*)>/');
 
 			foreach ($matches as $match) {
 				list(, $param, $name, $pattern, $class) = $match;  // $pattern is not used
 
 				if ($class !== '') {
 					if (!isset(self::$styles[$class])) {
-						throw new InvalidStateException("Parameter '$name' has '$class' flag, but Route::\$styles['$class'] is not set.");
+						throw new Nette\InvalidStateException("Parameter '$name' has '$class' flag, but Route::\$styles['$class'] is not set.");
 					}
 					$meta = self::$styles[$class];
 
@@ -454,14 +471,16 @@ class NRoute extends NObject implements IRouter
 		do {
 			array_unshift($sequence, $parts[$i]);
 			$re = preg_quote($parts[$i], '#') . $re;
-			if ($i === 0) break;
+			if ($i === 0) {
+				break;
+			}
 			$i--;
 
 			$part = $parts[$i]; // [ or ]
 			if ($part === '[' || $part === ']' || $part === '[!') {
 				$brackets += $part[0] === '[' ? -1 : 1;
 				if ($brackets < 0) {
-					throw new InvalidArgumentException("Unexpected '$part' in mask '$mask'.");
+					throw new Nette\InvalidArgumentException("Unexpected '$part' in mask '$mask'.");
 				}
 				array_unshift($sequence, $part);
 				$re = ($part[0] === '[' ? '(?:' : ')?') . $re;
@@ -483,13 +502,13 @@ class NRoute extends NObject implements IRouter
 
 			// check name (limitation by regexp)
 			if (preg_match('#[^a-z0-9_-]#i', $name)) {
-				throw new InvalidArgumentException("Parameter name must be alphanumeric string due to limitations of PCRE, '$name' given.");
+				throw new Nette\InvalidArgumentException("Parameter name must be alphanumeric string due to limitations of PCRE, '$name' given.");
 			}
 
 			// pattern, condition & metadata
 			if ($class !== '') {
 				if (!isset(self::$styles[$class])) {
-					throw new InvalidStateException("Parameter '$name' has '$class' flag, but Route::\$styles['$class'] is not set.");
+					throw new Nette\InvalidStateException("Parameter '$name' has '$class' flag, but Route::\$styles['$class'] is not set.");
 				}
 				$meta = self::$styles[$class];
 
@@ -528,7 +547,7 @@ class NRoute extends NObject implements IRouter
 			$meta[self::PATTERN] = "#(?:$pattern)$#A" . ($this->flags & self::CASE_SENSITIVE ? '' : 'iu');
 
 			// include in expression
-			$re = '(?P<' . str_replace('-', '___', $name) . '>' . $pattern . ')' . $re; // str_replace is dirty trick to enable '-' in parameter name
+			$re = '(?P<' . str_replace('-', '___', $name) . '>(?U)' . $pattern . ')' . $re; // str_replace is dirty trick to enable '-' in parameter name
 			if ($brackets) { // is in brackets?
 				if (!isset($meta[self::VALUE])) {
 					$meta[self::VALUE] = $meta['defOut'] = NULL;
@@ -549,7 +568,7 @@ class NRoute extends NObject implements IRouter
 		} while (TRUE);
 
 		if ($brackets) {
-			throw new InvalidArgumentException("Missing closing ']' in mask '$mask'.");
+			throw new Nette\InvalidArgumentException("Missing closing ']' in mask '$mask'.");
 		}
 
 		$this->re = '#' . $re . '/?$#A' . ($this->flags & self::CASE_SENSITIVE ? '' : 'iu');
@@ -628,7 +647,9 @@ class NRoute extends NObject implements IRouter
 	 */
 	private static function renameKeys($arr, $xlat)
 	{
-		if (empty($xlat)) return $arr;
+		if (empty($xlat)) {
+			return $arr;
+		}
 
 		$res = array();
 		$occupied = array_flip($xlat);
@@ -714,7 +735,7 @@ class NRoute extends NObject implements IRouter
 
 
 
-	/********************* NRoute::$styles manipulator ****************d*g**/
+	/********************* Route::$styles manipulator ****************d*g**/
 
 
 
@@ -727,12 +748,12 @@ class NRoute extends NObject implements IRouter
 	public static function addStyle($style, $parent = '#')
 	{
 		if (isset(self::$styles[$style])) {
-			throw new InvalidArgumentException("Style '$style' already exists.");
+			throw new Nette\InvalidArgumentException("Style '$style' already exists.");
 		}
 
 		if ($parent !== NULL) {
 			if (!isset(self::$styles[$parent])) {
-				throw new InvalidArgumentException("Parent style '$parent' doesn't exist.");
+				throw new Nette\InvalidArgumentException("Parent style '$parent' doesn't exist.");
 			}
 			self::$styles[$style] = self::$styles[$parent];
 
@@ -746,14 +767,14 @@ class NRoute extends NObject implements IRouter
 	/**
 	 * Changes style property value.
 	 * @param  string  style name (#style, urlParameter, ?queryParameter)
-	 * @param  string  property name (NRoute::PATTERN, NRoute::FILTER_IN, NRoute::FILTER_OUT, NRoute::FILTER_TABLE)
+	 * @param  string  property name (Route::PATTERN, Route::FILTER_IN, Route::FILTER_OUT, Route::FILTER_TABLE)
 	 * @param  mixed   property value
 	 * @return void
 	 */
 	public static function setStyleProperty($style, $key, $value)
 	{
 		if (!isset(self::$styles[$style])) {
-			throw new InvalidArgumentException("Style '$style' doesn't exist.");
+			throw new Nette\InvalidArgumentException("Style '$style' doesn't exist.");
 		}
 		self::$styles[$style][$key] = $value;
 	}

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette;
+
+use Nette;
 
 
 
@@ -19,7 +22,7 @@
  *
  * @property-read bool $frozen
  */
-abstract class NFreezableObject extends NObject implements IFreezable
+abstract class FreezableObject extends Object implements IFreezable
 {
 	/** @var bool */
 	private $frozen = FALSE;
@@ -65,7 +68,8 @@ abstract class NFreezableObject extends NObject implements IFreezable
 	protected function updating()
 	{
 		if ($this->frozen) {
-			throw new InvalidStateException("Cannot modify a frozen object {$this->reflection->name}.");
+			$class = get_class($this);
+			throw new InvalidStateException("Cannot modify a frozen object $class.");
 		}
 	}
 

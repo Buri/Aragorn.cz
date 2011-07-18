@@ -4,6 +4,7 @@
  *
  * @author Buri
  */
+use Nette\Environment;
 class usock {
     //put your code here
     static $handle;
@@ -13,7 +14,7 @@ class usock {
     
     static function getInstance(){
         if(!self::$handle){
-            $cfg = NEnvironment::getConfig("usock");
+            $cfg = Environment::getConfig("usock");
             self::$handle = fsockopen("unix://".$cfg, NULL);
         }
         return self::$handle;

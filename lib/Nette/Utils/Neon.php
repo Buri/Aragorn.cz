@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NNeon extends NObject
+class Neon extends Nette\Object
 {
 	const BLOCK = 1;
 
@@ -32,7 +35,7 @@ class NNeon extends NObject
 		'?:[\t ]+', // whitespace
 	);
 
-	/** @var NTokenizer */
+	/** @var Tokenizer */
 	private static $tokenizer;
 
 	private static $brackets = array(
@@ -56,7 +59,7 @@ class NNeon extends NObject
 	 */
 	public static function encode($var, $options = NULL)
 	{
-		if ($var instanceof DateTime) {
+		if ($var instanceof \DateTime) {
 			return $var->format('Y-m-d H:i:s O');
 		}
 		if (is_object($var)) {
@@ -106,16 +109,16 @@ class NNeon extends NObject
 	public static function decode($input)
 	{
 		if (!is_string($input)) {
-			throw new InvalidArgumentException("Argument must be a string, " . gettype($input) . " given.");
+			throw new Nette\InvalidArgumentException("Argument must be a string, " . gettype($input) . " given.");
 		}
 		if (!self::$tokenizer) {
-			self::$tokenizer = new NTokenizer(self::$patterns, 'mi');
+			self::$tokenizer = new Tokenizer(self::$patterns, 'mi');
 		}
 
 		$input = str_replace("\r", '', $input);
 		self::$tokenizer->tokenize($input);
 
-		$parser = new self;
+		$parser = new static;
 		$res = $parser->parse(0);
 
 		while (isset(self::$tokenizer->tokens[$parser->n])) {
@@ -151,7 +154,11 @@ class NNeon extends NObject
 				if (!$hasValue || !$inlineParser) {
 					$this->error();
 				}
-				if ($hasKey) $result[$key] = $value; else $result[] = $value;
+				if ($hasKey) {
+					$result[$key] = $value;
+				} else {
+					$result[] = $value;
+				}
 				$hasKey = $hasValue = FALSE;
 
 			} elseif ($t === ':' || $t === '=') { // KeyValuePair separator
@@ -175,12 +182,18 @@ class NNeon extends NObject
 
 			} elseif (isset(self::$brackets[$t])) { // Opening bracket [ ( {
 				if ($hasValue) {
-					$this->error();
+					if ($value[0] === '@' && $t === '(') { // Object
+						$n++;
+						$value = $this->parse(NULL, array('@' => substr($value, 1)));
+					} else {
+						$this->error();
+					}
+				} else {
+					$n++;
+					$value = $this->parse(NULL, array());
 				}
-				$endBracket = self::$brackets[$tokens[$n++]];
 				$hasValue = TRUE;
-				$value = $this->parse(NULL, array());
-				if (!isset($tokens[$n]) || $tokens[$n] !== $endBracket) { // unexpected type of bracket or block-parser
+				if (!isset($tokens[$n]) || $tokens[$n] !== self::$brackets[$t]) { // unexpected type of bracket or block-parser
 					$this->error();
 				}
 
@@ -190,19 +203,22 @@ class NNeon extends NObject
 				}
 				break;
 
-			} elseif ($t[0] === '@') { // Object
-				$object = $t; // TODO
-
 			} elseif ($t[0] === "\n") { // Indent
 				if ($inlineParser) {
 					if ($hasValue) {
-						if ($hasKey) $result[$key] = $value; else $result[] = $value;
+						if ($hasKey) {
+							$result[$key] = $value;
+						} else {
+							$result[] = $value;
+						}
 						$hasKey = $hasValue = FALSE;
 					}
 
 				} else {
 					while (isset($tokens[$n+1]) && $tokens[$n+1][0] === "\n") $n++; // skip to last indent
-					if (!isset($tokens[$n+1])) break;
+					if (!isset($tokens[$n+1])) {
+						break;
+					}
 
 					$newIndent = strlen($tokens[$n]) - 1;
 					if ($indent === NULL) { // first iteration
@@ -213,6 +229,7 @@ class NNeon extends NObject
 							$this->indentTabs = $tokens[$n][1] === "\t";
 						}
 						if (strpos($tokens[$n], $this->indentTabs ? ' ' : "\t")) {
+							$n++;
 							$this->error('Either tabs or spaces may be used as indenting chars, but not both.');
 						}
 					}
@@ -235,7 +252,11 @@ class NNeon extends NObject
 
 						} elseif ($hasKey) {
 							$value = $hasValue ? $value : NULL;
-							if ($key === NULL) $result[] = $value; else $result[$key] = $value;
+							if ($key === NULL) {
+								$result[] = $value;
+							} else {
+								$result[$key] = $value;
+							}
 							$hasKey = $hasValue = FALSE;
 						}
 					}
@@ -264,7 +285,7 @@ class NNeon extends NObject
 				} elseif (is_numeric($t)) {
 					$value = $t * 1;
 				} elseif (preg_match('#\d\d\d\d-\d\d?-\d\d?(?:(?:[Tt]| +)\d\d?:\d\d:\d\d(?:\.\d*)? *(?:Z|[-+]\d\d?(?::\d\d)?)?)?$#A', $t)) {
-					$value = new NDateTime53($t);
+					$value = new Nette\DateTime($t);
 				} else { // literal
 					$value = $t;
 				}
@@ -274,7 +295,11 @@ class NNeon extends NObject
 
 		if ($inlineParser) {
 			if ($hasValue) {
-				if ($hasKey) $result[$key] = $value; else $result[] = $value;
+				if ($hasKey) {
+					$result[$key] = $value;
+				} else {
+					$result[] = $value;
+				}
 			} elseif ($hasKey) {
 				$this->error();
 			}
@@ -287,7 +312,11 @@ class NNeon extends NObject
 				}
 			} elseif ($hasKey) {
 				$value = $hasValue ? $value : NULL;
-				if ($key === NULL) $result[] = $value; else $result[$key] = $value;
+				if ($key === NULL) {
+					$result[] = $value;
+				} else {
+					$result[$key] = $value;
+				}
 			}
 		}
 		return $result;
@@ -302,7 +331,7 @@ class NNeon extends NObject
 		if (isset($mapping[$sq[1]])) {
 			return $mapping[$sq[1]];
 		} elseif ($sq[1] === 'u' && strlen($sq) === 6) {
-			return NString::chr(hexdec(substr($sq, 2)));
+			return Strings::chr(hexdec(substr($sq, 2)));
 		} elseif ($sq[1] === 'x' && strlen($sq) === 4) {
 			return chr(hexdec(substr($sq, 2)));
 		} else {
@@ -316,9 +345,9 @@ class NNeon extends NObject
 	{
 		list(, $line, $col) = self::$tokenizer->getOffset($this->n);
 		$token = isset(self::$tokenizer->tokens[$this->n])
-			? str_replace("\n", '<new line>', NString::truncate(self::$tokenizer->tokens[$this->n], 40))
+			? str_replace("\n", '<new line>', Strings::truncate(self::$tokenizer->tokens[$this->n], 40))
 			: 'end';
-		throw new NNeonException(str_replace('%s', $token, $message) . " on line $line, column $col.");
+		throw new NeonException(str_replace('%s', $token, $message) . " on line $line, column $col.");
 	}
 
 }
@@ -328,6 +357,6 @@ class NNeon extends NObject
 /**
  * The exception that indicates error of NEON decoding.
  */
-class NNeonException extends Exception
+class NeonException extends \Exception
 {
 }

@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Selector
  */
+
+namespace Nette\Database\Table;
+
+use Nette,
+	PDO;
 
 
 
@@ -18,9 +22,9 @@
  *
  * @author     Jakub Vrana
  */
-class NTableSelection extends NObject implements Iterator, ArrayAccess, Countable
+class Selection extends Nette\Object implements \Iterator, \ArrayAccess, \Countable
 {
-	/** @var NConnection */
+	/** @var Nette\Database\Connection */
 	public $connection;
 
 	/** @var string table name */
@@ -92,7 +96,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	 * @param  string
 	 * @param
 	 */
-	public function __construct($table, NConnection $connection)
+	public function __construct($table, Nette\Database\Connection $connection)
 	{
 		$this->name = $table;
 		$this->connection = $connection;
@@ -108,14 +112,16 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	 */
 	public function __destruct()
 	{
-		if ($this->connection->cache && !$this->select && $this->rows !== NULL) {
+		$cache = $this->connection->getCache();
+		if ($cache && !$this->select && $this->rows !== NULL) {
 			$accessed = $this->accessed;
 			if (is_array($accessed)) {
 				$accessed = array_filter($accessed);
 			}
-			$this->connection->cache[array(__CLASS__, $this->name, $this->conditions)] = $accessed;
+			$cache->save(array(__CLASS__, $this->name, $this->conditions), $accessed);
 		}
 		$this->rows = NULL;
+		$this->data = NULL;
 	}
 
 
@@ -123,7 +129,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Returns row specified by primary key.
 	 * @param  mixed
-	 * @return NTableRow or NULL if there is no such row
+	 * @return ActiveRow or NULL if there is no such row
 	 */
 	public function get($key)
 	{
@@ -138,7 +144,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Adds select clause, more calls appends to the end.
 	 * @param  string for example "column, MD5(column) AS column_md5"
-	 * @return NTableSelection provides a fluent interface
+	 * @return Selection provides a fluent interface
 	 */
 	public function select($columns)
 	{
@@ -152,7 +158,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Selects by primary key.
 	 * @param  mixed
-	 * @return NTableSelection provides a fluent interface
+	 * @return Selection provides a fluent interface
 	 */
 	public function find($key)
 	{
@@ -166,7 +172,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	 * @param  string condition possibly containing ?
 	 * @param  mixed
 	 * @param  mixed ...
-	 * @return NTableSelection provides a fluent interface
+	 * @return Selection provides a fluent interface
 	 */
 	public function where($condition, $parameters = array())
 	{
@@ -179,7 +185,8 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 
 		$this->__destruct();
 
-		$this->conditions[] = $condition = $this->tryDelimite($condition);
+		$this->conditions[] = $condition;
+		$condition = $this->tryDelimite($condition);
 
 		$args = func_num_args();
 		if ($args !== 2 || strpbrk($condition, '?:')) { // where('column < ? OR column > ?', array(1, 2))
@@ -192,7 +199,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 		} elseif ($parameters === NULL) { // where('column', NULL)
 			$condition .= ' IS NULL';
 
-		} elseif ($parameters instanceof NTableSelection) { // where('column', $db->$table())
+		} elseif ($parameters instanceof Selection) { // where('column', $db->$table())
 			$clone = clone $parameters;
 			if (!$clone->select) {
 				$clone->select = array($this->getPrimary($clone->name));
@@ -230,7 +237,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Adds order clause, more calls appends to the end.
 	 * @param  string for example 'column1, column2 DESC'
-	 * @return NTableSelection provides a fluent interface
+	 * @return Selection provides a fluent interface
 	 */
 	public function order($columns)
 	{
@@ -245,7 +252,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	 * Sets limit clause, more calls rewrite old values.
 	 * @param  int
 	 * @param  int
-	 * @return NTableSelection provides a fluent interface
+	 * @return Selection provides a fluent interface
 	 */
 	public function limit($limit, $offset = NULL)
 	{
@@ -258,15 +265,31 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 
 
 	/**
+	 * Sets offset using page number, more calls rewrite old values.
+	 * @param  int
+	 * @param  int
+	 * @return Selection provides a fluent interface
+	 */
+	public function page($page, $itemsPerPage)
+	{
+		$this->rows = NULL;
+		$this->limit = $itemsPerPage;
+		$this->offset = ($page - 1) * $itemsPerPage;
+		return $this;
+	}
+
+
+
+	/**
 	 * Sets group clause, more calls rewrite old values.
 	 * @param  string
 	 * @param  string
-	 * @return NTableSelection provides a fluent interface
+	 * @return Selection provides a fluent interface
 	 */
 	public function group($columns, $having = '')
 	{
 		$this->__destruct();
-		$this->group = $this->tryDelimite($columns);
+		$this->group = $columns;
 		$this->having = $having;
 		return $this;
 	}
@@ -353,8 +376,9 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 		$join = $this->createJoins(implode(',', $this->conditions), TRUE)
 			+ $this->createJoins(implode(',', $this->select) . ",$this->group,$this->having," . implode(',', $this->order));
 
-		if ($this->rows === NULL && $this->connection->cache && !is_string($this->prevAccessed)) {
-			$this->accessed = $this->prevAccessed = $this->connection->cache[array(__CLASS__, $this->name, $this->conditions)];
+		$cache = $this->connection->getCache();
+		if ($this->rows === NULL && $cache && !is_string($this->prevAccessed)) {
+			$this->accessed = $this->prevAccessed = $cache->load(array(__CLASS__, $this->name, $this->conditions));
 		}
 
 		$prefix = $join ? "$this->delimitedName." : '';
@@ -377,18 +401,19 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	{
 		$supplementalDriver = $this->connection->getSupplementalDriver();
 		$joins = array();
-		preg_match_all('~\\b(\\w+)\\.(\\w+)(\\s+IS\\b|\\s*<=>)?~i', $val, $matches, PREG_SET_ORDER);
+		preg_match_all('~\\b([a-z][\\w.]*)\\.([a-z]\\w*)(\\s+IS\\b|\\s*<=>)?~i', $val, $matches, PREG_SET_ORDER);
 		foreach ($matches as $match) {
-			$name = $match[1];
-			if ($name !== $this->name) { // case-sensitive
-				$table = $this->connection->databaseReflection->getReferencedTable($name, $this->name);
-				$column = $this->connection->databaseReflection->getReferencedColumn($name, $this->name);
-				$primary = $this->getPrimary($table);
-				$joins[$name] = ' ' . (!isset($joins[$name]) && $inner && !isset($match[3]) ? 'INNER' : 'LEFT')
-					. ' JOIN ' . $supplementalDriver->delimite($table)
-					. ($table !== $name ? ' AS ' . $supplementalDriver->delimite($name) : '')
-					. " ON $this->delimitedName." . $supplementalDriver->delimite($column)
-					. ' = ' . $supplementalDriver->delimite($name) . '.' . $supplementalDriver->delimite($primary);
+			if ($match[1] !== $this->name) { // case-sensitive
+				foreach (explode('.', $match[1]) as $name) {
+					$table = $this->connection->databaseReflection->getReferencedTable($name, $this->name);
+					$column = $this->connection->databaseReflection->getReferencedColumn($name, $this->name);
+					$primary = $this->getPrimary($table);
+					$joins[$name] = ' ' . (!isset($joins[$name]) && $inner && !isset($match[3]) ? 'INNER' : 'LEFT')
+						. ' JOIN ' . $supplementalDriver->delimite($table)
+						. ($table !== $name ? ' AS ' . $supplementalDriver->delimite($name) : '')
+						. " ON $this->delimitedName." . $supplementalDriver->delimite($column)
+						. ' = ' . $supplementalDriver->delimite($name) . '.' . $supplementalDriver->delimite($primary);
+				}
 			}
 		}
 		return $joins;
@@ -409,7 +434,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 		try {
 			$result = $this->query($this->getSql());
 
-		} catch (PDOException $exception) {
+		} catch (\PDOException $exception) {
 			if (!$this->select && $this->prevAccessed) {
 				$this->prevAccessed = '';
 				$this->accessed = array();
@@ -423,7 +448,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 		$result->setFetchMode(PDO::FETCH_ASSOC);
 		foreach ($result as $key => $row) {
 			$row = $result->normalizeRow($row);
-			$this->rows[isset($row[$this->primary]) ? $row[$this->primary] : $key] = new NTableRow($row, $this);
+			$this->rows[isset($row[$this->primary]) ? $row[$this->primary] : $key] = new ActiveRow($row, $this);
 		}
 		$this->data = $this->rows;
 
@@ -446,10 +471,10 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 			$return .= ' WHERE (' . implode(') AND (', $where) . ')';
 		}
 		if ($this->group) {
-			$return .= " GROUP BY $this->group";
+			$return .= ' GROUP BY '. $this->tryDelimite($this->group);
 		}
 		if ($this->having) {
-			$return .= " HAVING $this->having";
+			$return .= ' HAVING '. $this->tryDelimite($this->having);
 		}
 		if ($this->order) {
 			$return .= ' ORDER BY ' . implode(', ', $this->order);
@@ -524,14 +549,14 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Inserts row in a table.
 	 * @param  mixed array($column => $value)|Traversable for single row insert or TableSelection|string for INSERT ... SELECT
-	 * @return NTableRow or FALSE in case of an error or number of affected rows for INSERT ... SELECT
+	 * @return ActiveRow or FALSE in case of an error or number of affected rows for INSERT ... SELECT
 	 */
 	public function insert($data)
 	{
-		if ($data instanceof NTableSelection) {
+		if ($data instanceof Selection) {
 			$data = $data->getSql();
 
-		} elseif ($data instanceof Traversable) {
+		} elseif ($data instanceof \Traversable) {
 			$data = iterator_to_array($data);
 		}
 
@@ -545,7 +570,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 		if (!isset($data[$this->primary]) && ($id = $this->connection->lastInsertId())) {
 			$data[$this->primary] = $id;
 		}
-		return new NTableRow($data, $this);
+		return new ActiveRow($data, $this);
 	}
 
 
@@ -557,11 +582,11 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	 */
 	public function update($data)
 	{
-		if ($data instanceof Traversable) {
+		if ($data instanceof \Traversable) {
 			$data = iterator_to_array($data);
 
 		} elseif (!is_array($data)) {
-			throw new InvalidArgumentException;
+			throw new Nette\InvalidArgumentException;
 		}
 
 		if (!$data) {
@@ -596,7 +621,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Returns referenced row.
 	 * @param  string
-	 * @return NTableRow or NULL if the row does not exist
+	 * @return ActiveRow or NULL if the row does not exist
 	 */
 	public function getReferencedTable($name, & $column = NULL)
 	{
@@ -611,7 +636,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 			}
 			if ($keys) {
 				$table = $this->connection->databaseReflection->getReferencedTable($name, $this->name);
-				$referenced = new NTableSelection($table, $this->connection);
+				$referenced = new Selection($table, $this->connection);
 				$referenced->where($table . '.' . $this->getPrimary($table), array_keys($keys));
 			} else {
 				$referenced = array();
@@ -625,12 +650,12 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Returns referencing rows.
 	 * @param  string table name
-	 * @return NGroupedTableSelection
+	 * @return GroupedSelection
 	 */
 	public function getReferencingTable($table)
 	{
 		$column = $this->connection->databaseReflection->getReferencingColumn($table, $this->name);
-		$referencing = new NGroupedTableSelection($table, $this, $column);
+		$referencing = new GroupedSelection($table, $this, $column);
 		$referencing->where("$table.$column", array_keys((array) $this->rows)); // (array) - is NULL after insert
 		return $referencing;
 	}
@@ -657,7 +682,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 
 
 
-	/** @return NTableRow */
+	/** @return ActiveRow */
 	public function current()
 	{
 		return $this->data[current($this->keys)];
@@ -696,7 +721,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Mimic row.
 	 * @param  string row ID
-	 * @param  NTableRow
+	 * @param  ActiveRow
 	 * @return NULL
 	 */
 	public function offsetSet($key, $value)
@@ -710,7 +735,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 	/**
 	 * Returns specified row.
 	 * @param  string row ID
-	 * @return NTableRow or NULL if there is no such row
+	 * @return ActiveRow or NULL if there is no such row
 	 */
 	public function offsetGet($key)
 	{
@@ -748,7 +773,7 @@ class NTableSelection extends NObject implements Iterator, ArrayAccess, Countabl
 
 	/**
 	 * Returns next row of result.
-	 * @return NTableRow or FALSE if there is no row
+	 * @return ActiveRow or FALSE if there is no row
 	 */
 	public function fetch()
 	{

@@ -32,7 +32,7 @@ class DB{
     private static $instance;
     public static function getInstance(){
         if(!self::$instance){
-            $dbcfg = NEnvironment::getConfig('database');
+            $dbcfg = Nette\Environment::getConfig('database');
             self::$instance = new NotORM(new PDO($dbcfg['driver'] . ":" . $dbcfg['params'], $dbcfg['user'], $dbcfg['password']), 
                     new ConventionTable($primary = 'id', $foreign = 'id%s',$table = '%s'), 
                     new NotORM_Cache_Memcache(MC::getMemcachedInstance()));

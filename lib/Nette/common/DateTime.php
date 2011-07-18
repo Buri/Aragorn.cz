@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NDateTime53 extends DateTime
+class DateTime extends \DateTime
 {
 	/** minute in seconds */
 	const MINUTE = 60;
@@ -41,62 +44,24 @@ class NDateTime53 extends DateTime
 
 	/**
 	 * DateTime object factory.
-	 * @param  string|int|DateTime
-	 * @return NDateTime53
+	 * @param  string|int|\DateTime
+	 * @return DateTime
 	 */
 	public static function from($time)
 	{
-		if ($time instanceof DateTime) {
+		if ($time instanceof \DateTime) {
 			return clone $time;
 
 		} elseif (is_numeric($time)) {
 			if ($time <= self::YEAR) {
 				$time += time();
 			}
-			return new self(date('Y-m-d H:i:s', $time));
+			return new static(date('Y-m-d H:i:s', $time));
 
 		} else { // textual or NULL
-			return new self($time);
+			return new static($time);
 		}
 	}
 
 
-	public static function __set_state($state)
-	{
-		return new self($state['date'], new NDateTimeZone($state['timezone']));
 	}
-
-
-
-	public function __sleep()
-	{
-		$this->fix = array($this->format('Y-m-d H:i:s'), $this->getTimezone()->getName());
-		return array('fix');
-	}
-
-
-
-	public function __wakeup()
-	{
-		$this->__construct($this->fix[0], new NDateTimeZone($this->fix[1]));
-		unset($this->fix);
-	}
-
-
-
-	public function getTimestamp()
-	{
-		return (int) $this->format('U');
-	}
-
-
-
-	public function setTimestamp($timestamp)
-	{
-		return $this->__construct(
-			gmdate('Y-m-d H:i:s', $timestamp + $this->getOffset()),
-			new NDateTimeZone($this->getTimezone()->getName()) // simply getTimezone() crashes in PHP 5.2.6
-		);
-	}
-
-}

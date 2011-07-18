@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -30,7 +33,7 @@
  * @property-read bool $first
  * @property-read bool $last
  */
-class NPaginator extends NObject
+class Paginator extends Nette\Object
 {
 	/** @var int */
 	private $base = 1;
@@ -49,7 +52,7 @@ class NPaginator extends NObject
 	/**
 	 * Sets current page number.
 	 * @param  int
-	 * @return NPaginator  provides a fluent interface
+	 * @return Paginator  provides a fluent interface
 	 */
 	public function setPage($page)
 	{
@@ -95,7 +98,7 @@ class NPaginator extends NObject
 	/**
 	 * Sets first page (base) number.
 	 * @param  int
-	 * @return NPaginator  provides a fluent interface
+	 * @return Paginator  provides a fluent interface
 	 */
 	public function setBase($base)
 	{
@@ -164,7 +167,7 @@ class NPaginator extends NObject
 	/**
 	 * Sets the number of items to display on a single page.
 	 * @param  int
-	 * @return NPaginator  provides a fluent interface
+	 * @return Paginator  provides a fluent interface
 	 */
 	public function setItemsPerPage($itemsPerPage)
 	{
@@ -188,7 +191,7 @@ class NPaginator extends NObject
 	/**
 	 * Sets the total number of items.
 	 * @param  int (or NULL as infinity)
-	 * @return NPaginator  provides a fluent interface
+	 * @return Paginator  provides a fluent interface
 	 */
 	public function setItemCount($itemCount)
 	{

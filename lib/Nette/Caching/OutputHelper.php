@@ -7,100 +7,53 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Templates
  */
+
+namespace Nette\Caching;
+
+use Nette;
 
 
 
 /**
- * Caching template helper.
+ * Output caching helper.
  *
  * @author     David Grudl
  */
-class NCachingHelper extends NObject
+class OutputHelper extends Nette\Object
 {
 	/** @var array */
-	private $frame;
+	public $dependencies;
+
+	/** @var Cache */
+	private $cache;
 
 	/** @var string */
 	private $key;
 
 
 
-	/**
-	 * Starts the output cache. Returns CachingHelper object if buffering was started.
-	 * @param  string
-	 * @param  array of CachingHelper
-	 * @param  array
-	 * @return NCachingHelper
-	 */
-	public static function create($key, & $parents, $args = NULL)
+	public function __construct(Cache $cache, $key)
 	{
-		if ($args) {
-			if (array_key_exists('if', $args) && !$args['if']) {
-				return $parents[] = new self;
-			}
-			$key = array_merge(array($key), array_intersect_key($args, range(0, count($args))));
-		}
-		if ($parents) {
-			end($parents)->frame[NCache::ITEMS][] = $key;
-		}
-
-		$cache = self::getCache();
-		if (isset($cache[$key])) {
-			echo $cache[$key];
-			return FALSE;
-
-		} else {
-			$obj = new self;
-			$obj->key = $key;
-			$obj->frame = array(
-				NCache::TAGS => isset($args['tags']) ? $args['tags'] : NULL,
-				NCache::EXPIRATION => isset($args['expire']) ? $args['expire'] : '+ 7 days',
-			);
-			ob_start();
-			return $parents[] = $obj;
-		}
+		$this->cache = $cache;
+		$this->key = $key;
+		ob_start();
 	}
 
 
 
 	/**
 	 * Stops and saves the cache.
+	 * @param  array  dependencies
 	 * @return void
 	 */
-	public function save()
+	public function end(array $dp = NULL)
 	{
-		if ($this->key !== NULL) {
-			$this->getCache()->save($this->key, ob_get_flush(), $this->frame);
+		if ($this->cache === NULL) {
+			throw new Nette\InvalidStateException('Output cache has already been saved.');
 		}
-		$this->key = $this->frame = NULL;
-	}
-
-
-
-	/**
-	 * Adds the file dependency.
-	 * @param  string
-	 * @return void
-	 */
-	public function addFile($file)
-	{
-		$this->frame[NCache::FILES][] = $file;
-	}
-
-
-
-	/********************* backend ****************d*g**/
-
-
-
-	/**
-	 * @return NCache
-	 */
-	protected static function getCache()
-	{
-		return NEnvironment::getCache('Nette.Template.Cache');
+		$this->cache->save($this->key, ob_get_flush(), (array) $dp + (array) $this->dependencies);
+		$this->cache = NULL;
 	}
 
 }

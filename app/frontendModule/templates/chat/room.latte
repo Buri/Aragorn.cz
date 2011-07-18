@@ -4,7 +4,7 @@
         {include '../../../templates/head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
         <script type="text/javascript" charset="utf-8" n:syntax="double">
-            window.AUTHENTICATED = {{$isLogedIn = NEnvironment::getUser()->isLoggedIn()}};
+            window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.rid = {{$rid}};
             var Chat = null;
             var ChatClient = new Class({
@@ -66,6 +66,7 @@
                     this._typing.t = setTimeout(this._typing.fn.bind(this), this.options.typeDelay);
                 },
                 _handle:function(msg){
+                    console.log(msg);
                     switch(msg.action){
                         case 'post':
                             var d = new Date();
@@ -125,9 +126,12 @@
                             $$('#' + msg.message).dispose();
                             break;
                         case 'force-leave':
-                            location.href = msg.url;
+                            location.href = '/chat/leave/' + rid + '/' + (msg.silent ? 'silent/' : '');
                             break;
                      }
+                },
+                send:function(cmd, params){
+                    this.transport.send('chat', Object.merge({action:cmd, id:rid}, {params:params}));
                 }
             });
             window.addEvent('domready', function(){
@@ -138,6 +142,29 @@
                     Cookie.write('chat-glass-length', this.get('value'), {duration:365});
                 });
                 $('glass-length').set('value', Cookie.read('chat-glass-length') || 150);
+                $('frmMsg').addEvent('submit', function(e){
+                    new Event(e).stop();
+                    var v = this.msg.value;
+                    if(v.length){ 
+                        if(v[0] == '/'){    
+                            var p = v.indexOf(' '), cmd = p == -1 ? v.substr(1) : v.substr(1, v.indexOf(' ')-1), param = p == -1 ? '' : v.substr(++p);
+                            switch(cmd){
+                                case 'quit':
+                                case 'exit':
+                                case 'odejit':
+                                case 'leave':
+                                    location.href = '/chat/leave/' + rid + '/';
+                                    break;
+                                default:
+                                    Chat.send('cmd', {cmd:cmd, param:param});
+                            }
+                        }else{
+                            AC.send('chat',{action:'post', id:rid, message:this.msg.value}); 
+                        }
+                        this.msg.value='';
+                    } 
+                    return false;
+                });
             });
         </script>
     </head>
@@ -146,7 +173,7 @@
         <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed; padding: 6px;"></div>
         <div style="position:fixed; height: 30px; bottom: 0; left:0;right:0;">
             {{if $param != "ninja"}}
-            <form onsubmit="if(this.msg.value.length){ AC.send('chat',{action:'post', id:rid, message:this.msg.value}); this.msg.value='';}else{} return false;" style="display:inline;">
+            <form id="frmMsg" style="display:inline;">
                 Zpráva: <input type="text" name="msg" id="msg" /> <button type="submit">Odeslat</button>
             </form>
             {{else}}

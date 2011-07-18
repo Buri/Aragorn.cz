@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NString
+class Strings
 {
 
 	/**
@@ -25,7 +28,7 @@ class NString
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -52,7 +55,8 @@ class NString
 	public static function fixEncoding($s, $encoding = 'UTF-8')
 	{
 		// removes xD800-xDFFF, xFEFF, xFFFF, x110000 and higher
-		return @iconv('UTF-16', $encoding . '//IGNORE', iconv($encoding, 'UTF-16//IGNORE', $s)); // intentionally @
+		$s = @iconv('UTF-16', $encoding . '//IGNORE', iconv($encoding, 'UTF-16//IGNORE', $s)); // intentionally @
+		return str_replace("\xEF\xBB\xBF", '', $s); // remove UTF-8 BOM
 	}
 
 
@@ -108,7 +112,7 @@ class NString
 		$s = strtr($s, "\r", "\n"); // Mac
 
 		// remove control characters; leave \t + \n
-		$s = preg_replace('#[\x00-\x08\x0B-\x1F]+#', '', $s);
+		$s = preg_replace('#[\x00-\x08\x0B-\x1F\x7F]+#', '', $s);
 
 		// right trim
 		$s = preg_replace("#[\t ]+$#m", '', $s);
@@ -156,7 +160,9 @@ class NString
 	public static function webalize($s, $charlist = NULL, $lower = TRUE)
 	{
 		$s = self::toAscii($s);
-		if ($lower) $s = strtolower($s);
+		if ($lower) {
+			$s = strtolower($s);
+		}
 		$s = preg_replace('#[^a-z0-9' . preg_quote($charlist, '#') . ']+#i', '-', $s);
 		$s = trim($s, '-');
 		return $s;
@@ -339,9 +345,9 @@ class NString
 	 */
 	public static function random($length = 10, $charlist = '0-9a-z')
 	{
-		$charlist = str_shuffle(preg_replace_callback('#.-.#', create_function('$m', '
-			return implode(\'\', range($m[0][0], $m[0][2]));
-		'), $charlist));
+		$charlist = str_shuffle(preg_replace_callback('#.-.#', function($m) {
+			return implode('', range($m[0][0], $m[0][2]));
+		}, $charlist));
 		$chLen = strlen($charlist);
 
 		$s = '';
@@ -368,7 +374,7 @@ class NString
 	 */
 	public static function split($subject, $pattern, $flags = 0)
 	{
-		NDebug::tryError();
+		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_split($pattern, $subject, -1, $flags | PREG_SPLIT_DELIM_CAPTURE);
 		self::catchPregError($pattern);
 		return $res;
@@ -386,7 +392,7 @@ class NString
 	 */
 	public static function match($subject, $pattern, $flags = 0, $offset = 0)
 	{
-		NDebug::tryError();
+		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_match($pattern, $subject, $m, $flags, $offset);
 		self::catchPregError($pattern);
 		if ($res) {
@@ -406,7 +412,7 @@ class NString
 	 */
 	public static function matchAll($subject, $pattern, $flags = 0, $offset = 0)
 	{
-		NDebug::tryError();
+		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_match_all(
 			$pattern, $subject, $m,
 			($flags & PREG_PATTERN_ORDER) ? $flags : ($flags | PREG_SET_ORDER),
@@ -428,21 +434,21 @@ class NString
 	 */
 	public static function replace($subject, $pattern, $replacement = NULL, $limit = -1)
 	{
-		NDebug::tryError();
+		Nette\Diagnostics\Debugger::tryError();
 		if (is_object($replacement) || is_array($replacement)) {
-			if ($replacement instanceof NCallback) {
+			if ($replacement instanceof Nette\Callback) {
 				$replacement = $replacement->getNative();
 			}
 			if (!is_callable($replacement, FALSE, $textual)) {
-				NDebug::catchError($foo);
-				throw new InvalidStateException("Callback '$textual' is not callable.");
+				Nette\Diagnostics\Debugger::catchError($foo);
+				throw new Nette\InvalidStateException("Callback '$textual' is not callable.");
 			}
 			$res = preg_replace_callback($pattern, $replacement, $subject, $limit);
 
-			if (NDebug::catchError($e)) { // compile error
+			if (Nette\Diagnostics\Debugger::catchError($e)) { // compile error
 				$trace = $e->getTrace();
 				if (isset($trace[2]['class']) && $trace[2]['class'] === __CLASS__) {
-					throw new NRegexpException($e->getMessage() . " in pattern: $pattern");
+					throw new RegexpException($e->getMessage() . " in pattern: $pattern");
 				}
 			}
 
@@ -461,8 +467,8 @@ class NString
 	/** @internal */
 	public static function catchPregError($pattern)
 	{
-		if (NDebug::catchError($e)) { // compile error
-			throw new NRegexpException($e->getMessage() . " in pattern: $pattern");
+		if (Nette\Diagnostics\Debugger::catchError($e)) { // compile error
+			throw new RegexpException($e->getMessage() . " in pattern: $pattern");
 
 		} elseif (preg_last_error()) { // run-time error
 			static $messages = array(
@@ -473,8 +479,49 @@ class NString
 				5 => 'Offset didn\'t correspond to the begin of a valid UTF-8 code point', // PREG_BAD_UTF8_OFFSET_ERROR
 			);
 			$code = preg_last_error();
-			throw new NRegexpException((isset($messages[$code]) ? $messages[$code] : 'Unknown error') . " (pattern: $pattern)", $code);
+			throw new RegexpException((isset($messages[$code]) ? $messages[$code] : 'Unknown error') . " (pattern: $pattern)", $code);
 		}
+	}
+
+
+
+	/**
+	 * Expands %placeholders% in string.
+	 * @param  string
+	 * @param  array
+	 * @param  bool
+	 * @return mixed
+	 * @throws Nette\InvalidArgumentException
+	 */
+	public static function expand($s, array $params, $recursive = FALSE)
+	{
+		$parts = preg_split('#%([\w.-]*)%#i', $s, -1, PREG_SPLIT_DELIM_CAPTURE);
+		$res = '';
+		foreach ($parts as $n => $part) {
+			if ($n % 2 === 0) {
+				$res .= $part;
+
+			} elseif ($part === '') {
+				$res .= '%';
+
+			} elseif (isset($recursive[$part])) {
+				throw new Nette\InvalidArgumentException('Circular reference detected for variables: ' . implode(', ', array_keys($recursive)) . '.');
+
+			} else {
+				$val = Arrays::get($params, explode('.', $part));
+				if ($recursive && is_string($val)) {
+					$val = self::expand($val, $params, (is_array($recursive) ? $recursive : array()) + array($part => 1));
+				}
+				if (strlen($part) + 2 === strlen($s)) {
+					return $val;
+				}
+				if (!is_scalar($val)) {
+					throw new Nette\InvalidArgumentException("Unable to concatenate non-scalar parameter '$part' into '$s'.");
+				}
+				$res .= $val;
+			}
+		}
+		return $res;
 	}
 
 }
@@ -484,6 +531,6 @@ class NString
 /**
  * The exception that indicates error of the last Regexp execution.
  */
-class NRegexpException extends Exception
+class RegexpException extends \Exception
 {
 }

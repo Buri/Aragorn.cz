@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Caching
  */
+
+namespace Nette\Caching\Storages;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-class NDummyStorage extends NObject implements ICacheStorage
+class DevNullStorage extends Nette\Object implements Nette\Caching\IStorage
 {
 
 	/**

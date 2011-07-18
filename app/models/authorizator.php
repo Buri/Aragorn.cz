@@ -1,24 +1,35 @@
 <?php
 
-class Permissions extends NObject{
+use Nette\Environment;
+class Permissions extends Nette\Object{
     private $storage;
     private $uniq_key;
     private $tags;
     public function __construct(){
-        $user = NEnvironment::getUser();
+        $user = Environment::getUser();
         $roles = $user->getRoles();
         $this->uniq_key = 'permission_' . $user->getId() . '_' . $roles[0];
-        $this->tags = array('permission_tag_user_' . $user->getId(), 'permission_tag_group_' . $roles[0]);
+        $this->tags = array('permission_user_' . $user->getId(), 'permission_group_' . $roles[0], 'permission_all');
         $this->load();
     }
     
     public function __destruct() {
-        if(!is_null($this->storage)){
-            MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
+        try{
+            if(!is_null($this->storage)){
+                MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
+            }
+        }
+        catch(Exception $e){
+            dump($e);
+            die("");
         }
     }
     public function getId(){
         return $this->uniq_key;
+    }
+    
+    public function getRaw(){
+        return $this->storage;
     }
     
     /* Loads permissions for session */
@@ -39,7 +50,7 @@ class Permissions extends NObject{
     }
     
     public function forceReload(){
-        foreach(DB::permissions("target", NEnvironment::getUser()->getRoles())->where("type", "group")->union(DB::permissions("target", NEnvironment::getUser()->getId())->where("type", "user")) as $perm){
+        foreach(DB::permissions("target", Environment::getUser()->getRoles())->where("type", "group")->union(DB::permissions("target", Environment::getUser()->getId())->where("type", "user")) as $perm){
             if(empty($this->storage[$perm["resource"]])) $this->storage[$perm["resource"]] = array();
             if(is_null($perm["operation"])) $this->storage[$perm["resource"]]['_ALL'] = $perm["value"];
             else $this->storage[$perm["resource"]][$perm["operation"]] = $perm["value"];
@@ -59,16 +70,16 @@ class Permissions extends NObject{
         return isset($this->storage[$permission]);
     }
     
-    public function setResource(string $resource, array $permissions, $override = false){
+    public function setResource(Nette\Utils\Strings $resource, array $permissions, $override = false){
         if($override || $this->hasPermissionSet($resource))
             $this->storage[$resource] = $permissions;
     }
-    public function setOwner(string $resource){
+    public function setOwner(Nette\Utils\Strings $resource){
         $this->storage[$resource] = array("_ALL" => true);
     }
 }
 
-class UserAuthorizator extends NObject implements IAuthorizator
+class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthorizator
 {
     private static $instance;
     public static function getInstance(){
@@ -80,9 +91,9 @@ class UserAuthorizator extends NObject implements IAuthorizator
     public function isAllowed($role = self::ALL, $resource = self::ALL, $privilege = self::ALL)
     {
         /* Role must be defined */
-        if($role == null || !NEnvironment::getUser()->isLoggedIn()) return false;
+        if($role == null || !Environment::getUser()->isLoggedIn()) return false;
         /* root is allowed to do anything */
-        if($role == 0 || NEnvironment::getUser()->getId() == 0) return true; 
+        if($role == 0 || Environment::getUser()->getId() == 0 || (is_array($role) && in_array(0, $role))) return true; 
         
         /* Return final priviledge */
         return $this->getInstance()->get($resource, $privilege);

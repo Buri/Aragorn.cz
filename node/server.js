@@ -1,7 +1,6 @@
 var starttime = new Date().getTime();
 require.paths.push('/var/node/modules/');
 require('./node_modules/mootools.js').apply(GLOBAL);
-//require('v8-profiler');
 
 /*
  * Module loading
@@ -133,10 +132,13 @@ var http = require('http'),
                 switch(json.command){
                     case "user-login":
                         if(Clients['session' + json.data.nodeSession]){
-                            Clients['session' + json.data.nodeSession].phpid = json.data.PHPSESSID;
-                            Clients['session' + json.data.nodeSession].user.id = json.data.id;
-                            Clients['session' + json.data.nodeSession].user.name = json.data.username;
-                            Clients['session' + json.data.nodeSession].user.preferences = json.data.preferences;
+                            var s = Clients['session' + json.data.nodeSession];
+                            s.phpid = json.data.PHPSESSID;
+                            s.user.id = json.data.id;
+                            s.user.name = json.data.username;
+                            s.user.preferences = json.data.preferences;
+                            s.user.permissions = json.data.permissions;
+                            s.user.roles = json.data.roles;
                             this.write('OK');
                         }else{
                             this.write("SESSION_NOT_FOUND");
@@ -221,7 +223,7 @@ console.log('Unix socket opened in ' + Config.common.usock);
  *          >   %                                   (...)       If clients is registered to session calls Session.handleMessgae(message, client), otherwise logs cmd and replies INVALID_SID
  * Step 3: Send SESSION_REQUEST_IDENTITY command
  */
-socket = io.listen(server);
+socket = io.listen(server, {log:null});
 socket.handleMessage = function(msg){
         msg = msg || {cmd:''};
         switch(msg.cmd){
@@ -256,6 +258,9 @@ socket.handleMessage = function(msg){
                 break;
             case 'PRINT_CLIENTS':
                 console.log(Clients);
+                break;
+            case 'PING':
+                this.send({cmd:'PING'});
                 break;
             default:
                 if(this.identity){

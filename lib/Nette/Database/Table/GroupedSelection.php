@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Selector
  */
+
+namespace Nette\Database\Table;
+
+use Nette;
 
 
 
@@ -18,9 +21,9 @@
  *
  * @author     Jakub Vrana
  */
-class NGroupedTableSelection extends NTableSelection
+class GroupedSelection extends Selection
 {
-	/** @var NTableSelection referenced table */
+	/** @var Selection referenced table */
 	private $refTable;
 
 	/** @var string grouping column name */
@@ -34,7 +37,7 @@ class NGroupedTableSelection extends NTableSelection
 
 
 
-	public function __construct($name, NTableSelection $refTable, $column)
+	public function __construct($name, Selection $refTable, $column)
 	{
 		parent::__construct($name, $refTable->connection);
 		$this->refTable = $refTable;
@@ -46,7 +49,7 @@ class NGroupedTableSelection extends NTableSelection
 	/**
 	 * Specify referencing column.
 	 * @param  string
-	 * @return NGroupedTableSelection provides a fluent interface
+	 * @return GroupedSelection provides a fluent interface
 	 */
 	public function through($column)
 	{
@@ -81,12 +84,12 @@ class NGroupedTableSelection extends NTableSelection
 	public function aggregation($function)
 	{
 		$join = $this->createJoins(implode(',', $this->conditions), TRUE) + $this->createJoins($function);
-		$column = ($join ? "$this->table." : '') . $this->column;
-		$query = "SELECT $function, $this->delimitedColumn FROM $this->delimitedName" . implode($join);
+		$column = ($join ? "$this->delimitedName." : '') . $this->delimitedColumn;
+		$query = "SELECT $function, $column FROM $this->delimitedName" . implode($join);
 		if ($this->where) {
 			$query .= ' WHERE (' . implode(') AND (', $this->where) . ')';
 		}
-		$query .= " GROUP BY $this->delimitedColumn";
+		$query .= " GROUP BY $column";
 		$aggregation = & $this->refTable->aggregation[$query];
 		if ($aggregation === NULL) {
 			$aggregation = array();
@@ -95,16 +98,27 @@ class NGroupedTableSelection extends NTableSelection
 			}
 		}
 
-		foreach ($aggregation[$this->active] as $val) {
-			return $val;
+
+		if (isset($aggregation[$this->active])) {
+			foreach ($aggregation[$this->active] as $val) {
+				return $val;
+			}
 		}
+	}
+
+
+
+	public function count($column = '')
+	{
+		$return = parent::count($column);
+		return isset($return) ? $return : 0;
 	}
 
 
 
 	public function insert($data)
 	{
-		if ($data instanceof Traversable && !$data instanceof NTableSelection) {
+		if ($data instanceof \Traversable && !$data instanceof Selection) {
 			$data = iterator_to_array($data);
 		}
 		if (is_array($data)) {

@@ -8,13 +8,16 @@
  * @param string   $robots   tell robots how to index the content of a page (optinal)
  * @param string   $title    page title
  *}
+{if $ajax}
+{include #content}
+{else}
 <!DOCTYPE html>
 <html lang="cs" xml:lang="cs" xmlns="http://www.w3.org/1999/xhtml">
     <head>
         {include 'head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
         <script type="text/javascript" charset="utf-8" n:syntax="double">
-            window.AUTHENTICATED = {{$isLogedIn = NEnvironment::getUser()->isLoggedIn()}};
+            window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.addEvent('domready', function(){
                 new FloatingTips('div#constat',{
                     position:'bottom',
@@ -37,3 +40,4 @@
         </div>
     </body>
 </html>
+{/if}

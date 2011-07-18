@@ -14,14 +14,15 @@ class MC {
     private static $memcached;
     public static function getInstance(){
         if(!self::$instance){
-            $mccfg = NEnvironment::getConfig('memcache');
-            self::$instance = new NMemcachedStorage($mccfg["host"], $mccfg["port"], '', new NFileJournal(TEMP_DIR));
+            $mccfg = Nette\Environment::getConfig('memcache');
+            $journal = new Nette\Caching\Storages\FileJournal(TEMP_DIR);
+            self::$instance = new Nette\Caching\Storages\MemcachedStorage($mccfg["host"], $mccfg["port"], '', $journal);
         }
         return self::$instance;
     }
     public static function getMemcachedInstance(){
         if(!self::$memcached){
-            $mccfg = NEnvironment::getConfig('memcache');
+            $mccfg = Nette\Environment::getConfig('memcache');
             self::$memcached = new Memcache;
             self::$memcached->connect($mccfg["host"], $mccfg["port"]); # or die ("Could not connect to memcahe server");
         }

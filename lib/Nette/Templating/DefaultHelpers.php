@@ -7,8 +7,14 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Templates
  */
+
+namespace Nette\Templating;
+
+use Nette,
+	Nette\Utils\Strings,
+	Nette\Forms\Form,
+	Nette\Utils\Html;
 
 
 
@@ -17,19 +23,32 @@
  *
  * @author     David Grudl
  */
-final class NTemplateHelpers
+final class DefaultHelpers
 {
+	private static $helpers = array(
+		'normalize' => 'Nette\Utils\Strings::normalize',
+		'toascii' => 'Nette\Utils\Strings::toAscii',
+		'webalize' => 'Nette\Utils\Strings::webalize',
+		'truncate' => 'Nette\Utils\Strings::truncate',
+		'lower' => 'Nette\Utils\Strings::lower',
+		'upper' => 'Nette\Utils\Strings::upper',
+		'firstupper' => 'Nette\Utils\Strings::firstUpper',
+		'capitalize' => 'Nette\Utils\Strings::capitalize',
+		'trim' => 'Nette\Utils\Strings::trim',
+		'padleft' => 'Nette\Utils\Strings::padLeft',
+		'padright' => 'Nette\Utils\Strings::padRight',
+		'replacere' => 'Nette\Utils\Strings::replace',
+		'url' => 'rawurlencode',
+		'striptags' => 'strip_tags',
+		'nl2br' => 'nl2br',
+		'substr' => 'iconv_substr',
+		'repeat' => 'str_repeat',
+		'implode' => 'implode',
+		'number' => 'number_format',
+	);
 
 	/** @var string default date format */
 	public static $dateFormat = '%x';
-
-	/**
-	 * Static class - cannot be instantiated.
-	 */
-	final public function __construct()
-	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
-	}
 
 
 
@@ -40,13 +59,10 @@ final class NTemplateHelpers
 	 */
 	public static function loader($helper)
 	{
-		$callback = callback('NTemplateHelpers', $helper);
-		if ($callback->isCallable()) {
-			return $callback;
-		}
-		$callback = callback('NString', $helper);
-		if ($callback->isCallable()) {
-			return $callback;
+		if (method_exists(__CLASS__, $helper)) {
+			return callback(__CLASS__, $helper);
+		} elseif (isset(self::$helpers[$helper])) {
+			return self::$helpers[$helper];
 		}
 	}
 
@@ -55,14 +71,15 @@ final class NTemplateHelpers
 	/**
 	 * Escapes string for use inside HTML template.
 	 * @param  mixed  UTF-8 encoding or 8-bit
+	 * @param  int    optional attribute quotes
 	 * @return string
 	 */
-	public static function escapeHtml($s)
+	public static function escapeHtml($s, $quotes = ENT_QUOTES)
 	{
-		if (is_object($s) && ($s instanceof ITemplate || $s instanceof NHtml || $s instanceof NForm)) {
+		if (is_object($s) && ($s instanceof ITemplate || $s instanceof Html || $s instanceof Form)) {
 			return $s->__toString(TRUE);
 		}
-		return htmlSpecialChars($s, ENT_QUOTES);
+		return htmlSpecialChars($s, $quotes);
 	}
 
 
@@ -109,40 +126,29 @@ final class NTemplateHelpers
 
 
 	/**
-	 * Escapes string for use inside HTML style attribute.
-	 * @param  string UTF-8 encoding or 8-bit
-	 * @return string
-	 */
-	public static function escapeHtmlCss($s)
-	{
-		return htmlSpecialChars(self::escapeCss($s), ENT_QUOTES);
-	}
-
-
-
-	/**
 	 * Escapes string for use inside JavaScript template.
 	 * @param  mixed  UTF-8 encoding
 	 * @return string
 	 */
 	public static function escapeJs($s)
 	{
-		if (is_object($s) && ($s instanceof ITemplate || $s instanceof NHtml || $s instanceof NForm)) {
+		if (is_object($s) && ($s instanceof ITemplate || $s instanceof Html || $s instanceof Form)) {
 			$s = $s->__toString(TRUE);
 		}
-		return str_replace(']]>', ']]\x3E', NJson::encode($s));
+		return str_replace(']]>', ']]\x3E', Nette\Utils\Json::encode($s));
 	}
 
 
 
 	/**
-	 * Escapes string for use inside HTML JavaScript attribute.
+	 * Escapes string for use inside iCal template.
 	 * @param  mixed  UTF-8 encoding
 	 * @return string
 	 */
-	public static function escapeHtmlJs($s)
+	public static function escapeICal($s)
 	{
-		return htmlSpecialChars(self::escapeJs($s), ENT_QUOTES);
+		// http://www.ietf.org/rfc/rfc5545.txt
+		return addcslashes(preg_replace('#[\x00-\x08\x0B\x0C-\x1F]+#', '', $s), "\";\\,:\n");
 	}
 
 
@@ -154,12 +160,12 @@ final class NTemplateHelpers
 	 */
 	public static function strip($s)
 	{
-		return NString::replace(
+		return Strings::replace(
 			$s,
 			'#(</textarea|</pre|</script|^).*?(?=<textarea|<pre|<script|$)#si',
-			callback(create_function('$m', '
-				return trim(preg_replace("#[ \\t\\r\\n]+#", " ", $m[0]));
-			')));
+			function($m) {
+				return trim(preg_replace("#[ \t\r\n]+#", " ", $m[0]));
+			});
 	}
 
 
@@ -174,10 +180,10 @@ final class NTemplateHelpers
 	public static function indent($s, $level = 1, $chars = "\t")
 	{
 		if ($level >= 1) {
-			$s = NString::replace($s, '#<(textarea|pre).*?</\\1#si', callback(create_function('$m', '
-				return strtr($m[0], " \\t\\r\\n", "\\x1F\\x1E\\x1D\\x1A");
-			')));
-			$s = NString::indent($s, $level, $chars);
+			$s = Strings::replace($s, '#<(textarea|pre).*?</\\1#si', function($m) {
+				return strtr($m[0], " \t\r\n", "\x1F\x1E\x1D\x1A");
+			});
+			$s = Strings::indent($s, $level, $chars);
 			$s = strtr($s, "\x1F\x1E\x1D\x1A", " \t\r\n");
 		}
 		return $s;
@@ -201,7 +207,7 @@ final class NTemplateHelpers
 			$format = self::$dateFormat;
 		}
 
-		$time = NDateTime53::from($time);
+		$time = Nette\DateTime::from($time);
 		return strpos($format, '%') === FALSE
 			? $time->format($format) // formats using date()
 			: strftime($format, $time->format('U')); // formats according to locales
@@ -220,7 +226,9 @@ final class NTemplateHelpers
 		$bytes = round($bytes);
 		$units = array('B', 'kB', 'MB', 'GB', 'TB', 'PB');
 		foreach ($units as $unit) {
-			if (abs($bytes) < 1024 || $unit === end($units)) break;
+			if (abs($bytes) < 1024 || $unit === end($units)) {
+				break;
+			}
 			$bytes = $bytes / 1024;
 		}
 		return round($bytes, $precision) . ' ' . $unit;
@@ -235,7 +243,7 @@ final class NTemplateHelpers
 	 */
 	public static function length($var)
 	{
-		return is_string($var) ? NString::length($var) : count($var);
+		return is_string($var) ? Strings::length($var) : count($var);
 	}
 
 
@@ -263,7 +271,7 @@ final class NTemplateHelpers
 	public static function dataStream($data, $type = NULL)
 	{
 		if ($type === NULL) {
-			$type = NMimeTypeDetector::fromString($data, NULL);
+			$type = Nette\Utils\MimeTypeDetector::fromString($data, NULL);
 		}
 		return 'data:' . ($type ? "$type;" : '') . 'base64,' . base64_encode($data);
 	}

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application\UI;
+
+use Nette;
 
 
 
@@ -21,9 +24,9 @@
  *
  * @author     David Grudl
  *
- * @property-read NPresenter $presenter
+ * @property-read Presenter $presenter
  */
-abstract class NPresenterComponent extends NComponentContainer implements ISignalReceiver, IStatePersistent, ArrayAccess
+abstract class PresenterComponent extends Nette\ComponentModel\Container implements ISignalReceiver, IStatePersistent, \ArrayAccess
 {
 	/** @var array */
 	protected $params = array();
@@ -32,9 +35,9 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 
 	/**
 	 */
-	public function __construct(IComponentContainer $parent = NULL, $name = NULL)
+	public function __construct(Nette\ComponentModel\IContainer $parent = NULL, $name = NULL)
 	{
-		$this->monitor('NPresenter');
+		$this->monitor('Nette\Application\UI\Presenter');
 		parent::__construct($parent, $name);
 	}
 
@@ -43,11 +46,11 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	/**
 	 * Returns the presenter where this component belongs to.
 	 * @param  bool   throw exception if presenter doesn't exist?
-	 * @return NPresenter|NULL
+	 * @return Presenter|NULL
 	 */
 	public function getPresenter($need = TRUE)
 	{
-		return $this->lookup('NPresenter', $need);
+		return $this->lookup('Nette\Application\UI\Presenter', $need);
 	}
 
 
@@ -59,7 +62,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 */
 	public function getUniqueId()
 	{
-		return $this->lookupPath('NPresenter', TRUE);
+		return $this->lookupPath('Nette\Application\UI\Presenter', TRUE);
 	}
 
 
@@ -67,12 +70,12 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	/**
 	 * This method will be called when the component (or component's parent)
 	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @param  IComponent
+	 * @param  Nette\Application\IComponent
 	 * @return void
 	 */
 	protected function attached($presenter)
 	{
-		if ($presenter instanceof NPresenter) {
+		if ($presenter instanceof Presenter) {
 			$this->loadState($presenter->popGlobalParams($this->getUniqueId()));
 		}
 	}
@@ -91,6 +94,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 		if ($rc->hasMethod($method)) {
 			$rm = $rc->getMethod($method);
 			if ($rm->isPublic() && !$rm->isAbstract() && !$rm->isStatic()) {
+				$this->checkRequirements($rm);
 				$rm->invokeNamedArgs($this, $params);
 				return TRUE;
 			}
@@ -101,12 +105,22 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 
 
 	/**
-	 * Access to reflection.
-	 * @return NPresenterComponentReflection
+	 * Checks for requirements such as authorization.
+	 * @return void
 	 */
-	public function getReflection()
+	public function checkRequirements($element)
 	{
-		return new NPresenterComponentReflection($this);
+	}
+
+
+
+	/**
+	 * Access to reflection.
+	 * @return PresenterComponentReflection
+	 */
+	public static function getReflection()
+	{
+		return new PresenterComponentReflection(get_called_class());
 	}
 
 
@@ -142,7 +156,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	/**
 	 * Saves state informations for next request.
 	 * @param  array
-	 * @param  NPresenterComponentReflection (internal, used by Presenter)
+	 * @param  PresenterComponentReflection (internal, used by Presenter)
 	 * @return void
 	 */
 	public function saveState(array & $params, $reflection = NULL)
@@ -164,14 +178,19 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 			}
 
 			if (is_object($val)) {
-				throw new InvalidStateException("Persistent parameter must be scalar or array, {$this->reflection->name}::\$$nm is " . gettype($val));
+				$class = get_class($this);
+				throw new Nette\InvalidStateException("Persistent parameter must be scalar or array, $class::\$$nm is " . gettype($val));
 
 			} else {
 				if (isset($meta['def'])) {
 					settype($val, gettype($meta['def']));
-					if ($val === $meta['def']) $val = NULL;
+					if ($val === $meta['def']) {
+						$val = NULL;
+					}
 				} else {
-					if ((string) $val === '') $val = NULL;
+					if ((string) $val === '') {
+						$val = NULL;
+					}
 				}
 				$params[$nm] = $val;
 			}
@@ -221,9 +240,9 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 */
 	public static function getPersistentParams()
 	{
-		$rc = new NClassReflection(func_get_arg(0));
+		$rc = new Nette\Reflection\ClassType(get_called_class());
 		$params = array();
-		foreach ($rc->getProperties(ReflectionProperty::IS_PUBLIC) as $rp) {
+		foreach ($rc->getProperties(\ReflectionProperty::IS_PUBLIC) as $rp) {
 			if (!$rp->isStatic() && $rp->hasAnnotation('persistent')) {
 				$params[] = $rp->getName();
 			}
@@ -241,12 +260,13 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 * Calls signal handler method.
 	 * @param  string
 	 * @return void
-	 * @throws NBadSignalException if there is not handler method
+	 * @throws BadSignalException if there is not handler method
 	 */
 	public function signalReceived($signal)
 	{
 		if (!$this->tryCall($this->formatSignalMethod($signal), $this->params)) {
-			throw new NBadSignalException("There is no handler for signal '$signal' in class {$this->reflection->name}.");
+			$class = get_class($this);
+			throw new BadSignalException("There is no handler for signal '$signal' in class $class.");
 		}
 	}
 
@@ -273,7 +293,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 * @param  string   destination in format "[[module:]presenter:]action" or "signal!" or "this"
 	 * @param  array|mixed
 	 * @return string
-	 * @throws NInvalidLinkException
+	 * @throws InvalidLinkException
 	 */
 	public function link($destination, $args = array())
 	{
@@ -285,7 +305,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 		try {
 			return $this->getPresenter()->createRequest($this, $destination, $args, 'link');
 
-		} catch (NInvalidLinkException $e) {
+		} catch (InvalidLinkException $e) {
 			return $this->getPresenter()->handleInvalidLink($e);
 		}
 	}
@@ -296,7 +316,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 * Returns destination as Link object.
 	 * @param  string   destination in format "[[module:]presenter:]view" or "signal!"
 	 * @param  array|mixed
-	 * @return NLink
+	 * @return Link
 	 */
 	public function lazyLink($destination, $args = array())
 	{
@@ -305,7 +325,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 			array_shift($args);
 		}
 
-		return new NLink($this, $destination, $args);
+		return new Link($this, $destination, $args);
 	}
 
 
@@ -315,7 +335,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 * @param  string   destination in format "[[module:]presenter:]action" or "signal!" or "this"
 	 * @param  array|mixed
 	 * @return bool
-	 * @throws NInvalidLinkException
+	 * @throws InvalidLinkException
 	 */
 	public function isLinkCurrent($destination = NULL, $args = array())
 	{
@@ -337,7 +357,7 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	 * @param  string   destination in format "[[module:]presenter:]view" or "signal!"
 	 * @param  array|mixed
 	 * @return void
-	 * @throws NAbortException
+	 * @throws Nette\Application\AbortException
 	 */
 	public function redirect($code, $destination = NULL, $args = array())
 	{
@@ -349,23 +369,25 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 
 		if (!is_array($args)) {
 			$args = func_get_args();
-			if (is_numeric(array_shift($args))) array_shift($args);
+			if (is_numeric(array_shift($args))) {
+				array_shift($args);
+			}
 		}
 
 		$presenter = $this->getPresenter();
-		$presenter->redirectUri($presenter->createRequest($this, $destination, $args, 'redirect'), $code);
+		$presenter->redirectUrl($presenter->createRequest($this, $destination, $args, 'redirect'), $code);
 	}
 
 
 
-	/********************* interface ArrayAccess ****************d*g**/
+	/********************* interface \ArrayAccess ****************d*g**/
 
 
 
 	/**
 	 * Adds the component to the container.
 	 * @param  string  component name
-	 * @param  IComponent
+	 * @param  Nette\ComponentModel\IComponent
 	 * @return void
 	 */
 	final public function offsetSet($name, $component)
@@ -378,8 +400,8 @@ abstract class NPresenterComponent extends NComponentContainer implements ISigna
 	/**
 	 * Returns component specified by name. Throws exception if component doesn't exist.
 	 * @param  string  component name
-	 * @return IComponent
-	 * @throws InvalidArgumentException
+	 * @return Nette\ComponentModel\IComponent
+	 * @throws Nette\InvalidArgumentException
 	 */
 	final public function offsetGet($name)
 	{

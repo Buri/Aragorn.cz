@@ -59,6 +59,10 @@ var AragornClient = new Class({
     },
     transport:null,
     ajax:null,
+    _ping:{
+        timeout:null,
+        last:[]
+    },
     Ajax:{
         transports:[],
         send:function(action, data, callback){
@@ -82,6 +86,10 @@ var AragornClient = new Class({
         global:function(message){
             console.error('FAIL!');
         },
+        ping:function(){
+            this._ping.last.push(new Date().getTime());
+            this.send('PING');
+        },
         connectionEstablished:function(){
             $('constat').setStyle('background', 'lime');
             $('constat').set('title', 'Connection status: online');
@@ -89,6 +97,7 @@ var AragornClient = new Class({
         sessionHandshake:function(){
             console.log('HANDSHAKE!');
             this.connected = true;
+            this._ping.timeout = setInterval(this.fn.ping.bind(this), 1000);
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
                     this.sendRaw(msg);
@@ -100,6 +109,8 @@ var AragornClient = new Class({
             this.connected = false;
             $('constat').setStyle('background', 'red');
             $('constat').set('title', 'Connection status: offline');
+            clearInterval(this._ping.timeout);
+            this._ping.last.empty();
         },
         getIdentity:function(){
             if(window.AUTHENTICATED === true){
@@ -139,6 +150,9 @@ var AragornClient = new Class({
                     break;
                 case 'INVALID_SID':
                     break;
+                case 'PING':
+                    $('constat').set('text', new Date().getTime() - this._ping.last.shift());
+                    break;
                 default:
                     this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
                     break;
@@ -173,7 +187,12 @@ var AragornClient = new Class({
     },
     removeCmd:function(cmd){
         return this.removeEvent('cmd_' + cmd);
-    }
+    },
+    message:function(){
+        console.log('Resource not aviable.');
+    },
+    prompt:function(){},
+    info:function(){}
 }), AC = null;
 /*Linker = new Request.HTML({
     update:$('content'),
@@ -188,13 +207,30 @@ Linker.callback = function(e){
 Linker.hook = '';*/
 
 window.addEvent('domready', function(){
-    History.addEvent('change', function(url){
+    /*History.addEvent('change', function(url){
         console.log('History changed: ' + url);
-    });
+    });*/
     AC = new AragornClient();
-    new LazyLoad();
-    $$('a.ajax').addEvent('click', function(e){
-        e.stop();
-        $('content').load(this.href);
-    });
+    new LazyLoad({elements:'img.ll'});
+    if($$('#content').length){
+        $(document.body).addEvent('click:relay(.ajax)', function(event) {
+            new Event(event).stop();
+            $('content').fade(0.5);
+            new Request.HTML({
+                 url: this.get('href'),
+                 evalScripts:true,
+                 update:$('content'),
+                 onComplete:function(){
+                     $('content').fade(1);
+                 },
+                 onSuccess:function(){
+                     History.push(this.get('href'));
+                 }.bind(this),
+                 onFailure:function(){
+                     AC.info('Chyba', 'Stránku se nepodařilo načíst.', 'error.png');
+                     location.href = this.get('href');
+                 }.bind(this)
+            }).send();
+        });
+    }
 });

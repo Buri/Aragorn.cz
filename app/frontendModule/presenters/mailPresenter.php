@@ -1,7 +1,8 @@
 <?php
 
-class frontend_mailPresenter extends BasePresenter {
-
-    public function renderDefault() {
+namespace frontendModule{
+    class mailPresenter extends \BasePresenter {
+        public function renderDefault() {
+        }
     }
 }

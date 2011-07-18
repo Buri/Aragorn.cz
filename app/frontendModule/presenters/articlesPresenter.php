@@ -1,7 +1,8 @@
 <?php
 
-class frontend_articlesPresenter extends BasePresenter {
-
-    public function renderDefault() {
+namespace frontendModule{
+    class articlesPresenter extends \BasePresenter {
+        public function renderDefault() {
+        }
     }
 }

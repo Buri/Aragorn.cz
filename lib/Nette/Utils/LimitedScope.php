@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Loaders
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-final class NLimitedScope
+final class LimitedScope
 {
 	private static $vars;
 
@@ -26,7 +29,7 @@ final class NLimitedScope
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -43,7 +46,11 @@ final class NLimitedScope
 			self::$vars = func_get_arg(1);
 			extract(self::$vars);
 		}
-		return eval('?>' . func_get_arg(0));
+		$res = eval('?>' . func_get_arg(0));
+		if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
+			throw new Nette\FatalErrorException($error['message'], 0, $error['type'], $error['file'], $error['line'], NULL);
+		}
+		return $res;
 	}
 
 

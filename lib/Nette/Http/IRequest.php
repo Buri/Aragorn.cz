@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Http;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-interface IHttpRequest
+interface IRequest
 {
 	/** HTTP request method */
 	const
@@ -29,9 +32,9 @@ interface IHttpRequest
 
 	/**
 	 * Returns URL object.
-	 * @return NUriScript
+	 * @return UrlScript
 	 */
-	function getUri();
+	function getUrl();
 
 	/********************* query, post, files & cookies ****************d*g**/
 
@@ -56,7 +59,7 @@ interface IHttpRequest
 	/**
 	 * Returns uploaded file.
 	 * @param  string key (or more keys)
-	 * @return NHttpUploadedFile
+	 * @return FileUpload
 	 */
 	function getFile($key);
 

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Http;
+
+use Nette;
 
 
 
@@ -17,25 +20,25 @@
  *
  * @author     David Grudl
  *
- * @property   NUriScript $uri
+ * @property   UrlScript $url
  * @property-read array $query
  * @property-read array $post
  * @property-read array $files
  * @property-read array $cookies
  * @property-read string $method
  * @property-read array $headers
- * @property-read NUri $referer
+ * @property-read Url $referer
  * @property-read string $remoteAddress
  * @property-read string $remoteHost
  * @property-read bool $secured
  */
-class NHttpRequest extends NObject implements IHttpRequest
+class Request extends Nette\Object implements IRequest
 {
 	/** @var string */
 	private $method;
 
-	/** @var NUriScript */
-	private $uri;
+	/** @var UrlScript */
+	private $url;
 
 	/** @var array */
 	private $query;
@@ -60,13 +63,13 @@ class NHttpRequest extends NObject implements IHttpRequest
 
 
 
-	public function __construct(NUriScript $uri, $query = NULL, $post = NULL, $files = NULL, $cookies = NULL,
+	public function __construct(UrlScript $url, $query = NULL, $post = NULL, $files = NULL, $cookies = NULL,
 		$headers = NULL, $method = NULL, $remoteAddress = NULL, $remoteHost = NULL)
 	{
-		$this->uri = $uri;
-		$this->uri->freeze();
+		$this->url = $url;
+		$this->url->freeze();
 		if ($query === NULL) {
-			parse_str($uri->query, $this->query);
+			parse_str($url->query, $this->query);
 		} else {
 			$this->query = (array) $query;
 		}
@@ -83,11 +86,20 @@ class NHttpRequest extends NObject implements IHttpRequest
 
 	/**
 	 * Returns URL object.
-	 * @return NUriScript
+	 * @return UrlScript
 	 */
-	final public function getUri()
+	final public function getUrl()
 	{
-		return $this->uri;
+		return $this->url;
+	}
+
+
+
+	/** @deprecated */
+	function getUri()
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use ' . __CLASS__ . '::getUrl() instead.', E_USER_WARNING);
+		return $this->getUrl();
 	}
 
 
@@ -143,12 +155,12 @@ class NHttpRequest extends NObject implements IHttpRequest
 	/**
 	 * Returns uploaded file.
 	 * @param  string key (or more keys)
-	 * @return NHttpUploadedFile
+	 * @return FileUpload
 	 */
 	final public function getFile($key)
 	{
 		$args = func_get_args();
-		return NArrayTools::get($this->files, $args);
+		return Nette\Utils\Arrays::get($this->files, $args, NULL);
 	}
 
 
@@ -266,11 +278,11 @@ class NHttpRequest extends NObject implements IHttpRequest
 
 	/**
 	 * Returns referrer.
-	 * @return NUri|NULL
+	 * @return Url|NULL
 	 */
 	final public function getReferer()
 	{
-		return isset($this->headers['referer']) ? new NUri($this->headers['referer']) : NULL;
+		return isset($this->headers['referer']) ? new Url($this->headers['referer']) : NULL;
 	}
 
 
@@ -281,7 +293,7 @@ class NHttpRequest extends NObject implements IHttpRequest
 	 */
 	public function isSecured()
 	{
-		return $this->uri->scheme === 'https';
+		return $this->url->scheme === 'https';
 	}
 
 

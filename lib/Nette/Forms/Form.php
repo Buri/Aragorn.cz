@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms
  */
+
+namespace Nette\Forms;
+
+use Nette;
 
 
 
@@ -29,13 +32,13 @@
  * @property   string $method
  * @property-read array $groups
  * @property-read array $httpData
- * @property   ITranslator $translator
+ * @property   Nette\Localization\ITranslator $translator
  * @property-read array $errors
- * @property-read NHtml $elementPrototype
+ * @property-read Nette\Utils\Html $elementPrototype
  * @property   IFormRenderer $renderer
- * @property-read boold $submitted
+ * @property-read bool $submitted
  */
-class NForm extends NFormContainer
+class Form extends Container
 {
 	/** validator */
 	const EQUAL = ':equal',
@@ -44,7 +47,7 @@ class NForm extends NFormContainer
 		VALID = ':valid';
 
 	// CSRF protection
-	const PROTECTION = 'NHiddenField::validateEqual';
+	const PROTECTION = 'Nette\Forms\Controls\HiddenField::validateEqual';
 
 	// button
 	const SUBMITTED = ':submitted';
@@ -78,9 +81,15 @@ class NForm extends NFormContainer
 	const PROTECTOR_ID = '_token_';
 
 	/** @var array of function(Form $sender); Occurs when the form is submitted and successfully validated */
+	public $onSuccess;
+
+	/** @var array of function(Form $sender); Occurs when the form is submitted and is not valid */
+	public $onError;
+
+	/** @var array of function(Form $sender); Occurs when the form is submitted */
 	public $onSubmit;
 
-	/** @var array of function(Form $sender); Occurs when the form is submitted and not validated */
+	/** @deprecated */
 	public $onInvalidSubmit;
 
 	/** @var mixed or NULL meaning: not detected yet */
@@ -89,16 +98,16 @@ class NForm extends NFormContainer
 	/** @var array */
 	private $httpData;
 
-	/** @var NHtml  <form> element */
+	/** @var Html  <form> element */
 	private $element;
 
 	/** @var IFormRenderer */
 	private $renderer;
 
-	/** @var ITranslator */
+	/** @var Nette\Localization\ITranslator */
 	private $translator;
 
-	/** @var array of NFormGroup */
+	/** @var array of ControlGroup */
 	private $groups = array();
 
 	/** @var array */
@@ -112,14 +121,14 @@ class NForm extends NFormContainer
 	 */
 	public function __construct($name = NULL)
 	{
-		$this->element = NHtml::el('form');
+		$this->element = Nette\Utils\Html::el('form');
 		$this->element->action = ''; // RFC 1808 -> empty uri means 'this'
 		$this->element->method = self::POST;
 		$this->element->id = 'frm-' . $name;
 
 		$this->monitor(__CLASS__);
 		if ($name !== NULL) {
-			$tracker = new NHiddenField($name);
+			$tracker = new Controls\HiddenField($name);
 			$tracker->unmonitor(__CLASS__);
 			$this[self::TRACKER_ID] = $tracker;
 		}
@@ -137,7 +146,7 @@ class NForm extends NFormContainer
 	protected function attached($obj)
 	{
 		if ($obj instanceof self) {
-			throw new InvalidStateException('Nested forms are forbidden.');
+			throw new Nette\InvalidStateException('Nested forms are forbidden.');
 		}
 	}
 
@@ -145,7 +154,7 @@ class NForm extends NFormContainer
 
 	/**
 	 * Returns self.
-	 * @return NForm
+	 * @return Form
 	 */
 	final public function getForm($need = TRUE)
 	{
@@ -157,7 +166,7 @@ class NForm extends NFormContainer
 	/**
 	 * Sets form's action.
 	 * @param  mixed URI
-	 * @return NForm  provides a fluent interface
+	 * @return Form  provides a fluent interface
 	 */
 	public function setAction($url)
 	{
@@ -181,12 +190,12 @@ class NForm extends NFormContainer
 	/**
 	 * Sets form's method.
 	 * @param  string get | post
-	 * @return NForm  provides a fluent interface
+	 * @return Form  provides a fluent interface
 	 */
 	public function setMethod($method)
 	{
 		if ($this->httpData !== NULL) {
-			throw new InvalidStateException(__METHOD__ . '() must be called until the form is empty.');
+			throw new Nette\InvalidStateException(__METHOD__ . '() must be called until the form is empty.');
 		}
 		$this->element->method = strtolower($method);
 		return $this;
@@ -213,15 +222,15 @@ class NForm extends NFormContainer
 	 */
 	public function addProtection($message = NULL, $timeout = NULL)
 	{
-		$session = $this->getSession()->getNamespace('Nette.Forms.Form/CSRF');
+		$session = $this->getSession()->getSection('Nette.Forms.Form/CSRF');
 		$key = "key$timeout";
 		if (isset($session->$key)) {
 			$token = $session->$key;
 		} else {
-			$session->$key = $token = NString::random();
+			$session->$key = $token = Nette\Utils\Strings::random();
 		}
 		$session->setExpiration($timeout, $key);
-		$this[self::PROTECTOR_ID] = new NHiddenField($token);
+		$this[self::PROTECTOR_ID] = new Controls\HiddenField($token);
 		$this[self::PROTECTOR_ID]->addRule(self::PROTECTION, $message, $token);
 	}
 
@@ -231,11 +240,11 @@ class NForm extends NFormContainer
 	 * Adds fieldset group to the form.
 	 * @param  string  caption
 	 * @param  bool    set this group as current
-	 * @return NFormGroup
+	 * @return ControlGroup
 	 */
 	public function addGroup($caption = NULL, $setAsCurrent = TRUE)
 	{
-		$group = new NFormGroup;
+		$group = new ControlGroup;
 		$group->setOption('label', $caption);
 		$group->setOption('visual', TRUE);
 
@@ -262,12 +271,12 @@ class NForm extends NFormContainer
 		if (is_string($name) && isset($this->groups[$name])) {
 			$group = $this->groups[$name];
 
-		} elseif ($name instanceof NFormGroup && in_array($name, $this->groups, TRUE)) {
+		} elseif ($name instanceof ControlGroup && in_array($name, $this->groups, TRUE)) {
 			$group = $name;
 			$name = array_search($group, $this->groups, TRUE);
 
 		} else {
-			throw new InvalidArgumentException("Group not found in form '$this->name'");
+			throw new Nette\InvalidArgumentException("Group not found in form '$this->name'");
 		}
 
 		foreach ($group->getControls() as $control) {
@@ -293,7 +302,7 @@ class NForm extends NFormContainer
 	/**
 	 * Returns the specified group.
 	 * @param  string  name
-	 * @return NFormGroup
+	 * @return ControlGroup
 	 */
 	public function getGroup($name)
 	{
@@ -308,10 +317,10 @@ class NForm extends NFormContainer
 
 	/**
 	 * Sets translate adapter.
-	 * @param  ITranslator
-	 * @return NForm  provides a fluent interface
+	 * @param  Nette\Localization\ITranslator
+	 * @return Form  provides a fluent interface
 	 */
-	public function setTranslator(ITranslator $translator = NULL)
+	public function setTranslator(Nette\Localization\ITranslator $translator = NULL)
 	{
 		$this->translator = $translator;
 		return $this;
@@ -321,7 +330,7 @@ class NForm extends NFormContainer
 
 	/**
 	 * Returns translate adapter.
-	 * @return ITranslator|NULL
+	 * @return Nette\Localization\ITranslator|NULL
 	 */
 	final public function getTranslator()
 	{
@@ -363,7 +372,7 @@ class NForm extends NFormContainer
 	/**
 	 * Sets the submittor control.
 	 * @param  ISubmitterControl
-	 * @return NForm  provides a fluent interface
+	 * @return Form  provides a fluent interface
 	 */
 	public function setSubmittedBy(ISubmitterControl $by = NULL)
 	{
@@ -381,7 +390,7 @@ class NForm extends NFormContainer
 	{
 		if ($this->httpData === NULL) {
 			if (!$this->isAnchored()) {
-				throw new InvalidStateException('Form is not anchored and therefore can not determine whether it was submitted.');
+				throw new Nette\InvalidStateException('Form is not anchored and therefore can not determine whether it was submitted.');
 			}
 			$this->httpData = (array) $this->receiveHttpData();
 		}
@@ -402,17 +411,29 @@ class NForm extends NFormContainer
 		} elseif ($this->submittedBy instanceof ISubmitterControl) {
 			if (!$this->submittedBy->getValidationScope() || $this->isValid()) {
 				$this->submittedBy->click();
-				$this->onSubmit($this);
+				$valid = TRUE;
 			} else {
 				$this->submittedBy->onInvalidClick($this->submittedBy);
+			}
+		}
+
+		if (isset($valid) || $this->isValid()) {
+			$this->onSuccess($this);
+		} else {
+			$this->onError($this);
+			if ($this->onInvalidSubmit) {
+				trigger_error(__CLASS__ . '->onInvalidSubmit is deprecated; use onError instead.', E_USER_WARNING);
 				$this->onInvalidSubmit($this);
 			}
+		}
 
-		} elseif ($this->isValid()) {
+		if ($this->onSuccess) { // back compatibility
 			$this->onSubmit($this);
-
-		} else {
-			$this->onInvalidSubmit($this);
+		} elseif ($this->onSubmit) {
+			trigger_error(__CLASS__ . '->onSubmit changed its behavior; use onSuccess instead.', E_USER_WARNING);
+			if (isset($valid) || $this->isValid()) {
+				$this->onSubmit($this);
+			}
 		}
 	}
 
@@ -430,7 +451,7 @@ class NForm extends NFormContainer
 		}
 
 		if ($httpRequest->isMethod('post')) {
-			$data = NArrayTools::mergeTree($httpRequest->getPost(), $httpRequest->getFiles());
+			$data = Nette\Utils\Arrays::mergeTree($httpRequest->getPost(), $httpRequest->getFiles());
 		} else {
 			$data = $httpRequest->getQuery();
 		}
@@ -520,7 +541,7 @@ class NForm extends NFormContainer
 
 	/**
 	 * Returns form's HTML element template.
-	 * @return NHtml
+	 * @return Nette\Utils\Html
 	 */
 	public function getElementPrototype()
 	{
@@ -532,7 +553,7 @@ class NForm extends NFormContainer
 	/**
 	 * Sets form renderer.
 	 * @param  IFormRenderer
-	 * @return NForm  provides a fluent interface
+	 * @return Form  provides a fluent interface
 	 */
 	public function setRenderer(IFormRenderer $renderer)
 	{
@@ -549,7 +570,7 @@ class NForm extends NFormContainer
 	final public function getRenderer()
 	{
 		if ($this->renderer === NULL) {
-			$this->renderer = new NDefaultFormRenderer;
+			$this->renderer = new Rendering\DefaultFormRenderer;
 		}
 		return $this->renderer;
 	}
@@ -579,11 +600,11 @@ class NForm extends NFormContainer
 		try {
 			return $this->getRenderer()->render($this);
 
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			if (func_get_args() && func_get_arg(0)) {
 				throw $e;
 			} else {
-				NDebug::toStringException($e);
+				Nette\Diagnostics\Debugger::toStringException($e);
 			}
 		}
 	}
@@ -595,21 +616,21 @@ class NForm extends NFormContainer
 
 
 	/**
-	 * @return IHttpRequest
+	 * @return Nette\Http\IRequest
 	 */
 	protected function getHttpRequest()
 	{
-		return NEnvironment::getHttpRequest();
+		return Nette\Environment::getHttpRequest();
 	}
 
 
 
 	/**
-	 * @return NSession
+	 * @return Nette\Http\Session
 	 */
 	protected function getSession()
 	{
-		return NEnvironment::getSession();
+		return Nette\Environment::getSession();
 	}
 
 }

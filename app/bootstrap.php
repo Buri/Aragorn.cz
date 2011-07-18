@@ -9,21 +9,29 @@ include LIBS_DIR . "/memcache.php";
 include LIBS_DIR . "/database.php";
 include LIBS_DIR . "/usock.php";
 
-NDebug::$strictMode = TRUE;
-NEnvironment::loadConfig(CFG_DIR . "/config.ini");
-NDebug::enable(NDebug::DETECT, NEnvironment::getVariable('logdir', WWW_DIR . '/../logs'));
-$application = NEnvironment::getApplication();
-//$application->errorPresenter = 'Error';
+use Nette\Environment;
+use Nette\Application\Routers as R;
+
+Nette\Diagnostics\Debugger::$strictMode = TRUE;
+//Environment::loadConfig(CFG_DIR . "/config.ini");
+$configurator = new Nette\Configurator;
+$configurator->container->params['tempDir'] = __DIR__ . '/../temp';
+$container = $configurator->loadConfig(CFG_DIR . '/config.neon');
+Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DETECT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
+$application = Environment::getApplication();
+$container->session->setExpiration('+ 365 days');
 //$application->catchExceptions = TRUE;
+/*dump($container->params); 
+die();*/
 
 $router = $application->getRouter();
-$router[] = new NRoute('index.php', 'Homepage:default', NRoute::ONE_WAY);
-$router[] = new NRoute('ajax/[<action>/[<id>/[<param>/]]]', array(
+$router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);
+$router[] = new R\Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
                 'action' => 'default'
 ));
-$router[] = new NRoute('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+$router[] = new R\Route('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'admin',
                 'presenter' => 'dashboard',
                 'action' => 'default'
@@ -32,14 +40,14 @@ $router[] = new NRoute('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array
 /* Load routing table from config */
 foreach(array('presenter', 'action') as $type){
     $routing_table = array();
-    foreach(explode(",", NEnvironment::getVariable($type . "RoutingTable")) as $item){
+    foreach(explode(",", Environment::getVariable($type . "RoutingTable")) as $item){
         $item = explode(":", $item);
         $routing_table[$item[0]] = $item[1];
     }
-    NRoute::setStyleProperty($type, NRoute::FILTER_TABLE, $routing_table);
+    R\Route::setStyleProperty($type, R\Route::FILTER_TABLE, $routing_table);
 }
 
-$router[] = new NRoute('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+$router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
                 'action' => 'default'

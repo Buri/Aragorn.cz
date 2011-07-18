@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Web
  */
+
+namespace Nette\Http;
+
+use Nette,
+	Nette\Utils\Strings;
 
 
 
@@ -17,15 +21,15 @@
  *
  * @author     David Grudl
  */
-class NHttpRequestFactory extends NObject
+class RequestFactory extends Nette\Object
 {
 	/** @internal */
 	const NONCHARS = '#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}]#u';
 
 	/** @var array */
-	public $uriFilters = array(
+	public $urlFilters = array(
 		'path' => array('#/{2,}#' => '/'), // '%20' => ''
-		'uri' => array(), // '#[.,)]$#' => ''
+		'url' => array(), // '#[.,)]$#' => ''
 	);
 
 	/** @var string */
@@ -35,7 +39,7 @@ class NHttpRequestFactory extends NObject
 
 	/**
 	 * @param  string
-	 * @return NHttpRequestFactory  provides a fluent interface
+	 * @return RequestFactory  provides a fluent interface
 	 */
 	public function setEncoding($encoding)
 	{
@@ -47,15 +51,15 @@ class NHttpRequestFactory extends NObject
 
 	/**
 	 * Creates current HttpRequest object.
-	 * @return NHttpRequest
+	 * @return Request
 	 */
 	public function createHttpRequest()
 	{
 		// DETECTS URI, base path and script path of the request.
-		$uri = new NUriScript;
-		$uri->scheme = isset($_SERVER['HTTPS']) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https' : 'http';
-		$uri->user = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
-		$uri->password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
+		$url = new UrlScript;
+		$url->scheme = isset($_SERVER['HTTPS']) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https' : 'http';
+		$url->user = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
+		$url->password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
 
 		// host & port
 		if (isset($_SERVER['HTTP_HOST'])) {
@@ -68,36 +72,36 @@ class NHttpRequestFactory extends NObject
 			$pair = array('');
 		}
 
-		$uri->host = preg_match('#^[-._a-z0-9]+$#', $pair[0]) ? $pair[0] : '';
+		$url->host = preg_match('#^[-._a-z0-9]+$#', $pair[0]) ? $pair[0] : '';
 
 		if (isset($pair[1])) {
-			$uri->port = (int) $pair[1];
+			$url->port = (int) $pair[1];
 
 		} elseif (isset($_SERVER['SERVER_PORT'])) {
-			$uri->port = (int) $_SERVER['SERVER_PORT'];
+			$url->port = (int) $_SERVER['SERVER_PORT'];
 		}
 
 		// path & query
 		if (isset($_SERVER['REQUEST_URI'])) { // Apache, IIS 6.0
-			$requestUri = $_SERVER['REQUEST_URI'];
+			$requestUrl = $_SERVER['REQUEST_URI'];
 
 		} elseif (isset($_SERVER['ORIG_PATH_INFO'])) { // IIS 5.0 (PHP as CGI ?)
-			$requestUri = $_SERVER['ORIG_PATH_INFO'];
+			$requestUrl = $_SERVER['ORIG_PATH_INFO'];
 			if (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] != '') {
-				$requestUri .= '?' . $_SERVER['QUERY_STRING'];
+				$requestUrl .= '?' . $_SERVER['QUERY_STRING'];
 			}
 		} else {
-			$requestUri = '';
+			$requestUrl = '';
 		}
 
-		$requestUri = NString::replace($requestUri, $this->uriFilters['uri']);
-		$tmp = explode('?', $requestUri, 2);
-		$uri->path = NString::replace($tmp[0], $this->uriFilters['path']);
-		$uri->query = isset($tmp[1]) ? $tmp[1] : '';
+		$requestUrl = Strings::replace($requestUrl, $this->urlFilters['url']);
+		$tmp = explode('?', $requestUrl, 2);
+		$url->path = Strings::replace($tmp[0], $this->urlFilters['path']);
+		$url->query = isset($tmp[1]) ? $tmp[1] : '';
 
-		// normalized uri
-		$uri->canonicalize();
-		$uri->path = NString::fixEncoding($uri->path);
+		// normalized url
+		$url->canonicalize();
+		$url->path = Strings::fixEncoding($url->path);
 
 		// detect script path
 		if (isset($_SERVER['DOCUMENT_ROOT'], $_SERVER['SCRIPT_FILENAME'])
@@ -110,21 +114,21 @@ class NHttpRequestFactory extends NObject
 			$script = '/';
 		}
 
-		if (strncasecmp($uri->path . '/', $script . '/', strlen($script) + 1) === 0) { // whole script in URL
-			$uri->scriptPath = substr($uri->path, 0, strlen($script));
+		if (strncasecmp($url->path . '/', $script . '/', strlen($script) + 1) === 0) { // whole script in URL
+			$url->scriptPath = substr($url->path, 0, strlen($script));
 
-		} elseif (strncasecmp($uri->path, $script, strrpos($script, '/') + 1) === 0) { // directory part of script in URL
-			$uri->scriptPath = substr($uri->path, 0, strrpos($script, '/') + 1);
+		} elseif (strncasecmp($url->path, $script, strrpos($script, '/') + 1) === 0) { // directory part of script in URL
+			$url->scriptPath = substr($url->path, 0, strrpos($script, '/') + 1);
 
 		} else {
-			$uri->scriptPath = '/';
+			$url->scriptPath = '/';
 		}
 
 
 		// GET, POST, COOKIE
 		$useFilter = (!in_array(ini_get('filter.default'), array('', 'unsafe_raw')) || ini_get('filter.default_flags'));
 
-		parse_str($uri->query, $query);
+		parse_str($url->query, $query);
 		if (!$query) {
 			$query = $useFilter ? filter_input_array(INPUT_GET, FILTER_UNSAFE_RAW) : (empty($_GET) ? array() : $_GET);
 		}
@@ -159,10 +163,10 @@ class NHttpRequestFactory extends NObject
 						}
 						if ($this->encoding) {
 							if ($utf) {
-								$v = NString::fixEncoding($v);
+								$v = Strings::fixEncoding($v);
 
 							} else {
-								if (!NString::checkEncoding($v)) {
+								if (!Strings::checkEncoding($v)) {
 									$v = iconv($this->encoding, 'UTF-8//IGNORE', $v);
 								}
 								$v = html_entity_decode($v, ENT_QUOTES, 'UTF-8');
@@ -182,7 +186,9 @@ class NHttpRequestFactory extends NObject
 		$list = array();
 		if (!empty($_FILES)) {
 			foreach ($_FILES as $k => $v) {
-				if ($this->encoding && is_string($k) && (preg_match(self::NONCHARS, $k) || preg_last_error())) continue;
+				if ($this->encoding && is_string($k) && (preg_match(self::NONCHARS, $k) || preg_last_error())) {
+					continue;
+				}
 				$v['@'] = & $files[$k];
 				$list[] = $v;
 			}
@@ -197,14 +203,16 @@ class NHttpRequestFactory extends NObject
 					$v['name'] = stripSlashes($v['name']);
 				}
 				if ($this->encoding) {
-					$v['name'] = preg_replace(self::NONCHARS, '', NString::fixEncoding($v['name']));
+					$v['name'] = preg_replace(self::NONCHARS, '', Strings::fixEncoding($v['name']));
 				}
-				$v['@'] = new NHttpUploadedFile($v);
+				$v['@'] = new FileUpload($v);
 				continue;
 			}
 
 			foreach ($v['name'] as $k => $foo) {
-				if ($this->encoding && is_string($k) && (preg_match(self::NONCHARS, $k) || preg_last_error())) continue;
+				if ($this->encoding && is_string($k) && (preg_match(self::NONCHARS, $k) || preg_last_error())) {
+					continue;
+				}
 				$list[] = array(
 					'name' => $v['name'][$k],
 					'type' => $v['type'][$k],
@@ -234,7 +242,7 @@ class NHttpRequestFactory extends NObject
 			}
 		}
 
-		return new NHttpRequest($uri, $query, $post, $files, $cookies, $headers,
+		return new Request($url, $query, $post, $files, $cookies, $headers,
 			isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : NULL,
 			isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : NULL,
 			isset($_SERVER['REMOTE_HOST']) ? $_SERVER['REMOTE_HOST'] : NULL

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette;
+
+use Nette;
 
 
 
@@ -17,18 +20,23 @@
  *
  * @author     David Grudl
  */
-class NArrayHash implements ArrayAccess, Countable, IteratorAggregate
+class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \IteratorAggregate
 {
 
 	/**
 	 * @param  array to wrap
-	 * @return NArrayHash
+	 * @param  bool
+	 * @return ArrayHash
 	 */
-	public static function from($arr)
+	public static function from($arr, $recursive = TRUE)
 	{
-		$obj = new self;
+		$obj = new static;
 		foreach ($arr as $key => $value) {
-			$obj->$key = $value;
+			if ($recursive && is_array($value)) {
+				$obj->$key = static::from($value, TRUE);
+			} else {
+				$obj->$key = $value;
+			}
 		}
 		return $obj;
 	}
@@ -37,11 +45,11 @@ class NArrayHash implements ArrayAccess, Countable, IteratorAggregate
 
 	/**
 	 * Returns an iterator over all items.
-	 * @return ArrayIterator
+	 * @return \RecursiveArrayIterator
 	 */
 	public function getIterator()
 	{
-		return new ArrayIterator($this);
+		return new \RecursiveArrayIterator($this);
 	}
 
 

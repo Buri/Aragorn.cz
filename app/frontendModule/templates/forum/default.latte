@@ -2,16 +2,16 @@
 {block content}
 <small> Navigace:
 {for $i = count($n) - 1; $i >= 0; $i--}
-<a href="{link this $n[$i]['url']}">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
+<a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
 {/for}
 </small>
 {foreach $topics as $topic}
 <div style="border:1px solid silver;">
-    <a href="{link this $topic['urlfragment']}">{$topic['name']}</a> <br/>
-    <em>{$topic['description']}</em>{var $subtopics = frontend_forumPresenter::getSubtopics($topic['id'])}
+    <a href="{link this $topic['urlfragment']}" class="ajax">{$topic['name']}</a> <br/>
+    <em>{$topic['description']}</em>{var $subtopics = frontendModule\forumPresenter::getSubtopics($topic['id'])}
     <div n:if="$subtopics->count()">Podtémata:
         {foreach $subtopics as $subtopic}
-            <a href="{link this $subtopic['urlfragment']}">{$subtopic['name']}</a>{sep}, {/sep}
+            <a href="{link this $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>{sep}, {/sep}
         {/foreach}
     </div>
 </div>

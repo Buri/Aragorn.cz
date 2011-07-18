@@ -1,7 +1,8 @@
 <?php
 
-class frontend_galleryPresenter extends BasePresenter {
-
-    public function renderDefault() {
+namespace frontendModule{
+    class galleryPresenter extends \BasePresenter {
+        public function renderDefault() {
+        }
     }
 }

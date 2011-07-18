@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-final class NArrayTools
+final class Arrays
 {
 
 	/**
@@ -25,14 +28,14 @@ final class NArrayTools
 	 */
 	final public function __construct()
 	{
-		throw new LogicException("Cannot instantiate static class " . get_class($this));
+		throw new Nette\StaticClassException;
 	}
 
 
 
 	/**
 	 * Returns array item or $default if item is not set.
-	 * Example: $val = NArrayTools::get($arr, 'i', 123);
+	 * Example: $val = Arrays::get($arr, 'i', 123);
 	 * @param  mixed  array
 	 * @param  mixed  key
 	 * @param  mixed  default value
@@ -44,6 +47,9 @@ final class NArrayTools
 			if (is_array($arr) && array_key_exists($k, $arr)) {
 				$arr = $arr[$k];
 			} else {
+				if (func_num_args() < 3) {
+					throw new Nette\InvalidArgumentException("Missing item '$k'.");
+				}
 				return $default;
 			}
 		}
@@ -64,7 +70,7 @@ final class NArrayTools
 			if (is_array($arr) || $arr === NULL) {
 				$arr = & $arr[$k];
 			} else {
-				throw new InvalidArgumentException('Traversed item is not an array.');
+				throw new Nette\InvalidArgumentException('Traversed item is not an array.');
 			}
 		}
 		return $arr;
@@ -164,9 +170,9 @@ final class NArrayTools
 	 */
 	public static function grep(array $arr, $pattern, $flags = 0)
 	{
-		NDebug::tryError();
+		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_grep($pattern, $arr, $flags);
-		NString::catchPregError($pattern);
+		Strings::catchPregError($pattern);
 		return $res;
 	}
 

@@ -1,0 +1,8 @@
+chat:
+    kick
+    kickall
+    ninja
+    override_password
+    override_limit
+admin:
+    enter

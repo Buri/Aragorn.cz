@@ -1,7 +1,9 @@
 <?php
 
-class admin_dashboardPresenter extends BasePresenter {
+namespace adminModule{
+    class dashboardPresenter extends \BasePresenter {
 
-    public function renderDefault() {
+        public function renderDefault() {
+        }
     }
 }

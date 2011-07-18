@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms
  */
+
+namespace Nette\Forms;
+
+use Nette;
 
 
 
@@ -17,7 +20,7 @@
  *
  * @author     David Grudl
  */
-interface IFormControl
+interface IControl
 {
 
 	/**
@@ -40,7 +43,7 @@ interface IFormControl
 	function getValue();
 
 	/**
-	 * @return NRules
+	 * @return Rules
 	 */
 	function getRules();
 

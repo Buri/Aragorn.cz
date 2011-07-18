@@ -33,29 +33,41 @@ exports.Session = new Class({
         this.setOptions(options);
         this.sessionId = sid;
         this.redis = redis.createClient();
-        this.redis.pingTimer = setTimeout(this.pingRedis.bind(this), 30*1000); /* ping every 30 sec */
+        
+        /* Setup aliases */
+        this.pub = this.sendToChannel;
+        this.puball = this.broadcastToClients;
+        this.csend = this.sendToClient;
     },
+    
+    /* Fields */
     clients:[],
     sessionId:0,
     user:{
         id:0,
+        roles:[],
         name:'',
-        preferences:{}
+        preferences:{},
+        permissions:{},
+        ips:[]
     },
     phpid:'',
-    redis:{},
+    redis:null,
+    eraseTimeout:null,
+    
+    /* Methods */
     registerClient:function(client){
         if(this.eraseTimeout){
             clearTimeout(this.eraseTimeout);
             this.eraseTimeout = {};
         }
         this.clients.push(client.sessionId);
-
+        this.user.ips.include(client.connection.remoteAddress); /* Probably users real ip address, always good to know */
+        
         client.redis = redis.createClient();
         client.redis.on('message', this.handleRedis.bind(client));
         client.redis.on('end', this.reconnectRedis.bind(client));
         client.sendToChannel = this.sendToChannel.bind(this);
-        client.redis.pingTimer = setTimeout(this.pingRedis.bind(client), 30*1000); /* ping every 30 sec */
         client.session = this;
     },
     removeClient:function(client){
@@ -64,9 +76,8 @@ exports.Session = new Class({
         delete client.redis;
         this.clients.erase(client.sessionId);
         if(this.clients.length == 0){
-
             /* UPDATE, SET LARGER TIMEOUT, FOR DEBUG PURPOSES ONLY */
-            this.eraseTimeout = setTimeout(this.erase.bind(this), 1000 * 5);
+            this.eraseTimeout = setTimeout(this.erase.bind(this), 1000 * 15);
         }
     },
     exit:function(){
@@ -74,28 +85,42 @@ exports.Session = new Class({
             this.redis.quit();
         delete this.redis;
     },
-    eraseTimeout:{},
     erase:function(){
         this.exit();
         this.fireEvent('disconnect', this);
         this.options.parentStorageRemoval(this.sessionId); // AKA "Delete me, pls!"
     },
+    
+    /* Permission handling */
+    isAllowed:function(res, op){
+        var ps = this.user.permissions || {'_ALL':false}; /* This method doesn't care about real permissions, it simply uses what's pushed from PHP */
+        if(!this.user.id || !this.user.roles) return false; /* User is not logged in */
+        if(this.user.roles.indexOf('0') != -1) return true; /* If user is root */
+        
+        var p = ps[res];
+        if(typeOf(p) != 'null'){
+            if(typeOf(p[op]) != 'null') return p[op];
+            if(typeOf(p['_ALL']) != 'null') return p['_ALL'];
+            return false;
+        }else if(typeOf(ps['_ALL']) != 'null'){
+            return ps['_ALL'];
+        }
+        return false; /* Fallback */
+    },
+
+    /* Redis handling */
     handleRedis:function(channel, message){
         message = JSON.parse(message);
         return this.session.options.redisHook(message, this, channel);
     },
     reconnectRedis:function(e){
         this.redis = redis.createClient();
-        //console.log('Redis reconnect');
     },
-    pingRedis:function(){
-        /* Just to keep connection alive */
-        this.redis.publish('/dev/null', Math.round(Math.random()*1000));
-    },
+    
     sendToChannel:function(channel, message){
         message.time = new Date().getTime();
         message.user = this.user;
-        if(!this.redis.publish)
+        if(!this.redis || this.redis.publish)
             this.redis = redis.createClient();
         return this.redis.publish(channel, JSON.stringify(message));
     },
@@ -113,7 +138,10 @@ exports.Session = new Class({
     broadcastToClients:function(message, clients){
         if(!clients || !clients.length) clients = this.clients;
         clients.each(function(client){
-            socket.clients[client].send(message);
+            if(typeOf(client) == 'object')
+                client.send(message);
+            else
+                socket.clients[client].send(message);
         });
     }
 });
