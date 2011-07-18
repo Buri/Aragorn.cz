@@ -81,7 +81,7 @@ exports.Session = new Class({
         }
     },
     exit:function(){
-        if(typeOf(this.redis.quit) == 'function')
+        if(this.redis && typeOf(this.redis.quit) == 'function')
             this.redis.quit();
         delete this.redis;
     },

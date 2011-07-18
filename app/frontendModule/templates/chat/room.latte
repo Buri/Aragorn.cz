@@ -2,6 +2,7 @@
 <html>
     <head>
         {include '../../../templates/head.latte'}
+        {include '../../../templates/scripts.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
@@ -195,5 +196,5 @@
             <a href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" target="_self">Odejít</a>
             <div id="constat" title="Connection status: offline" style="display: inline-block; position: relative;">&nbsp;</div>
         </div>
-    </body>
+    </body>    
 </html>

@@ -91,7 +91,7 @@ var AragornClient = new Class({
             this.send('PING');
         },
         connectionEstablished:function(){
-            $('constat').setStyle('background', 'lime');
+            $('constat').set('class', 'online');
             $('constat').set('title', 'Connection status: online');
         },
         sessionHandshake:function(){
@@ -107,7 +107,7 @@ var AragornClient = new Class({
         },
         handleDisconnect:function(){
             this.connected = false;
-            $('constat').setStyle('background', 'red');
+            $('constat').set('class', 'offline');
             $('constat').set('title', 'Connection status: offline');
             clearInterval(this._ping.timeout);
             this._ping.last.empty();

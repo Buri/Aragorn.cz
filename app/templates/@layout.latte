@@ -28,7 +28,7 @@
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class=''>
-        <div id="constat" title="Connection status: offline">&nbsp;</div>
+        <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         {include 'topmenu.latte'}
         <div class="holder">
             {include 'logo.latte'}
@@ -39,5 +39,6 @@
             </div>
         </div>
     </body>
+    {include 'scripts.latte'}
 </html>
 {/if}
