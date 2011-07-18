@@ -42,7 +42,9 @@
                     t.send('chat', {action:'enter', id:rid});
                     t.send('chat', {action:'userlist', id:rid});
                     this.tips = new FloatingTips(this.options.tipsSelector, this.options.tips);
-                    $(this.options.input).addEvent('keyup', this._typingInfo.bind(this));
+                    this.options.input = $(this.options.input);
+                    if(this.options.input)
+                        this.options.input.addEvent('keyup', this._typingInfo.bind(this));
                 },
                 transport:null,
                 tips:null,
@@ -136,35 +138,38 @@
             });
             window.addEvent('domready', function(){
                 Chat = new ChatClient(AC, {limit:'glass-length'});
-                $('msg').focus();
+                if($('msg')) $('msg').focus();
                 $('glass-length').addEvent('change', function(e){
                     console.log('change', this.get('value'));
                     Cookie.write('chat-glass-length', this.get('value'), {duration:365});
                 });
                 $('glass-length').set('value', Cookie.read('chat-glass-length') || 150);
-                $('frmMsg').addEvent('submit', function(e){
-                    new Event(e).stop();
-                    var v = this.msg.value;
-                    if(v.length){ 
-                        if(v[0] == '/'){    
-                            var p = v.indexOf(' '), cmd = p == -1 ? v.substr(1) : v.substr(1, v.indexOf(' ')-1), param = p == -1 ? '' : v.substr(++p);
-                            switch(cmd){
-                                case 'quit':
-                                case 'exit':
-                                case 'odejit':
-                                case 'leave':
-                                    location.href = '/chat/leave/' + rid + '/';
-                                    break;
-                                default:
-                                    Chat.send('cmd', {cmd:cmd, param:param});
+                if($('frmMsg'))
+                    $('frmMsg').addEvent('submit', function(e){
+                        new Event(e).stop();
+                        var v = this.msg.value;
+                        if(v.length){ 
+                            if(v[0] == '/'){    
+                                var p = v.indexOf(' '), cmd = p == -1 ? v.substr(1) : v.substr(1, v.indexOf(' ')-1), param = p == -1 ? '' : v.substr(++p);
+                                switch(cmd){
+                                    case 'quit':
+                                    case 'exit':
+                                    case 'odejit':
+                                    case 'leave':
+                                        location.href = '/chat/leave/' + rid + '/';
+                                        break;
+                                    case 'kickall':
+                                        if(!confirm('Vyhodit všechny z místnosti?')) break;
+                                    default:
+                                        Chat.send('cmd', {cmd:cmd, param:param});
+                                }
+                            }else{
+                                AC.send('chat',{action:'post', id:rid, message:this.msg.value}); 
                             }
-                        }else{
-                            AC.send('chat',{action:'post', id:rid, message:this.msg.value}); 
-                        }
-                        this.msg.value='';
-                    } 
-                    return false;
-                });
+                            this.msg.value='';
+                        } 
+                        return false;
+                    });
             });
         </script>
     </head>

@@ -6,7 +6,6 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $t = $this->getTemplate();
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
         $t->ajax = $this->isAjax();
-        #sleep(1);
         parent::startup();
     }
     protected function createComponent($name) {

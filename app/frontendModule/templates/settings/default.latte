@@ -39,8 +39,16 @@ border-top-right-radius: 20px;}
 #set-nav li a:hover {background-color:#F99; }
 #set-nav li a.selected { background-color:#99F;color:#000; }
 </style>
-<script src="{!$staticPath}/js/tinytab.js"></script>
 <script n:syntax="double">
-    var tabs = new TinyTab($$('#set-nav li a'), $$('#set-content .feature'));
-    new MooRainbow('ccolor', {imgPath:'{{!$staticPath}}/images/'});
+    //window.addEvent('domready', function(){
+        var tabs = new TinyTab($$('#set-nav li a'), $$('#set-content .feature'));
+        new MooRainbow('ccolor', {
+            imgPath:'{{!$staticPath}}/images/', 
+            startColor:$('ccolor').getStyle('background-color').hexToRgb(true),
+            onChange:function(c){
+                $('ccolor').setStyle('background-color', c.hex);
+            }
+        });
+    //});
 </script>
+<button onclick="console.log('Ukládám nastavení.');">Uložit nastavení</button>

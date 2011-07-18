@@ -218,7 +218,9 @@ window.addEvent('domready', function(){
             $('content').fade(0.5);
             new Request.HTML({
                  url: this.get('href'),
+                 link:'cancel',
                  evalScripts:true,
+                 evalResponse:true,
                  update:$('content'),
                  onComplete:function(){
                      $('content').fade(1);
