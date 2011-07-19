@@ -49,6 +49,15 @@
                 },
                 transport:null,
                 tips:null,
+                showDelete:false,
+                toggleDeletes:function(){
+                    this.showDelete = !this.showDelete;
+                    if(this.showDelete)
+                        $$('.cross-delete').removeClass('hide');
+                    else
+                        $$('.cross-delete').addClass('hide');
+                    return this.showDelete;
+                },
                 connectedUsers:[],
                 _typing:{
                     t:null, // Timeout
@@ -63,13 +72,12 @@
                     if(this._typing.t) clearTimeout(this._typing.t);
                     if(this._typing.state != 'typing'){
                         this._typing.state = 'typing';
-                        //console.log('Sending typing.');
                         this.transport.send('chat',{action:'state', state:this._typing.state, id:rid});
                     }
                     this._typing.t = setTimeout(this._typing.fn.bind(this), this.options.typeDelay);
                 },
                 _handle:function(msg){
-                    console.log(msg);
+                    //console.log(msg);
                     switch(msg.action){
                         case 'post':
                             var d = new Date();
@@ -84,11 +92,11 @@
                                 new Element('a',{
                                     href:'#',
                                     text:'x',
+                                    'class':'cross-delete' + (this.showDelete ? '' : ' hide'),
                                     events:{
                                         click:function(e){
                                             if(e) e.stop();
                                             var mid = msg.id;
-                                            console.log('Delete message ' + mid);
                                             this.transport.send('chat', {action:'delete', id:rid, messid:mid});
                                         }.bind(this)
                                     }
@@ -116,11 +124,12 @@
                             $$('#user-list *').dispose(); 
                             this.connectedUsers = msg.list;
                             this.connectedUsers.each(function(usr){
+                                var img = usr.state == 'typing' ? 'edit-icon' : (usr.state == 'textready' ? 'notepad-icon' : 'spy');
                                 var e = new Element('div', {
                                     'class':'users',
                                     'data-info':JSON.stringify(usr),
-                                    text:usr.name
-                                }).adopt(new Element('span', {id:'ty' + usr.name, text:' - ' + usr.state}));
+                                    text:usr.name + ' '
+                                }).adopt(new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:'http://static.aragorn.cz/images/' + img + '.png', styles:{'vertical-align':'middle'}}));
                                 $(this.options.userList).grab(e);
                             }.bind(this));
                             this.tips.attach(this.options.tipsSelector);
@@ -176,16 +185,19 @@
     </head>
     <body n:syntax="double">
         <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px;"></div>
-        <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed; padding: 6px;"></div>
-        <div style="position:fixed; height: 30px; bottom: 0; left:0;right:0;">
+        <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed; padding: 16px;"></div>
+        <footer>
             {{if $param != "ninja"}}
-            <form id="frmMsg" style="display:inline;">
-                Zpráva: <input type="text" name="msg" id="msg" /> <button type="submit">Odeslat</button>
+            <form id="frmMsg">
+                Zpráva: <input type="text" name="msg" id="msg" size="40" /> <button type="submit">Odeslat</button>
             </form>
+            {{if $user->isAllowed('chat', 'delete')}}
+            <button id="showDeletes" onclick="$(this).setStyle('background', Chat.toggleDeletes() ? 'red' : '#339');">Mazáni zpráv</button>
+            {{/if}}
             {{else}}
             <a n:href="enter $rid" target="_self">Vstoupit do místnosti</a>
             {{/if}}
-            <select name="glassLength" id="glass-length" title="Počet zobrazovaných zpráv" style="cursor: help;">
+            <select name="glassLength" id="glass-length" title="Počet zobrazovaných zpráv">
                 <option value="50">50</option>
                 <option value="100">100</option>
                 <option value="150">150</option>
@@ -193,8 +205,8 @@
                 <option value="250">250</option>
                 <option value="300">300</option>
             </select>
-            <a href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" target="_self">Odejít</a>
             <div id="constat" title="Connection status: offline" style="display: inline-block; position: relative;">&nbsp;</div>
-        </div>
+            <button data-href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" onclick="location.href = $(this).get('data-href');">Odejít</button>
+        </footer>
     </body>    
 </html>

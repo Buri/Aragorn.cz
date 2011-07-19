@@ -4,5 +4,6 @@ chat:
     ninja
     override_password
     override_limit
+    delete
 admin:
     enter

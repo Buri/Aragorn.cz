@@ -18,6 +18,30 @@ body,html,div{
 body{
     background-color: #000;
     color:#fff;
+    background-image: url(http://static.aragorn.cz/images/chat-bg.jpg);
+    background-position: top center;
+}
+footer{
+    position:fixed; 
+    height: 30px; 
+    bottom: 0; 
+    left:0;
+    right:0;
+}
+button, input{
+    border-radius: 3px;
+    border: 1px solid #669;
+    background-color: #339;
+    color: #fff;
+}
+button:focus, input:focus{
+    background-color: #66c
+}
+#frmMsg{
+    display:inline-block;
+}
+#glassLength{
+    cursor: help;
 }
 .datetime{
     color:gray;

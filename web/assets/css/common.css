@@ -33,6 +33,9 @@
     height: 20px;
     text-align: center;
 }
+.hide{
+    display:none;
+}
 .offline{
     background-color: red;
     color: white;

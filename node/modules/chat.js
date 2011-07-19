@@ -86,10 +86,12 @@ exports.ChatServer = new Class({
         var tmp = this.getQueue(cname);
         tmp.unshift({
             t:setTimeout(function(cname){
-                this.storage[cname].pop(); 
-                /* Delete storage after channel is empty? If not, possible memory leaks... */
-                if(!this.storage[cname].length) 
-                    delete this.storage[cname];
+                if(this.storage[cname]){
+                    this.storage[cname].pop(); 
+                    /* Delete storage after channel is empty? If not, possible memory leaks... */
+                    if(!this.storage[cname].length) 
+                        delete this.storage[cname];
+                }
             }.bind(this, cname), this.options.timeout*1000), 
             d:message,
             id:message.data.id
@@ -173,8 +175,7 @@ exports.ChatServer = new Class({
                 }
                 break;
             case 'delete':
-                var usr = this.getUserInfo(client.session.user.name);
-                if(usr && usr.permissions['delete']){
+                if(client.session.isAllowed('chat', 'delete')){
                     var q = this.getQueue(cname), pos = q.binarySearch({id:message.data.messid}, function(a,b){a = parseInt(a.id.substr(a.id.lastIndexOf('-') + 1));b = parseInt(b.id.substr(b.id.lastIndexOf('-') + 1));return ( a < b ? 1 : (a == b ? 0 : -1));});
                     for(pos; pos < q.length - 1; pos++){
                         q[pos] = q[pos + 1];
