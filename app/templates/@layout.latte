@@ -9,6 +9,7 @@
  * @param string   $title    page title
  *}
 {if $ajax}
+<script type="text/javascript">document.title='{!$title}| Aragorn.cz';{if $forceReload}/*$$('.ajax').removeClass('ajax');*/location.reload();{/if}</script>
 {include #content}
 {else}
 <!DOCTYPE html>

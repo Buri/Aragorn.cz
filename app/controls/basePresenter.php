@@ -5,7 +5,14 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     public function startup(){
         $t = $this->getTemplate();
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
+        $t->title = "";
+        $t->forceReload = false;
         $t->ajax = $this->isAjax();
+        
+        if(DB::bans()->where('expires > ? AND (id = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")->count()){
+            $this->actionLogout();
+        }
+        
         parent::startup();
     }
     protected function createComponent($name) {

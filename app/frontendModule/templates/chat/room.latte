@@ -212,6 +212,9 @@
                                     case 'date':
                                         AC.message('Čas', new Date().toString());
                                         break;
+                                    case 'unixtime':
+                                        AC.message('Unix timestamp', Math.round(new Date().getTime()/1000));
+                                        break;
                                     case 'quit':
                                     case 'exit':
                                     case 'odejit':
