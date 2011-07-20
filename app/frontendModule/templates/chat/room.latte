@@ -40,8 +40,8 @@
                     this.setOptions(options);
                     t.registerCmd('chat', this._handle.bind(this));
                     this.transport = t;
-                    t.send('chat', {action:'enter', id:rid});
-                    t.send('chat', {action:'userlist', id:rid});
+                    t.send('chat', {action:'enter', rid:rid});
+                    t.send('chat', {action:'userlist', rid:rid});
                     this.tips = new FloatingTips(this.options.tipsSelector, this.options.tips);
                     this.options.input = $(this.options.input);
                     if(this.options.input)
@@ -59,22 +59,48 @@
                     return this.showDelete;
                 },
                 connectedUsers:[],
+                matchUser:function(u){
+                    if(!u || !(u.length)) return false;
+                    u = u.toLowerCase();
+                    var res = "";
+                    this.connectedUsers.each(function(cu){
+                        if(cu.name.substr(0, u.length).toLowerCase() == u){
+                            res = cu.name;
+                            return;
+                        }
+                        return null;
+                    });
+                    return res;
+                },
                 _typing:{
                     t:null, // Timeout
                     state:'idle',
                     fn:function(){
                         //console.log(this._typing);
                         this._typing.state = $(this.options.input).value.length ? 'textready' : 'idle';
-                        this.transport.send('chat',{action:'state', state:this._typing.state, id:rid});
+                        this.transport.send('chat',{action:'state', state:this._typing.state, rid:rid});
                     }
                 },
-                _typingInfo:function(){
+                _typingInfo:function(e){
                     if(this._typing.t) clearTimeout(this._typing.t);
                     if(this._typing.state != 'typing'){
                         this._typing.state = 'typing';
-                        this.transport.send('chat',{action:'state', state:this._typing.state, id:rid});
+                        this.transport.send('chat',{action:'state', state:this._typing.state, rid:rid});
                     }
                     this._typing.t = setTimeout(this._typing.fn.bind(this), this.options.typeDelay);
+                    var ch = "", usr = null, v = new String(this.options.input.get('value'));
+                    if(e.key == 'control' && v.indexOf('#') == -1){
+                        ch = "#";
+                        usr = this.matchUser(v);
+                    }
+                    if(e.key == 'alt' && v.indexOf(':') == -1){
+                        e.stop();
+                        ch = ":";
+                        usr = this.matchUser(v);
+                    }
+                    if(usr){
+                        this.options.input.set('value', usr + ch + ' ');
+                    }
                 },
                 _handle:function(msg){
                     //console.log(msg);
@@ -97,7 +123,7 @@
                                         click:function(e){
                                             if(e) e.stop();
                                             var mid = msg.id;
-                                            this.transport.send('chat', {action:'delete', id:rid, messid:mid});
+                                            this.transport.send('chat', {action:'delete', rid:rid, messid:mid});
                                         }.bind(this)
                                     }
                                 }),
@@ -143,14 +169,14 @@
                      }
                 },
                 send:function(cmd, params){
-                    this.transport.send('chat', Object.merge({action:cmd, id:rid}, {params:params}));
+                    this.transport.send('chat', Object.merge({action:cmd, rid:rid}, params));
                 }
             });
             window.addEvent('domready', function(){
                 Chat = new ChatClient(AC, {limit:'glass-length'});
                 if($('msg')) $('msg').focus();
                 $('glass-length').addEvent('change', function(e){
-                    console.log('change', this.get('value'));
+                    /*console.log('change', this.get('value'));*/
                     Cookie.write('chat-glass-length', this.get('value'), {duration:365});
                 });
                 $('glass-length').set('value', Cookie.read('chat-glass-length') || 150);
@@ -158,8 +184,14 @@
                     $('frmMsg').addEvent('submit', function(e){
                         new Event(e).stop();
                         var v = this.msg.value;
-                        if(v.length){ 
-                            if(v[0] == '/'){    
+                        if(v.length){
+                            var pos = v.indexOf('#');;
+                            if(pos != -1){
+                                var usr = v.substr(0, pos);
+                                if(Chat.matchUser(usr) == usr){
+                                    Chat.send('post', {message:this.msg.value, whisper:usr}); 
+                                }
+                            }else if(v[0] == '/'){    
                                 var p = v.indexOf(' '), cmd = p == -1 ? v.substr(1) : v.substr(1, v.indexOf(' ')-1), param = p == -1 ? '' : v.substr(++p);
                                 switch(cmd){
                                     case 'quit':
@@ -171,10 +203,10 @@
                                     case 'kickall':
                                         if(!confirm('Vyhodit všechny z místnosti?')) break;
                                     default:
-                                        Chat.send('cmd', {cmd:cmd, param:param});
+                                        Chat.send('cmd', {command:cmd, params:{param:param}});
                                 }
                             }else{
-                                AC.send('chat',{action:'post', id:rid, message:this.msg.value}); 
+                                Chat.send('post', {message:v});
                             }
                             this.msg.value='';
                         } 

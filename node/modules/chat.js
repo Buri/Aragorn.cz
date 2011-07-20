@@ -116,7 +116,7 @@ exports.ChatServer = new Class({
         delete this.storage[channel];
     },
     sessionHook:function(message, client){
-        var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.id || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
+        var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
         switch(message.data.action){
             case "enter":
                 client.redis.subscribe(cname); // Public channel
@@ -145,6 +145,12 @@ exports.ChatServer = new Class({
                 if(!message.data.color && client.session.user.preferences)
                     message.data.color = client.session.user.preferences.chat.color || '#fff' ;
                 message.data.id = this.newMsgId(cname);
+                if(message.data.whisper){
+                    var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + client.session.user.name;
+                    console.log('Whisper to self: ' + cname + ' : ' + cname2);
+                    this.storeMessage(cname2, message);
+                    client.sendToChannel(cname2, message);
+                }
                 this.storeMessage(cname, message);
                 client.sendToChannel(cname, message);
                 break;
@@ -156,11 +162,12 @@ exports.ChatServer = new Class({
                 }
                 break;
             case 'cmd':
-                switch(message.data.params.cmd){
+                switch(message.data.command){
                     case 'kick':
-                        if(client.session.isAllowed('chat', 'kick'))
+                        if(client.session.isAllowed('chat', 'kick')){
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
                             this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                        else
+                        }else
                             client.send('notify', {code:403,msg:'Not allowed'});
                         break;
                     case 'kickall':
