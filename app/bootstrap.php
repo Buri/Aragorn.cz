@@ -12,17 +12,16 @@ include LIBS_DIR . "/usock.php";
 use Nette\Environment;
 use Nette\Application\Routers as R;
 
-Nette\Diagnostics\Debugger::$strictMode = TRUE;
-//Environment::loadConfig(CFG_DIR . "/config.ini");
 $configurator = new Nette\Configurator;
 $configurator->container->params['tempDir'] = __DIR__ . '/../temp';
 $container = $configurator->loadConfig(CFG_DIR . '/config.neon');
-Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DETECT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
+Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
+Nette\Diagnostics\Debugger::$strictMode = TRUE;
+Environment::setProductionMode(false);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');
 //$application->catchExceptions = TRUE;
-/*dump($container->params); 
-die();*/
+#dump($container->params); die();
 
 $router = $application->getRouter();
 $router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);
@@ -40,7 +39,7 @@ $router[] = new R\Route('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', arra
 /* Load routing table from config */
 foreach(array('presenter', 'action') as $type){
     $routing_table = array();
-    foreach(explode(",", Environment::getVariable($type . "RoutingTable")) as $item){
+    foreach(explode(",", $container->params[$type . "RoutingTable"]) as $item){
         $item = explode(":", $item);
         $routing_table[$item[0]] = $item[1];
     }

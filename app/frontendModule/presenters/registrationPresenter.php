@@ -7,14 +7,18 @@
  *
  */
 namespace frontendModule{
+    use Nette\Environment;
+    use Nette\Application\UI\Form;
+    use \DB;
+    
     class registrationPresenter extends \BasePresenter {
 
         public function createComponentRegisterForm() {
-            $form = new Nette\Application\UI\Form;
+            $form = new Form;
             #$form->addProtection('Cross Site Request Forgery!');
             $form->addText('username', 'Přezdívka: ')
-                    ->addRule(NForm::FILLED, 'Musíte vyplnit uživatelské jméno!')
-                    ->addRule(function (NTextInput $user){
+                    ->addRule(Form::FILLED, 'Musíte vyplnit uživatelské jméno!')
+                    ->addRule(function (\Nette\Forms\Controls\TextInput $user){
                         if(count(db::users()->where("username LIKE ?", $user->getValue()))){
                             return false;
                         }
@@ -22,12 +26,12 @@ namespace frontendModule{
                     }, 'Uživatelské jméno je již obsazené.');
 
             $form->addPassword('password', 'Heslo')
-                    ->addRule(NForm::FILLED, 'Musíte vyplnit heslo.')
-                    ->addRule(NForm::LENGTH, 'Heslo je příliš krátké.');
+                    ->addRule(Form::FILLED, 'Musíte vyplnit heslo.')
+                    ->addRule(Form::LENGTH, 'Heslo je příliš krátké.');
 
             $form->addText('mail', 'E-mail')
-                    ->addRule(NForm::EMAIL, 'Email není validní!')
-                    ->addRule(function(NTextInput $mail){
+                    ->addRule(Form::EMAIL, 'Email není validní!')
+                    ->addRule(function(\Nette\Forms\Controls\TextInput $mail){
                         if(count(db::users_profiles()->where("mail LIKE ?", $mail->getValue()))){
                             return false;
                         }
@@ -35,17 +39,17 @@ namespace frontendModule{
                     }, 'Emailová adresa je již obsazená.');
 
             $form->addCheckbox('eula', 'Souhlasím s podmínkami.')
-                    ->addRule(NForm::FILLED, 'Musíte souhlasit.');
+                    ->addRule(Form::FILLED, 'Musíte souhlasit.');
 
             $form->addText('spambot', 'Toto musíte vyplnit.')
-                    ->addRule(NForm::LENGTH, 'Špatně.', 0)
+                    ->addRule(Form::LENGTH, 'Špatně.', 0)
                     ->getControlPrototype()->class("hidden");
             $form['spambot']->getLabelPrototype()->class("hidden");
 
             $form->addGroup('Povinné údaje')->add($form['username'],$form['password'],$form['mail'],$form['eula'],$form['spambot']);
 
             $form->addSubmit('save', 'Registrovat');
-            $form->onSubmit[] = callback($this, 'processRegisterForm');
+            $form->onSuccess[] = callback($this, 'processRegisterForm');
 
             $form->setAction($this->link("register"));
             //$form->getElementPrototype()->action = $this->link("register");
@@ -53,7 +57,7 @@ namespace frontendModule{
             return $form;
         }
 
-        public function processRegisterForm(Nette\Application\UI\Form $form) {
+        public function processRegisterForm(\Nette\Application\UI\Form $form) {
         #public function actionRegister(NAppForm $form) {
             $data = $form->getValues();
             $data["token"] = md5(uniqid());

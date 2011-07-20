@@ -207,32 +207,32 @@ Linker.callback = function(e){
 Linker.hook = '';*/
 
 window.addEvent('domready', function(){
-    /*History.addEvent('change', function(url){
+    History.addEvent('change', function(url){
+        new Request.HTML({
+             url: url,
+             link:'cancel',
+             evalScripts:true,
+             evalResponse:true,
+             update:$('content'),
+             onComplete:function(){
+                 $('content').fade(1);
+             },
+             onSuccess:function(){
+             },
+             onFailure:function(){
+                 AC.info('Chyba', 'Stránku se nepodařilo načíst.', 'error.png');
+                 location.href = url;
+             }
+        }).send();
         console.log('History changed: ' + url);
-    });*/
+    });
     AC = new AragornClient();
     new LazyLoad({elements:'img.ll'});
     if($$('#content').length){
         $(document.body).addEvent('click:relay(.ajax)', function(event) {
             new Event(event).stop();
             $('content').fade(0.5);
-            new Request.HTML({
-                 url: this.get('href'),
-                 link:'cancel',
-                 evalScripts:true,
-                 evalResponse:true,
-                 update:$('content'),
-                 onComplete:function(){
-                     $('content').fade(1);
-                 },
-                 onSuccess:function(){
-                     History.push(this.get('href'));
-                 }.bind(this),
-                 onFailure:function(){
-                     AC.info('Chyba', 'Stránku se nepodařilo načíst.', 'error.png');
-                     location.href = this.get('href');
-                 }.bind(this)
-            }).send();
+            History.push(this.get('href'));
         });
     }
 });

@@ -40,11 +40,15 @@ button:focus, input:focus{
 #frmMsg{
     display:inline-block;
 }
+#glass{
+    overflow: hidden;
+}
 #glassLength{
     cursor: help;
 }
 .datetime{
     color:gray;
+    font-size: x-small;
 }
 #constat{
     right: 0 !important;
