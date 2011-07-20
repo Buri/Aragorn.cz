@@ -142,22 +142,33 @@ exports.ChatServer = new Class({
                 client.redis.unsubscribe(cname + '/' + client.session.user.name);
                 break;
             case 'post':
-                if(!message.data.color && client.session.user.preferences)
+                if(this.getUsers(cname).indexOf(client.session.user.name) == -1) return;
+                if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
                     message.data.color = client.session.user.preferences.chat.color || '#fff' ;
                 message.data.id = this.newMsgId(cname);
-                if(message.data.whisper){
+                if(message.data.whisper == client.session.user.name){
+                    cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
+                    delete message.data.whisper;
+                }else if(message.data.whisper){
+                    message.data.message = message.data.message.substr(message.data.message.indexOf('#')+1);
                     var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + client.session.user.name;
                     console.log('Whisper to self: ' + cname + ' : ' + cname2);
                     this.storeMessage(cname2, message);
-                    client.sendToChannel(cname2, message);
                 }
                 this.storeMessage(cname, message);
                 client.sendToChannel(cname, message);
+                var u = this.getUserInfo(client.session.user.name);
+                if(u){
+                    u.time = new Date().getTime();
+                    this.updateUser(cname, client.session.user.name, u);
+                }
+
                 break;
             case 'state':
                 var u = this.getUserInfo(client.session.user.name);
                 if(u){
                     u.state = message.data.state;
+                    u.time = new Date().getTime();
                     this.updateUser(cname, client.session.user.name, u);
                 }
                 break;
@@ -176,6 +187,9 @@ exports.ChatServer = new Class({
                             this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
                         }else
                             client.send('notify', {code:403,msg:'Not allowed'});
+                        break;
+                    case 'sys':
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.params.param}}, true);
                         break;
                     default:
                         console.log(message);

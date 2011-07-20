@@ -49,6 +49,8 @@ var AragornClient = new Class({
             return null;
         }
         this.ajax = this.Ajax.send.bind(this);
+        this.notimoo = new Notimoo();
+        //this.message = this.notimoo.show;
         this.transport.on('connect', this.fn.connectionEstablished);
         this.transport.on('connectiong', function(){ $('constat').setStyle('background', 'yellow'); $('constat').set('title', 'Connection status: connecting'); conslole.log('connecting', this);});
         this.transport.on('connect_failed', this.fn.global);
@@ -57,6 +59,7 @@ var AragornClient = new Class({
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
         this.transport.connect();
     },
+    notimoo:null,
     transport:null,
     ajax:null,
     _ping:{
@@ -153,6 +156,9 @@ var AragornClient = new Class({
                 case 'PING':
                     $('constat').set('text', new Date().getTime() - this._ping.last.shift());
                     break;
+                case 'NOTIFY':
+                    this.message(msg.data.title, msg.data.body, msg.data.options);
+                    break;
                 default:
                     this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
                     break;
@@ -188,8 +194,8 @@ var AragornClient = new Class({
     removeCmd:function(cmd){
         return this.removeEvent('cmd_' + cmd);
     },
-    message:function(){
-        console.log('Resource not aviable.');
+    message:function(title, message, options){
+        this.notimoo.show(Object.merge({title:title, message:message}, options));
     },
     prompt:function(){},
     info:function(){}
