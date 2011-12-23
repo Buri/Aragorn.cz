@@ -19,6 +19,7 @@ use Nette;
  * Single line text input control.
  *
  * @author     David Grudl
+ * @property-write $type
  */
 class TextInput extends TextBase
 {
@@ -48,7 +49,7 @@ class TextInput extends TextBase
 	public function sanitize($value)
 	{
 		if ($this->control->maxlength && Nette\Utils\Strings::length($value) > $this->control->maxlength) {
-			$value = iconv_substr($value, 0, $this->control->maxlength, 'UTF-8');
+			$value = Nette\Utils\Strings::substring($value, 0, $this->control->maxlength);
 		}
 		return Nette\Utils\Strings::trim(strtr($value, "\r\n", '  '));
 	}

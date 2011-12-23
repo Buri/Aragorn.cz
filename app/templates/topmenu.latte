@@ -11,37 +11,13 @@
             {/if}
             {else}
             <a href="{link registration:}" class="middle ajax">Registrace</a> |
-            <div id="frmLoginOver" n:syntax="double" style="display: inline; background-color: #bbb; margin: 0;">Přihlásit
-            </div>
-            <br/>
-            <!--<div id="fa" style="width:306px; border: 0px dashed red; display: inline-block;z-index: 110;">-->
-                <div id="frmLogin" style="opacity:0; padding: 4px; background-color: #bbb; margin: 0; z-index: 12; display: block; position:absolute; right:80px; float: right;">
-                    <br/>
+            <div id="frmLogin" style="display: inline-block;">
                     {form logInForm}
-                    {label username /}: {input username} <br/>
-                    {label password /}: {input password} <br/>
-                    {label forever /}:  {input forever} <br/>
+                    {label username /}: {input username}
+                    {label password /}: {input password}
+                    {label forever /}:  {input forever}
                     {input login}
-                    <br/>
-                    <hr/>
-                    {input google}
                     {/form logInForm}
-                    {* control logInForm *}
-                </div>
-            <!--</div>-->
-            <script n:syntax="double">
-                $('frmLoginOver').addEvent('click',function(){
-                    console.log($('fa'));
-                    $('frmLogin').fade('toggle');
-                });/*,
-                    'mouseenter':function(){
-                        console.log('enter');
-                        $('frmLogin').fade(1);
-                    },
-                    'mouseleave':function(){
-                        console.log('leave');
-                        $('frmLogin').fade(0);
-                    }*/
-            </script>
+            </div>
             {/if}
         </div>

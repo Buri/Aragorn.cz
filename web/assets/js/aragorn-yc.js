@@ -33,7 +33,6 @@ var AragornClient = new Class({
     options:{
         batchOffline:true,
         client:{
-//            timeout:120,
             url:window.location.host,
             options:{
                 port:8000,
@@ -43,21 +42,82 @@ var AragornClient = new Class({
     },
     initialize:function(options){
         this.setOptions(options);
-        this.transport = new io.Socket(this.options.client.url, this.options.client.options);
+        //this.transport = new io.Socket(this.options.client.url, this.options.client.options);
+        this.transport = io.connect(this.options.client.url + ':8000');
         if(!this.transport){
             console.log('Unable to create transport.');
-            return null;
+            return;
         }
         this.ajax = this.Ajax.send.bind(this);
         this.notimoo = new Notimoo();
-        //this.message = this.notimoo.show;
-        this.transport.on('connect', this.fn.connectionEstablished);
-        this.transport.on('connectiong', function(){ $('constat').setStyle('background', 'yellow'); $('constat').set('title', 'Connection status: connecting'); conslole.log('connecting', this);});
+        var t = this.transport;
+        t.on('connect', this.fn.connectionEstablished);
+        t.on('connecting', function(){ $('constat').setStyle('background', 'yellow'); $('constat').set('title', 'Connection status: connecting'); console.log('connecting', this);});
+        t.on('SESSION_REQUEST_IDENTITY', function(){
+            console.log('Server has requested identity');
+            if(Cookie.read('sessid')){
+                this.emit('SESSION_SID',Cookie.read('sessid'));
+                console.log('Responded with ' + Cookie.read('sessid'));
+            }else{
+                console.log('Requested new identity');
+                this.emit('SESSION_REQUEST_SID');
+            }
+        });
+        t.on('SESSION_REGISTER_SID', function(sid){
+            console.log('Recieved new identity: ' + sid);
+            Cookie.write('sessid', sid);
+            this.fireEvent('SESSION_HANDSHAKE');
+        }.bind(this));
+        t.on('SESSION_CONFIRMED_SID', function(sid){
+            console.log('Confirmed identity: ' + sid);
+            this.fireEvent('SESSION_HANDSHAKE');
+        }.bind(this));
+        t.on('SESSION_RESET_SID', function(){
+            console.log('Session invalid, reseting');
+            Cookie.dispose('sessid');
+            this.emit('SESSION_REQUEST_SID');
+        });
+/*        switch(msg.cmd){
+                case 'SESSION_HAS_PHPSESSID_REGISTERED':
+                    if(msg.identity === true){
+                        this.fireEvent('SESSION_CONFIRM');
+                    }else{
+                        this.ajax('testidentity', null, null);
+                    }
+                    break;
+                case 'SESSION_RESET_SID':
+                    Cookie.dispose('sid');
+                case 'SESSION_REQUEST_IDENTITY':
+                    if(Cookie.read('sid')){
+                        this.transport.send({cmd:'SESSION_SID', identity:Cookie.read('sid')});
+                    }else{
+                        this.transport.send({cmd:'SESSION_REQUEST_SID'});
+                    }
+                    break;
+                case 'SESSION_REGISTER_SID':
+                    Cookie.write('sid', msg.identity);
+                    this.fireEvent('SESSION_HANDSHAKE');
+                    this.fn.getIdentity.bind(this).call();
+                    break;
+                case 'SESSION_CONFIRMED_SID':
+                    this.fireEvent('SESSION_HANDSHAKE');
+                    this.fn.getIdentity.bind(this).call();
+                    break;
+                case 'INVALID_SID':
+                    break;
+                case 'PING':
+                    $('constat').set('text', new Date().getTime() - this._ping.last.shift());
+                    break;
+                case 'NOTIFY':
+                    this.message(msg.data.title, msg.data.body, msg.data.options);
+                    break;
+                default:
+                    this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
+                    break;
+            }this.transport.on('message', this.fn.handleMessage.bind(this));*/
         this.transport.on('connect_failed', this.fn.global);
         this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
-        this.transport.on('message', this.fn.handleMessage.bind(this));
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
-        this.transport.connect();
     },
     notimoo:null,
     transport:null,
@@ -200,17 +260,6 @@ var AragornClient = new Class({
     prompt:function(){},
     info:function(){}
 }), AC = null;
-/*Linker = new Request.HTML({
-    update:$('content'),
-    onSuccess:function(){
-        console.log('Done loading');
-    }
-});
-Linker.callback = function(e){
-    e.stop();
-    Linker.get({url:this.href});
-};
-Linker.hook = '';*/
 
 window.addEvent('domready', function(){
     History.addEvent('change', function(url){
@@ -221,9 +270,7 @@ window.addEvent('domready', function(){
              evalResponse:true,
              update:$('content'),
              onComplete:function(){
-                 $('content').fade(1);
-             },
-             onSuccess:function(){
+                 $('content').removeClass('contentLoading');
              },
              onFailure:function(){
                  AC.info('Chyba', 'Stránku se nepodařilo načíst.', 'error.png');
@@ -237,7 +284,7 @@ window.addEvent('domready', function(){
     if($$('#content').length){
         $(document.body).addEvent('click:relay(.ajax)', function(event) {
             new Event(event).stop();
-            $('content').fade(0.5);
+            $('content').addClass('contentLoading');//fade(0.5);
             History.push(this.get('href'));
         });
     }

@@ -9,20 +9,26 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace Nette\DI;
+namespace Nette\Utils\PhpGenerator;
 
 use Nette;
 
 
 
 /**
- * The service creator.
+ * PHP literal value.
  *
  * @author     David Grudl
  */
-interface IServiceBuilder
+class PhpLiteral
 {
+	/** @var string */
+	public $value = '';
 
-	function createService(IContainer $container);
+
+	public function __construct($value)
+	{
+		$this->value = (string) $value;
+	}
 
 }

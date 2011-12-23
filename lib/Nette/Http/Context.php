@@ -19,6 +19,10 @@ use Nette;
  * HTTP-specific tasks.
  *
  * @author     David Grudl
+ *
+ * @property-read bool $modified
+ * @property-read IRequest $request
+ * @property-read IResponse $response
  */
 class Context extends Nette\Object
 {

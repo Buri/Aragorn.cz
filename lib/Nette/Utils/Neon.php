@@ -27,11 +27,10 @@ class Neon extends Nette\Object
 	/** @var array */
 	private static $patterns = array(
 		'\'[^\'\n]*\'|"(?:\\\\.|[^"\\\\\n])*"', // string
-		'@[a-zA-Z_0-9\\\\]+', // object
 		'[:-](?=\s|$)|[,=[\]{}()]', // symbol
 		'?:#.*', // comment
 		'\n[\t ]*', // new line + indent
-		'[^#"\',:=@[\]{}()<>\x00-\x20!`](?:[^#,:=\]})>\x00-\x1F]+|:(?!\s|$)|(?<!\s)#)*(?<!\s)', // literal / boolean / integer / float
+		'[^#"\',=[\]{}()<>\x00-\x20!`](?:[^#,:=\]})>(\x00-\x1F]+|:(?!\s|$)|(?<!\s)#)*(?<!\s)', // literal / boolean / integer / float
 		'?:[\t ]+', // whitespace
 	);
 
@@ -61,20 +60,28 @@ class Neon extends Nette\Object
 	{
 		if ($var instanceof \DateTime) {
 			return $var->format('Y-m-d H:i:s O');
+
+		} elseif ($var instanceof NeonEntity) {
+			return self::encode($var->value) . '(' . substr(self::encode($var->attributes), 1, -1) . ')';
 		}
+
 		if (is_object($var)) {
 			$obj = $var; $var = array();
 			foreach ($obj as $k => $v) {
 				$var[$k] = $v;
 			}
 		}
+
 		if (is_array($var)) {
-			$isArray = array_keys($var) === range(0, count($var) - 1);
+			$isList = Validators::isList($var);
 			$s = '';
 			if ($options & self::BLOCK) {
+				if (count($var) === 0){
+					return "[]";
+				}
 				foreach ($var as $k => $v) {
 					$v = self::encode($v, self::BLOCK);
-					$s .= ($isArray ? '-' : self::encode($k) . ':')
+					$s .= ($isList ? '-' : self::encode($k) . ':')
 						. (strpos($v, "\n") === FALSE ? ' ' . $v : "\n\t" . str_replace("\n", "\n\t", $v))
 						. "\n";
 					continue;
@@ -83,16 +90,20 @@ class Neon extends Nette\Object
 
 			} else {
 				foreach ($var as $k => $v) {
-					$s .= ($isArray ? '' : self::encode($k) . ': ') . self::encode($v) . ', ';
+					$s .= ($isList ? '' : self::encode($k) . ': ') . self::encode($v) . ', ';
 				}
-				return ($isArray ? '[' : '{') . substr($s, 0, -2) . ($isArray ? ']' : '}');
+				return ($isList ? '[' : '{') . substr($s, 0, -2) . ($isList ? ']' : '}');
 			}
 
 		} elseif (is_string($var) && !is_numeric($var)
 			&& !preg_match('~[\x00-\x1F]|^\d{4}|^(true|false|yes|no|on|off|null)$~i', $var)
-			&& preg_match('~^' . self::$patterns[5] . '$~', $var)
+			&& preg_match('~^' . self::$patterns[4] . '$~', $var)
 		) {
 			return $var;
+
+		} elseif (is_float($var)) {
+			$var = var_export($var, TRUE);
+			return strpos($var, '.') === FALSE ? $var . '.0' : $var;
 
 		} else {
 			return json_encode($var);
@@ -154,22 +165,17 @@ class Neon extends Nette\Object
 				if (!$hasValue || !$inlineParser) {
 					$this->error();
 				}
-				if ($hasKey) {
-					$result[$key] = $value;
-				} else {
-					$result[] = $value;
-				}
+				$this->addValue($result, $hasKey, $key, $value);
 				$hasKey = $hasValue = FALSE;
 
 			} elseif ($t === ':' || $t === '=') { // KeyValuePair separator
 				if ($hasKey || !$hasValue) {
 					$this->error();
 				}
-				if (is_array($value) || (is_object($value) && !method_exists($value, '__toString'))) {
+				if (is_array($value) || is_object($value)) {
 					$this->error('Unacceptable key');
-				} else {
-					$key = (string) $value;
 				}
+				$key = (string) $value;
 				$hasKey = TRUE;
 				$hasValue = FALSE;
 
@@ -182,12 +188,14 @@ class Neon extends Nette\Object
 
 			} elseif (isset(self::$brackets[$t])) { // Opening bracket [ ( {
 				if ($hasValue) {
-					if ($value[0] === '@' && $t === '(') { // Object
-						$n++;
-						$value = $this->parse(NULL, array('@' => substr($value, 1)));
-					} else {
+					if ($t !== '(') {
 						$this->error();
 					}
+					$n++;
+					$entity = new NeonEntity;
+					$entity->value = $value;
+					$entity->attributes = $this->parse(NULL, array());
+					$value = $entity;
 				} else {
 					$n++;
 					$value = $this->parse(NULL, array());
@@ -206,11 +214,7 @@ class Neon extends Nette\Object
 			} elseif ($t[0] === "\n") { // Indent
 				if ($inlineParser) {
 					if ($hasValue) {
-						if ($hasKey) {
-							$result[$key] = $value;
-						} else {
-							$result[] = $value;
-						}
+						$this->addValue($result, $hasKey, $key, $value);
 						$hasKey = $hasValue = FALSE;
 					}
 
@@ -238,10 +242,8 @@ class Neon extends Nette\Object
 						if ($hasValue || !$hasKey) {
 							$n++;
 							$this->error('Unexpected indentation.');
-						} elseif ($key === NULL) {
-							$result[] = $this->parse($newIndent);
 						} else {
-							$result[$key] = $this->parse($newIndent);
+							$this->addValue($result, $key !== NULL, $key, $this->parse($newIndent));
 						}
 						$newIndent = isset($tokens[$n]) ? strlen($tokens[$n]) - 1 : 0;
 						$hasKey = FALSE;
@@ -251,12 +253,7 @@ class Neon extends Nette\Object
 							break;
 
 						} elseif ($hasKey) {
-							$value = $hasValue ? $value : NULL;
-							if ($key === NULL) {
-								$result[] = $value;
-							} else {
-								$result[$key] = $value;
-							}
+							$this->addValue($result, $key !== NULL, $key, $hasValue ? $value : NULL);
 							$hasKey = $hasValue = FALSE;
 						}
 					}
@@ -295,11 +292,7 @@ class Neon extends Nette\Object
 
 		if ($inlineParser) {
 			if ($hasValue) {
-				if ($hasKey) {
-					$result[$key] = $value;
-				} else {
-					$result[] = $value;
-				}
+				$this->addValue($result, $hasKey, $key, $value);
 			} elseif ($hasKey) {
 				$this->error();
 			}
@@ -311,15 +304,24 @@ class Neon extends Nette\Object
 					$this->error();
 				}
 			} elseif ($hasKey) {
-				$value = $hasValue ? $value : NULL;
-				if ($key === NULL) {
-					$result[] = $value;
-				} else {
-					$result[$key] = $value;
-				}
+				$this->addValue($result, $key !== NULL, $key, $hasValue ? $value : NULL);
 			}
 		}
 		return $result;
+	}
+
+
+
+	private function addValue(&$result, $hasKey, $key, $value)
+	{
+		if ($hasKey) {
+			if ($result && array_key_exists($key, $result)) {
+				$this->error("Duplicated key '$key'");
+			}
+			$result[$key] = $value;
+		} else {
+			$result[] = $value;
+		}
 	}
 
 
@@ -350,6 +352,17 @@ class Neon extends Nette\Object
 		throw new NeonException(str_replace('%s', $token, $message) . " on line $line, column $col.");
 	}
 
+}
+
+
+
+/**
+ * The exception that indicates error of NEON decoding.
+ */
+class NeonEntity extends \stdClass
+{
+	public $value;
+	public $attributes;
 }
 
 

@@ -6,7 +6,7 @@ class Node {
         $p = new Permissions();
         $data = json_encode(array("command" => "user-login",
                 "data" => array("PHPSESSID" => session_id(),
-                    "nodeSession" => $_COOKIE["sid"],
+                    #"nodeSession" => $_COOKIE["sid"],
                     "roles" => $user->getIdentity()->getRoles(),
                     "id" => $user->getIdentity()->getId(),
                     "username" => $user->getIdentity()->username,

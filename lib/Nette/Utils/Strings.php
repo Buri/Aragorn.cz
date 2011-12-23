@@ -101,6 +101,36 @@ class Strings
 
 
 	/**
+	 * Does $haystack contain $needle?
+	 * @param  string
+	 * @param  string
+	 * @return bool
+	 */
+	public static function contains($haystack, $needle)
+	{
+		return strpos($haystack, $needle) !== FALSE;
+	}
+
+
+
+	/**
+	 * Returns a part of UTF-8 string.
+	 * @param  string
+	 * @param  int
+	 * @param  int
+	 * @return string
+	 */
+	public static function substring($s, $start, $length = NULL)
+	{
+		if ($length === NULL) {
+			$length = self::length($s);
+		}
+		return function_exists('mb_substr') ? mb_substr($s, $start, $length, 'UTF-8') : iconv_substr($s, $start, $length, 'UTF-8'); // MB is much faster
+	}
+
+
+
+	/**
 	 * Removes special controls characters and normalizes line endings and spaces.
 	 * @param  string  UTF-8 encoding or 8-bit
 	 * @return string
@@ -188,7 +218,7 @@ class Strings
 				return $matches[0] . $append;
 
 			} else {
-				return iconv_substr($s, 0, $maxLen, 'UTF-8') . $append;
+				return self::substring($s, 0, $maxLen) . $append;
 			}
 		}
 		return $s;
@@ -241,7 +271,7 @@ class Strings
 	 */
 	public static function firstUpper($s)
 	{
-		return self::upper(mb_substr($s, 0, 1, 'UTF-8')) . mb_substr($s, 1, self::length($s), 'UTF-8');
+		return self::upper(self::substring($s, 0, 1)) . self::substring($s, 1);
 	}
 
 
@@ -268,11 +298,11 @@ class Strings
 	public static function compare($left, $right, $len = NULL)
 	{
 		if ($len < 0) {
-			$left = iconv_substr($left, $len, -$len, 'UTF-8');
-			$right = iconv_substr($right, $len, -$len, 'UTF-8');
+			$left = self::substring($left, $len, -$len);
+			$right = self::substring($right, $len, -$len);
 		} elseif ($len !== NULL) {
-			$left = iconv_substr($left, 0, $len, 'UTF-8');
-			$right = iconv_substr($right, 0, $len, 'UTF-8');
+			$left = self::substring($left, 0, $len);
+			$right = self::substring($right, 0, $len);
 		}
 		return self::lower($left) === self::lower($right);
 	}
@@ -316,7 +346,7 @@ class Strings
 	{
 		$length = max(0, $length - self::length($s));
 		$padLen = self::length($pad);
-		return str_repeat($pad, $length / $padLen) . iconv_substr($pad, 0, $length % $padLen, 'UTF-8') . $s;
+		return str_repeat($pad, $length / $padLen) . self::substring($pad, 0, $length % $padLen) . $s;
 	}
 
 
@@ -332,7 +362,7 @@ class Strings
 	{
 		$length = max(0, $length - self::length($s));
 		$padLen = self::length($pad);
-		return $s . str_repeat($pad, $length / $padLen) . iconv_substr($pad, 0, $length % $padLen, 'UTF-8');
+		return $s . str_repeat($pad, $length / $padLen) . self::substring($pad, 0, $length % $padLen);
 	}
 
 
@@ -386,12 +416,15 @@ class Strings
 	 * Performs a regular expression match.
 	 * @param  string
 	 * @param  string
-	 * @param  int
-	 * @param  int
+	 * @param  int  can be PREG_OFFSET_CAPTURE (returned in bytes)
+	 * @param  int  offset in bytes
 	 * @return mixed
 	 */
 	public static function match($subject, $pattern, $flags = 0, $offset = 0)
 	{
+		if ($offset > strlen($subject)) {
+			return NULL;
+		}
 		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_match($pattern, $subject, $m, $flags, $offset);
 		self::catchPregError($pattern);
@@ -406,12 +439,15 @@ class Strings
 	 * Performs a global regular expression match.
 	 * @param  string
 	 * @param  string
-	 * @param  int  (PREG_SET_ORDER is default)
-	 * @param  int
+	 * @param  int  can be PREG_OFFSET_CAPTURE (returned in bytes); PREG_SET_ORDER is default
+	 * @param  int  offset in bytes
 	 * @return array
 	 */
 	public static function matchAll($subject, $pattern, $flags = 0, $offset = 0)
 	{
+		if ($offset > strlen($subject)) {
+			return array();
+		}
 		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_match_all(
 			$pattern, $subject, $m,
@@ -481,47 +517,6 @@ class Strings
 			$code = preg_last_error();
 			throw new RegexpException((isset($messages[$code]) ? $messages[$code] : 'Unknown error') . " (pattern: $pattern)", $code);
 		}
-	}
-
-
-
-	/**
-	 * Expands %placeholders% in string.
-	 * @param  string
-	 * @param  array
-	 * @param  bool
-	 * @return mixed
-	 * @throws Nette\InvalidArgumentException
-	 */
-	public static function expand($s, array $params, $recursive = FALSE)
-	{
-		$parts = preg_split('#%([\w.-]*)%#i', $s, -1, PREG_SPLIT_DELIM_CAPTURE);
-		$res = '';
-		foreach ($parts as $n => $part) {
-			if ($n % 2 === 0) {
-				$res .= $part;
-
-			} elseif ($part === '') {
-				$res .= '%';
-
-			} elseif (isset($recursive[$part])) {
-				throw new Nette\InvalidArgumentException('Circular reference detected for variables: ' . implode(', ', array_keys($recursive)) . '.');
-
-			} else {
-				$val = Arrays::get($params, explode('.', $part));
-				if ($recursive && is_string($val)) {
-					$val = self::expand($val, $params, (is_array($recursive) ? $recursive : array()) + array($part => 1));
-				}
-				if (strlen($part) + 2 === strlen($s)) {
-					return $val;
-				}
-				if (!is_scalar($val)) {
-					throw new Nette\InvalidArgumentException("Unable to concatenate non-scalar parameter '$part' into '$s'.");
-				}
-				$res .= $val;
-			}
-		}
-		return $res;
 	}
 
 }

@@ -22,6 +22,8 @@ use Nette,
  * Micro presenter.
  *
  * @author     David Grudl
+ *
+ * @property-read Nette\Application\IRequest $request
  */
 class MicroPresenter extends Nette\Object implements Application\IPresenter
 {
@@ -33,6 +35,13 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 
 
 
+	public function __construct(Nette\DI\IContainer $context)
+	{
+		$this->context = $context;
+	}
+
+
+
 	/**
 	 * @param  Nette\Application\Request
 	 * @return Nette\Application\IResponse
@@ -41,7 +50,7 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 	{
 		$this->request = $request;
 
-		$httpRequest = $this->context->httpRequest;
+		$httpRequest = $this->context->getByClass('Nette\Http\IRequest');
 		if (!$httpRequest->isAjax() && ($request->isMethod('get') || $request->isMethod('head'))) {
 			$refUrl = clone $httpRequest->getUrl();
 			$url = $this->context->router->constructUrl($request, $refUrl->setPath($refUrl->getScriptPath()));
@@ -50,7 +59,7 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 			}
 		}
 
-		$params = $request->getParams();
+		$params = $request->getParameters();
 		if (!isset($params['callback'])) {
 			return;
 		}
@@ -61,12 +70,12 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 			$response = array($response, array());
 		}
 		if (is_array($response)) {
-			if ($response instanceof \SplFileInfo) {
+			if ($response[0] instanceof \SplFileInfo) {
 				$response = $this->createTemplate('Nette\Templating\FileTemplate')
-					->setParams($response[1])->setFile($response[0]);
+					->setParameters($response[1])->setFile($response[0]);
 			} else {
 				$response = $this->createTemplate('Nette\Templating\Template')
-					->setParams($response[1])->setSource($response[0]);
+					->setParameters($response[1])->setSource($response[0]);
 			}
 		}
 		if ($response instanceof Nette\Templating\ITemplate) {
@@ -79,7 +88,7 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 
 
 	/**
-	 * Template factory
+	 * Template factory.
 	 * @param  string
 	 * @param  callback
 	 * @return Nette\Templating\ITemplate
@@ -88,10 +97,10 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 	{
 		$template = $class ? new $class : new Nette\Templating\FileTemplate;
 
-		$template->setParams($this->request->getParams());
+		$template->setParameters($this->request->getParameters());
 		$template->presenter = $this;
 		$template->context = $context = $this->context;
-		$url = $context->httpRequest->getUrl();
+		$url = $context->getByClass('Nette\Http\IRequest')->getUrl();
 		$template->baseUrl = rtrim($url->getBaseUrl(), '/');
 		$template->basePath = rtrim($url->getBasePath(), '/');
 
@@ -138,33 +147,6 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
 	public function getRequest()
 	{
 		return $this->request;
-	}
-
-
-
-	/********************* services ****************d*g**/
-
-
-
-	/**
-	 * Gets the context.
-	 * @return Presenter  provides a fluent interface
-	 */
-	public function setContext(Nette\DI\IContainer $context)
-	{
-		$this->context = $context;
-		return $this;
-	}
-
-
-
-	/**
-	 * Gets the context.
-	 * @return Nette\DI\IContainer
-	 */
-	final public function getContext()
-	{
-		return $this->context;
 	}
 
 }

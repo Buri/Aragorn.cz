@@ -20,23 +20,17 @@ use Nette;
  *
  * @author     David Grudl
  *
- * @example    forms/basic-example.php  Form definition using fluent interfaces
- * @example    forms/manual-rendering.php  Manual form rendering and separated form and rules definition
- * @example    forms/localization.php  Localization (with Zend_Translate)
- * @example    forms/custom-rendering.php  Custom form rendering
- * @example    forms/custom-validator.php  How to use custom validator
- * @example    forms/naming-containers.php  How to use naming containers
- * @example    forms/CSRF-protection.php  How to use Cross-Site Request Forgery (CSRF) form protection
- *
- * @property   string $action
+ * @property   mixed $action
  * @property   string $method
  * @property-read array $groups
+ * @property-read Nette\Localization\ITranslator|NULL $translator
+ * @property-read bool $anchored
+ * @property-read ISubmitterControl|FALSE $submitted
+ * @property-read bool $success
  * @property-read array $httpData
- * @property   Nette\Localization\ITranslator $translator
  * @property-read array $errors
  * @property-read Nette\Utils\Html $elementPrototype
  * @property   IFormRenderer $renderer
- * @property-read bool $submitted
  */
 class Form extends Container
 {
@@ -64,6 +58,9 @@ class Form extends Container
 		NUMERIC = ':integer',
 		FLOAT = ':float',
 		RANGE = ':range';
+
+	// multiselect
+	const COUNT = ':length';
 
 	// file upload
 	const MAX_FILE_SIZE = ':fileSize',
@@ -360,11 +357,22 @@ class Form extends Container
 	 */
 	final public function isSubmitted()
 	{
-		if ($this->submittedBy === NULL) {
+		if ($this->submittedBy === NULL && count($this->getControls())) {
 			$this->getHttpData();
 			$this->submittedBy = !empty($this->httpData);
 		}
 		return $this->submittedBy;
+	}
+
+
+
+	/**
+	 * Tells if the form was submitted and successfully validated.
+	 * @return bool
+	 */
+	final public function isSuccess()
+	{
+		return $this->isSubmitted() && $this->isValid();
 	}
 
 

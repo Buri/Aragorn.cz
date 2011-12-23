@@ -20,6 +20,9 @@ use Nette,
  * The bidirectional route for trivial routing via query parameters.
  *
  * @author     David Grudl
+ *
+ * @property-read array $defaults
+ * @property-read int $flags
  */
 class SimpleRouter extends Nette\Object implements Application\IRouter
 {
@@ -106,7 +109,7 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	 */
 	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
-		$params = $appRequest->getParams();
+		$params = $appRequest->getParameters();
 
 		// presenter name
 		$presenter = $appRequest->getPresenterName();
@@ -141,6 +144,17 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	public function getDefaults()
 	{
 		return $this->defaults;
+	}
+
+
+
+	/**
+	 * Returns flags.
+	 * @return int
+	 */
+	public function getFlags()
+	{
+		return $this->flags;
 	}
 
 }

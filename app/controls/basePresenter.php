@@ -15,7 +15,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         
         parent::startup();
     }
-    protected function createComponent($name) {
+    /*protected function createComponent($name) {
         $class = ucfirst($name);
         if( !method_exists($this, "createComponent$class") )
         {
@@ -25,7 +25,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 }
         }
         return parent::createComponent($name);
-    }
+    }*/
 
     public function createComponentLogInForm(){
         $form = new Nette\Application\UI\Form;
@@ -34,11 +34,13 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $form->addPassword("password", "Heslo:");
         $form->addCheckbox('forever', "Trvalé přihlášení");
         $form->addSubmit("login", "Přihlásit");
-        $form->addImage('google', $this->getTemplate()->staticPath . '/images/google-login-button.png', 'Přihlásit pomocí účtu Google')
-                ->onClick[] = callback($this, "googleLogin");
+        /*$form->addImage('google', $this->getTemplate()->staticPath . '/images/google-login-button.png', 'Přihlásit pomocí účtu Google')
+                ->onClick[] = callback($this, "googleLogin");*/
         $form->onSuccess[] = callback($this, "userLogin");
         return $form;
     }
+    
+    public function createComponentForum($id = null, $options = null){}
     
     public function actionLogin(){
         $this->handleLogin(array("username"=>"", "password"=>""), 'google');
@@ -49,26 +51,19 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $this->handleLogin($v, 'user');
     }
     
-    public function googleLogin($form){
-        $this->handleLogin(array("username"=>"google.com", "password"=>""), 'google');
-    }
     public function handleLogin($v, $btn = 'login'){
         $user = Nette\Environment::getUser();
-        switch($btn){
-            case 'google':
-                $user->setAuthenticator(new GoogleAuthenticator);
-                break;
-            case 'user':
-            default:
-                $user->setAuthenticator(new UserAuthenticator);
-                break;
-        }
+        $user->setAuthenticator(new UserAuthenticator);
         try{
             $user->login($v["username"], $v["password"]);
             if($v['forever']){
                 $user->setExpiration(0, false);
+            }else{
+                $user->setExpiration('+ 60 minutes', false, true);
             }
-            Node::userlogin();
+            $sid = Node::userlogin();
+            setCookie('sessid', $sid);
+            $_COOKIE['sessid'] = $sid;
             $this->redirect(301, 'this');
         }
         catch(BanAuthenticationException $e){
@@ -92,7 +87,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     public function actionLogout(){
         Permissions::unload();
         Nette\Environment::getUser()->logout(true);
-        $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE["sid"].'"}}';
+        $data = '{"command":"user-logout","data":{"nodeSession":"'.'"}}';
         usock::writeReadClose($data, 4096);
         $this->redirect(301, "dashboard:default");
     }

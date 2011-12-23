@@ -16,25 +16,27 @@ use Nette;
 
 
 /**
- *
+ * Component multiplier.
  *
  * @author     David Grudl
  */
-interface IPartiallyRenderable extends IRenderable
+class Multiplier extends PresenterComponent
 {
+	/** @var Nette\Callback */
+	private $factory;
 
-	/**
-	 * Forces control or its snippet to repaint.
-	 * @param  string
-	 * @return void
-	 */
-	//function invalidateControl($snippet = NULL);
 
-	/**
-	 * Is required to repaint the control or its snippet?
-	 * @param  string  snippet name
-	 * @return bool
-	 */
-	//function isControlInvalid($snippet = NULL);
+	public function __construct($factory)
+	{
+		parent::__construct();
+		$this->factory = callback($factory);
+	}
+
+
+
+	protected function createComponent($name)
+	{
+		return $this->factory->invoke($name, $this);
+	}
 
 }

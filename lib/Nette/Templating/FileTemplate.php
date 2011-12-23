@@ -112,14 +112,13 @@ class FileTemplate extends Template implements IFileTemplate
 				Caching\Cache::FILES => $this->file,
 				Caching\Cache::CONSTS => 'Nette\Framework::REVISION',
 			));
-			$cache->release();
 			$cached = $cache->load($this->file);
 		}
 
 		if ($cached !== NULL && $storage instanceof Caching\Storages\PhpFileStorage) {
-			Nette\Utils\LimitedScope::load($cached['file'], $this->getParams());
+			Nette\Utils\LimitedScope::load($cached['file'], $this->getParameters());
 		} else {
-			Nette\Utils\LimitedScope::evaluate($compiled, $this->getParams());
+			Nette\Utils\LimitedScope::evaluate($compiled, $this->getParameters());
 		}
 	}
 

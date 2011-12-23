@@ -54,7 +54,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	/**
 	 * This method will be called when the component (or component's parent)
 	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @param  Nette\Application\IComponent
+	 * @param  Nette\ComponentModel\IComponent
 	 * @return void
 	 */
 	protected function attached($presenter)
@@ -115,7 +115,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 		if ($isPost) {
 			return Nette\Utils\Arrays::mergeTree($request->getPost(), $request->getFiles());
 		} else {
-			return $request->getParams();
+			return $request->getParameters();
 		}
 	}
 

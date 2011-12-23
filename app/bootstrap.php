@@ -12,16 +12,25 @@ include LIBS_DIR . "/usock.php";
 use Nette\Environment;
 use Nette\Application\Routers as R;
 
-$configurator = new Nette\Configurator;
-$configurator->container->params['tempDir'] = __DIR__ . '/../temp';
-$container = $configurator->loadConfig(CFG_DIR . '/config.neon');
+date_default_timezone_set('Europe/Prague');
+
+$configurator = new Nette\Config\Configurator;
+$configurator->setTempDirectory(__DIR__ . '/../temp');
+$configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR)->register();
+$configurator->addConfig(CFG_DIR . '/config.neon');
+$configurator->addParameters(array("libsDir"=>LIBS_DIR));
+$container = $configurator->createContainer();
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
-Environment::setProductionMode(false);
+Environment::setProductionMode(true);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');
 //$application->catchExceptions = TRUE;
-#dump($container->params); die();
+if(empty($_COOKIE['skin'])){
+    $skin = Nette\Environment::getVariable('defaultSkin', 'dark');
+    setCookie('skin', $skin, time()+3600*24*365);
+    $_COOKIE['skin'] = $skin;
+}
 
 $router = $application->getRouter();
 $router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);

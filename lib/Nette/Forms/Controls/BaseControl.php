@@ -32,6 +32,7 @@ use Nette,
  * @property-read array $options
  * @property   Nette\Localization\ITranslator $translator
  * @property   mixed $value
+ * @property-read bool $filled
  * @property-read Nette\Utils\Html $controlPrototype
  * @property-read Nette\Utils\Html $labelPrototype
  * @property-read Nette\Forms\Rules $rules
@@ -188,6 +189,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 
 	/**
 	 * Sets user-specific option.
+	 * Options recognized by DefaultFormRenderer
+	 * - 'description' - textual or Html object description
+	 *
 	 * @param  string key
 	 * @param  mixed  value
 	 * @return BaseControl  provides a fluent interface

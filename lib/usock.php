@@ -6,7 +6,6 @@
  */
 use Nette\Environment;
 class usock {
-    //put your code here
     static $handle;
     
     private function __construct(){}

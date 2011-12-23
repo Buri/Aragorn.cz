@@ -21,6 +21,9 @@ use Nette,
  * Represents a prepared statement / result set.
  *
  * @author     David Grudl
+ *
+ * @property-read Connection $connection
+ * @property-write $fetchMode
  */
 class Statement extends \PDOStatement
 {
@@ -101,37 +104,45 @@ class Statement extends \PDOStatement
 	 */
 	public function normalizeRow($row)
 	{
-		if ($this->types === NULL) {
-			$this->types = array();
-			if ($this->connection->getSupplementalDriver()->supports['meta']) { // workaround for PHP bugs #53782, #54695
-				$col = 0;
-				foreach ($row as $key => $foo) {
-					$type = $this->getColumnMeta($col++);
-					if (isset($type['native_type'])) {
-						$this->types[$key] = Reflection\DatabaseReflection::detectType($type['native_type']);
-					}
-				}
-			}
-		}
-
-		foreach ($this->types as $key => $type) {
+		foreach ($this->detectColumnTypes() as $key => $type) {
 			$value = $row[$key];
-			if ($value === NULL || $value === FALSE || $type === Reflection\DatabaseReflection::FIELD_TEXT) {
+			if ($value === NULL || $value === FALSE || $type === IReflection::FIELD_TEXT) {
 
-			} elseif ($type === Reflection\DatabaseReflection::FIELD_INTEGER) {
+			} elseif ($type === IReflection::FIELD_INTEGER) {
 				$row[$key] = is_float($tmp = $value * 1) ? $value : $tmp;
 
-			} elseif ($type === Reflection\DatabaseReflection::FIELD_FLOAT) {
+			} elseif ($type === IReflection::FIELD_FLOAT) {
 				$row[$key] = (string) ($tmp = (float) $value) === $value ? $tmp : $value;
 
-			} elseif ($type === Reflection\DatabaseReflection::FIELD_BOOL) {
+			} elseif ($type === IReflection::FIELD_BOOL) {
 				$row[$key] = ((bool) $value) && $value !== 'f' && $value !== 'F';
+
+			} elseif ($type === IReflection::FIELD_DATETIME) {
+				$row[$key] = new Nette\DateTime($value);
+
 			}
 		}
 
 		return $this->connection->getSupplementalDriver()->normalizeRow($row, $this);
 	}
 
+
+
+	private function detectColumnTypes()
+	{
+		if ($this->types === NULL) {
+			$this->types = array();
+			if ($this->connection->getSupplementalDriver()->supports['meta']) { // workaround for PHP bugs #53782, #54695
+				$col = 0;
+				while ($meta = $this->getColumnMeta($col++)) {
+					if (isset($meta['native_type'])) {
+						$this->types[$meta['name']] = static::detectType($meta['native_type']);
+					}
+				}
+			}
+		}
+		return $this->types;
+	}
 
 
 	/********************* misc tools ****************d*g**/
@@ -172,6 +183,36 @@ class Statement extends \PDOStatement
 		} else {
 			echo "</tbody>\n</table>\n";
 		}
+	}
+
+
+
+	/**
+	 * Heuristic type detection.
+	 * @param  string
+	 * @return string
+	 * @internal
+	 */
+	public static function detectType($type)
+	{
+		static $types, $patterns = array(
+			'BYTEA|BLOB|BIN' => IReflection::FIELD_BINARY,
+			'TEXT|CHAR' => IReflection::FIELD_TEXT,
+			'YEAR|BYTE|COUNTER|SERIAL|INT|LONG' => IReflection::FIELD_INTEGER,
+			'CURRENCY|REAL|MONEY|FLOAT|DOUBLE|DECIMAL|NUMERIC|NUMBER' => IReflection::FIELD_FLOAT,
+			'TIME|DATE' => IReflection::FIELD_DATETIME,
+			'BOOL|BIT' => IReflection::FIELD_BOOL,
+		);
+
+		if (!isset($types[$type])) {
+			$types[$type] = 'string';
+			foreach ($patterns as $s => $val) {
+				if (preg_match("#$s#i", $type)) {
+					return $types[$type] = $val;
+				}
+			}
+		}
+		return $types[$type];
 	}
 
 

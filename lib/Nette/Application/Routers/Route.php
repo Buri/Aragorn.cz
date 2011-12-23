@@ -22,6 +22,11 @@ use Nette,
  * HTTP request to a Request object for dispatch and vice-versa.
  *
  * @author     David Grudl
+ *
+ * @property-read string $mask
+ * @property-read array $defaults
+ * @property-read int $flags
+ * @property-read string|FALSE $targetPresenter
  */
 class Route extends Nette\Object implements Application\IRouter
 {
@@ -42,13 +47,14 @@ class Route extends Nette\Object implements Application\IRouter
 	const FILTER_IN = 'filterIn';
 	const FILTER_OUT = 'filterOut';
 	const FILTER_TABLE = 'filterTable';
+	const FILTER_STRICT = 'filterStrict';
 
 	/** @internal fixity types - how to handle default value? {@link Route::$metadata} */
 	const OPTIONAL = 0,
 		PATH_OPTIONAL = 1,
 		CONSTANT = 2;
 
-	/** @var bool */
+	/** @var int */
 	public static $defaultFlags = 0;
 
 	/** @var array */
@@ -129,7 +135,7 @@ class Route extends Nette\Object implements Application\IRouter
 			);
 		}
 
-		$this->flags = $flags | self::$defaultFlags;
+		$this->flags = $flags | static::$defaultFlags;
 		$this->setMask($mask, $metadata);
 	}
 
@@ -203,10 +209,13 @@ class Route extends Nette\Object implements Application\IRouter
 			if (isset($params[$name])) {
 				if (!is_scalar($params[$name])) {
 
-				} elseif (isset($meta[self::FILTER_TABLE][$params[$name]])) { // applyies filterTable only to scalar parameters
+				} elseif (isset($meta[self::FILTER_TABLE][$params[$name]])) { // applies filterTable only to scalar parameters
 					$params[$name] = $meta[self::FILTER_TABLE][$params[$name]];
 
-				} elseif (isset($meta[self::FILTER_IN])) { // applyies filterIn only to scalar parameters
+				} elseif (isset($meta[self::FILTER_TABLE]) && !empty($meta[self::FILTER_STRICT])) {
+					return NULL; // rejected by filterTable
+
+				} elseif (isset($meta[self::FILTER_IN])) { // applies filterIn only to scalar parameters
 					$params[$name] = call_user_func($meta[self::FILTER_IN], (string) $params[$name]);
 					if ($params[$name] === NULL && !isset($meta['fixity'])) {
 						return NULL; // rejected by filter
@@ -259,7 +268,7 @@ class Route extends Nette\Object implements Application\IRouter
 			return NULL;
 		}
 
-		$params = $appRequest->getParams();
+		$params = $appRequest->getParameters();
 		$metadata = $this->metadata;
 
 		$presenter = $appRequest->getPresenterName();
@@ -301,6 +310,9 @@ class Route extends Nette\Object implements Application\IRouter
 
 			} elseif (isset($meta['filterTable2'][$params[$name]])) {
 				$params[$name] = $meta['filterTable2'][$params[$name]];
+
+			} elseif (isset($meta['filterTable2']) && !empty($meta[self::FILTER_STRICT])) {
+				return NULL;
 
 			} elseif (isset($meta[self::FILTER_OUT])) {
 				$params[$name] = call_user_func($meta[self::FILTER_OUT], $params[$name]);
@@ -432,16 +444,16 @@ class Route extends Nette\Object implements Application\IRouter
 				list(, $param, $name, $pattern, $class) = $match;  // $pattern is not used
 
 				if ($class !== '') {
-					if (!isset(self::$styles[$class])) {
+					if (!isset(static::$styles[$class])) {
 						throw new Nette\InvalidStateException("Parameter '$name' has '$class' flag, but Route::\$styles['$class'] is not set.");
 					}
-					$meta = self::$styles[$class];
+					$meta = static::$styles[$class];
 
-				} elseif (isset(self::$styles['?' . $name])) {
-					$meta = self::$styles['?' . $name];
+				} elseif (isset(static::$styles['?' . $name])) {
+					$meta = static::$styles['?' . $name];
 
 				} else {
-					$meta = self::$styles['?#'];
+					$meta = static::$styles['?#'];
 				}
 
 				if (isset($metadata[$name])) {
@@ -507,16 +519,16 @@ class Route extends Nette\Object implements Application\IRouter
 
 			// pattern, condition & metadata
 			if ($class !== '') {
-				if (!isset(self::$styles[$class])) {
+				if (!isset(static::$styles[$class])) {
 					throw new Nette\InvalidStateException("Parameter '$name' has '$class' flag, but Route::\$styles['$class'] is not set.");
 				}
-				$meta = self::$styles[$class];
+				$meta = static::$styles[$class];
 
-			} elseif (isset(self::$styles[$name])) {
-				$meta = self::$styles[$name];
+			} elseif (isset(static::$styles[$name])) {
+				$meta = static::$styles[$name];
 
 			} else {
-				$meta = self::$styles['#'];
+				$meta = static::$styles['#'];
 			}
 
 			if (isset($metadata[$name])) {
@@ -602,6 +614,17 @@ class Route extends Nette\Object implements Application\IRouter
 			}
 		}
 		return $defaults;
+	}
+
+
+
+	/**
+	 * Returns flags.
+	 * @return int
+	 */
+	public function getFlags()
+	{
+		return $this->flags;
 	}
 
 
@@ -747,18 +770,18 @@ class Route extends Nette\Object implements Application\IRouter
 	 */
 	public static function addStyle($style, $parent = '#')
 	{
-		if (isset(self::$styles[$style])) {
+		if (isset(static::$styles[$style])) {
 			throw new Nette\InvalidArgumentException("Style '$style' already exists.");
 		}
 
 		if ($parent !== NULL) {
-			if (!isset(self::$styles[$parent])) {
+			if (!isset(static::$styles[$parent])) {
 				throw new Nette\InvalidArgumentException("Parent style '$parent' doesn't exist.");
 			}
-			self::$styles[$style] = self::$styles[$parent];
+			static::$styles[$style] = static::$styles[$parent];
 
 		} else {
-			self::$styles[$style] = array();
+			static::$styles[$style] = array();
 		}
 	}
 
@@ -773,10 +796,10 @@ class Route extends Nette\Object implements Application\IRouter
 	 */
 	public static function setStyleProperty($style, $key, $value)
 	{
-		if (!isset(self::$styles[$style])) {
+		if (!isset(static::$styles[$style])) {
 			throw new Nette\InvalidArgumentException("Style '$style' doesn't exist.");
 		}
-		self::$styles[$style][$key] = $value;
+		static::$styles[$style][$key] = $value;
 	}
 
 }

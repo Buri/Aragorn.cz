@@ -21,13 +21,15 @@ use Nette;
  * @author     David Grudl
  *
  * @property-read string $name
+ * @property-read string $sanitizedName
  * @property-read string $contentType
  * @property-read int $size
  * @property-read string $temporaryFile
- * @property-read Nette\Image $image
  * @property-read int $error
- * @property-read array $imageSize
  * @property-read bool $ok
+ * @property-read bool $image
+ * @property-read array $imageSize
+ * @property-read string $contents
  */
 class FileUpload extends Nette\Object
 {
@@ -162,15 +164,12 @@ class FileUpload extends Nette\Object
 	 */
 	public function move($dest)
 	{
-		$dir = dirname($dest);
-		if (@mkdir($dir, 0755, TRUE)) { // @ - $dir may already exist
-			chmod($dir, 0755);
-		}
-		$func = is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename';
-		if (!$func($this->tmpName, $dest)) {
+		umask(0000);
+		@mkdir(dirname($dest), 0777, TRUE); // @ - dir may already exist
+		if (!call_user_func(is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename', $this->tmpName, $dest)) {
 			throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'.");
 		}
-		chmod($dest, 0644);
+		chmod($dest, 0666);
 		$this->tmpName = $dest;
 		return $this;
 	}

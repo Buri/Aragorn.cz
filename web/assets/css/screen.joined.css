@@ -70,6 +70,10 @@ a{
     background-repeat: no-repeat;
 }
 
+.contentLoading{
+    opacity:0.5;
+    transition: all 1.5s linear;
+}
 
 /* LogInForm style definition */
 .logInForm{
@@ -78,15 +82,4 @@ a{
 .logInForm *{
     font-size: 12px;
     display: inline;
-}
-
-#buddylist{
-    position: absolute;
-    right: 0;
-    top:34px;
-    width: 180px;
-    min-height: 220px;
-    border: 1px solid white;
-    z-index: 80;
-    background: black;
 }

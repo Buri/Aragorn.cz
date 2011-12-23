@@ -21,11 +21,12 @@ use Nette,
  *
  * @author     David Grudl
  *
- * @property   string $from
+ * @property   array $from
  * @property   string $subject
  * @property   string $returnPath
  * @property   int $priority
- * @property   string $htmlBody
+ * @property   mixed $htmlBody
+ * @property   IMailer $mailer
  */
 class Message extends MimePart
 {
@@ -62,7 +63,7 @@ class Message extends MimePart
 
 	public function __construct()
 	{
-		foreach (self::$defaultHeaders as $name => $value) {
+		foreach (static::$defaultHeaders as $name => $value) {
 			$this->setHeader($name, $value);
 		}
 		$this->setHeader('Date', date('r'));
@@ -354,7 +355,7 @@ class Message extends MimePart
 	public function getMailer()
 	{
 		if ($this->mailer === NULL) {
-			$this->mailer = is_object(self::$defaultMailer) ? self::$defaultMailer : new static::$defaultMailer;
+			$this->mailer = is_object(static::$defaultMailer) ? static::$defaultMailer : new static::$defaultMailer;
 		}
 		return $this->mailer;
 	}
@@ -483,10 +484,11 @@ class Message extends MimePart
 			$text = Strings::replace($this->html, array(
 				'#<(style|script|head).*</\\1>#Uis' => '',
 				'#<t[dh][ >]#i' => " $0",
-				'#[ \t\r\n]+#' => ' ',
+				'#[\r\n]+#' => ' ',
 				'#<(/?p|/?h\d|li|br|/tr)[ >/]#i' => "\n$0",
 			));
 			$text = html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8');
+			$text = Strings::replace($text, '#[ \t]+#', ' ');
 			$this->setBody(trim($text));
 		}
 	}

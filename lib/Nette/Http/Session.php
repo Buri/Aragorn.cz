@@ -19,11 +19,22 @@ use Nette;
  * Provides access to session sections as well as session settings and management methods.
  *
  * @author     David Grudl
+ *
+ * @property-read bool $started
+ * @property-read string $id
+ * @property   string $name
+ * @property-read \ArrayIterator $iterator
+ * @property   array $options
+ * @property-write $savePath
+ * @property-write ISessionStorage $storage
  */
 class Session extends Nette\Object
 {
 	/** Default file lifetime is 3 hours */
 	const DEFAULT_FILE_LIFETIME = 10800;
+
+	/** Regenerate session ID every 30 minutes */
+	const REGENERATE_INTERVAL = 1800;
 
 	/** @var bool  is required session ID regeneration? */
 	private $regenerationNeeded;
@@ -83,23 +94,17 @@ class Session extends Nette\Object
 
 		$this->configure($this->options);
 
-		if (!defined('SID')) {
-			Nette\Diagnostics\Debugger::tryError();
-			session_start();
-			if (Nette\Diagnostics\Debugger::catchError($e)) {
-				@session_write_close(); // this is needed
-				throw new Nette\InvalidStateException('session_start(): ' . $e->getMessage(), 0, $e);
-			}
+		Nette\Diagnostics\Debugger::tryError();
+		session_start();
+		if (Nette\Diagnostics\Debugger::catchError($e)) {
+			@session_write_close(); // this is needed
+			throw new Nette\InvalidStateException('session_start(): ' . $e->getMessage(), 0, $e);
 		}
 
 		self::$started = TRUE;
-		if ($this->regenerationNeeded) {
-			session_regenerate_id(TRUE);
-			$this->regenerationNeeded = FALSE;
-		}
 
 		/* structure:
-			__NF: Counter, BrowserKey, Data, Meta
+			__NF: Counter, BrowserKey, Data, Meta, Time
 				DATA: section->variable = data
 				META: section->variable = Timestamp, Browser, Version
 		*/
@@ -112,6 +117,14 @@ class Session extends Nette\Object
 			$nf = array('C' => 0);
 		} else {
 			$nf['C']++;
+		}
+
+		// session regenerate every 30 minutes
+		$nfTime = & $nf['Time'];
+		$time = time();
+		if ($time - $nfTime > self::REGENERATE_INTERVAL) {
+			$nfTime = $time;
+			$this->regenerationNeeded = TRUE;
 		}
 
 		// browser closing detection
@@ -145,6 +158,11 @@ class Session extends Nette\Object
 					}
 				}
 			}
+		}
+
+		if ($this->regenerationNeeded) {
+			session_regenerate_id(TRUE);
+			$this->regenerationNeeded = FALSE;
 		}
 
 		register_shutdown_function(array($this, 'clean'));
@@ -488,7 +506,7 @@ class Session extends Nette\Object
 	 * @param  bool    secure
 	 * @return Session  provides a fluent interface
 	 */
-	public function setCookieParams($path, $domain = NULL, $secure = NULL)
+	public function setCookieParameters($path, $domain = NULL, $secure = NULL)
 	{
 		return $this->setOptions(array(
 			'cookie_path' => $path,
@@ -503,9 +521,18 @@ class Session extends Nette\Object
 	 * Returns the session cookie parameters.
 	 * @return array  containing items: lifetime, path, domain, secure, httponly
 	 */
-	public function getCookieParams()
+	public function getCookieParameters()
 	{
 		return session_get_cookie_params();
+	}
+
+
+
+	/** @deprecated */
+	function setCookieParams($path, $domain = NULL, $secure = NULL)
+	{
+		trigger_error(__METHOD__ . '() is deprecated; use setCookieParameters() instead.', E_USER_WARNING);
+		return $this->setCookieParameters($path, $domain, $secure);
 	}
 
 
@@ -546,7 +573,7 @@ class Session extends Nette\Object
 	 */
 	private function sendCookie()
 	{
-		$cookie = $this->getCookieParams();
+		$cookie = $this->getCookieParameters();
 		$this->response->setCookie(
 			session_name(), session_id(),
 			$cookie['lifetime'] ? $cookie['lifetime'] + time() : 0,

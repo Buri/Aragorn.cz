@@ -66,8 +66,10 @@
     border-radius: 3px;
     opacity: 0.6;
 }
-
 #constat{
+    display: none;
+}
+.runac #constat{
     display: inline-block; 
     position: fixed; 
     left: 0; 

@@ -11,8 +11,7 @@
 
 namespace Nette\Utils;
 
-use Nette,
-	Nette\Utils\Strings;
+use Nette;
 
 
 
@@ -248,6 +247,14 @@ class Tokenizer extends Nette\Object
 		} else {
 			return in_array($this->current, $args, TRUE);
 		}
+	}
+
+
+
+	public function reset()
+	{
+		$this->position = 0;
+		$this->current = NULL;
 	}
 
 

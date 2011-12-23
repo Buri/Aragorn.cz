@@ -31,7 +31,6 @@ abstract class BaseAuthenticator extends Nette\Object implements Nette\Security\
         }        
     }
     protected function newId(){
-        //$group = DB::groups("id", $row["groupid"])->select("name")->fetch();
         $prefs = DB::users_preferences("id", $this->id)->fetch();
         return new Nette\Security\Identity($this->id, array($this->gid), array("username" => $this->name, "preferences" => json_decode($prefs["preference"]))); // vrátíme identitu
     }
@@ -60,7 +59,7 @@ class UserAuthenticator extends BaseAuthenticator{
         return $this->newId();
     }
 }
-class GoogleAuthenticator extends BaseAuthenticator{
+/*class GoogleAuthenticator extends BaseAuthenticator{
     public function authenticate(array $c) {
         try {
             $openid = new LightOpenID($_SERVER['HTTP_HOST']); //$_SERVER['SERVER_NAME']);
@@ -83,7 +82,6 @@ class GoogleAuthenticator extends BaseAuthenticator{
         }
         echo 'User ' . ($openid->validate() ? $openid->identity . ' has ' : 'has not ') . 'logged in.';
         exit;
-        /* Load from DB user data */
         $this->id = 1;
         $this->tryBan();
         return $this->newId();
@@ -96,3 +94,4 @@ class FacebookAuthenticator extends BaseAuthenticator{
         return $this->newId();
     }
 }
+*/

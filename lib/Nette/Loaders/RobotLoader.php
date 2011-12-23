@@ -21,11 +21,16 @@ use Nette,
  * Nette auto loader is responsible for loading classes and interfaces.
  *
  * @author     David Grudl
+ *
+ * @property-read array $indexedClasses
+ * @property   Nette\Caching\IStorage $cacheStorage
  */
 class RobotLoader extends AutoLoader
 {
+	const RETRY_LIMIT = 5;
+
 	/** @var array */
-	public $scanDirs;
+	public $scanDirs = array();
 
 	/** @var string|array  comma separated wildcards */
 	public $ignoreDirs = '.*, *.old, *.bak, *.tmp, temp';
@@ -44,6 +49,9 @@ class RobotLoader extends AutoLoader
 
 	/** @var bool */
 	private $rebuilt = FALSE;
+
+	/** @var array of checked classes in this request */
+	private $checked = array();
 
 	/** @var Nette\Caching\IStorage */
 	private $cacheStorage;
@@ -67,13 +75,7 @@ class RobotLoader extends AutoLoader
 	 */
 	public function register()
 	{
-		$cache = $this->getCache();
-		$key = $this->getKey();
-		if (isset($cache[$key])) {
-			$this->list = $cache[$key];
-		} else {
-			$this->rebuild();
-		}
+		$this->list = $this->getCache()->load($this->getKey(), callback($this, '_rebuildCallback'));
 
 		if (isset($this->list[strtolower(__CLASS__)]) && class_exists('Nette\Loaders\NetteLoader', FALSE)) {
 			NetteLoader::getInstance()->unregister();
@@ -92,30 +94,34 @@ class RobotLoader extends AutoLoader
 	public function tryLoad($type)
 	{
 		$type = ltrim(strtolower($type), '\\'); // PHP namespace bug #49143
+		$info = & $this->list[$type];
 
-		if (isset($this->list[$type][0]) && !is_file($this->list[$type][0])) {
-			unset($this->list[$type]);
-		}
-
-		if (!isset($this->list[$type])) {
-			$trace = debug_backtrace();
-			$initiator = & $trace[2]['function'];
-			if ($initiator === 'class_exists' || $initiator === 'interface_exists') {
-				$this->list[$type] = FALSE;
-				if ($this->autoRebuild && $this->rebuilt) {
-					$this->getCache()->save($this->getKey(), $this->list, array(
-						Cache::CONSTS => 'Nette\Framework::REVISION',
-					));
-				}
-			}
-
-			if ($this->autoRebuild && !$this->rebuilt) {
+		if ($this->autoRebuild && empty($this->checked[$type]) && (is_array($info) ? !is_file($info[0]) : $info < self::RETRY_LIMIT)) {
+			$info = is_int($info) ? $info + 1 : 0;
+			$this->checked[$type] = TRUE;
+			if ($this->rebuilt) {
+				$this->getCache()->save($this->getKey(), $this->list, array(
+					Cache::CONSTS => 'Nette\Framework::REVISION',
+				));
+			} else {
 				$this->rebuild();
 			}
 		}
 
-		if (isset($this->list[$type][0])) {
-			Nette\Utils\LimitedScope::load($this->list[$type][0]);
+		if (isset($info[0])) {
+			Nette\Utils\LimitedScope::load($info[0], TRUE);
+
+			if ($this->autoRebuild && !class_exists($type, FALSE) && !interface_exists($type, FALSE)) {
+				$info = 0;
+				$this->checked[$type] = TRUE;
+				if ($this->rebuilt) {
+					$this->getCache()->save($this->getKey(), $this->list, array(
+						Cache::CONSTS => 'Nette\Framework::REVISION',
+					));
+				} else {
+					$this->rebuild();
+				}
+			}
 			self::$count++;
 		}
 	}
@@ -128,9 +134,7 @@ class RobotLoader extends AutoLoader
 	 */
 	public function rebuild()
 	{
-		$this->getCache()->save($this->getKey(), callback($this, '_rebuildCallback'), array(
-			Cache::CONSTS => 'Nette\Framework::REVISION',
-		));
+		$this->getCache()->save($this->getKey(), callback($this, '_rebuildCallback'));
 		$this->rebuilt = TRUE;
 	}
 
@@ -139,10 +143,10 @@ class RobotLoader extends AutoLoader
 	/**
 	 * @internal
 	 */
-	public function _rebuildCallback()
+	public function _rebuildCallback(& $dp)
 	{
 		foreach ($this->list as $pair) {
-			if ($pair) {
+			if (is_array($pair)) {
 				$this->files[$pair[0]] = $pair[1];
 			}
 		}
@@ -150,6 +154,9 @@ class RobotLoader extends AutoLoader
 			$this->scanDirectory($dir);
 		}
 		$this->files = NULL;
+		$dp = array(
+			Cache::CONSTS => 'Nette\Framework::REVISION'
+		);
 		return $this->list;
 	}
 
@@ -162,7 +169,7 @@ class RobotLoader extends AutoLoader
 	{
 		$res = array();
 		foreach ($this->list as $class => $pair) {
-			if ($pair) {
+			if (is_array($pair)) {
 				$res[$pair[2]] = $pair[0];
 			}
 		}
@@ -281,7 +288,7 @@ class RobotLoader extends AutoLoader
 		$s = file_get_contents($file);
 
 		foreach ($this->list as $class => $pair) {
-			if ($pair && $pair[0] === $file) {
+			if (is_array($pair) && $pair[0] === $file) {
 				unset($this->list[$class]);
 			}
 		}
