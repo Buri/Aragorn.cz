@@ -12,8 +12,6 @@ include LIBS_DIR . "/usock.php";
 use Nette\Environment;
 use Nette\Application\Routers as R;
 
-date_default_timezone_set('Europe/Prague');
-
 $configurator = new Nette\Config\Configurator;
 $configurator->setTempDirectory(__DIR__ . '/../temp');
 $configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR)->register();
@@ -25,7 +23,7 @@ Nette\Diagnostics\Debugger::$strictMode = TRUE;
 Environment::setProductionMode(true);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');
-//$application->catchExceptions = TRUE;
+$application->catchExceptions = TRUE;
 if(empty($_COOKIE['skin'])){
     $skin = Nette\Environment::getVariable('defaultSkin', 'dark');
     setCookie('skin', $skin, time()+3600*24*365);

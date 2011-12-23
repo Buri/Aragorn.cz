@@ -1,0 +1,15 @@
+<style>
+    .widget{
+        border: 1px solid gray;
+        border-radius: 10px;
+        padding: 6px;
+        float:left;
+        width:100%;
+    }
+</style>
+<div class="widgetList">
+    Dashboard, dořešit, jakým způsobem bude vypadat a co tu vlastně má být.
+    {foreach $widgetList as $widget}
+        {control widget $widget}
+    {/foreach}
+</div>

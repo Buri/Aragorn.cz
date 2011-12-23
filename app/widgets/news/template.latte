@@ -1,0 +1,6 @@
+<div class="widget">
+    <h2>Novinky</h2>
+    {foreach $news as $item}
+    <div><b>{$item['title']}</b><hr/>{!$item['data']}</div>
+    {/foreach}
+</div>
