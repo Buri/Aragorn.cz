@@ -1,0 +1,47 @@
+<div class="discussion">
+    {foreach $discuss as $post}
+    <div class="post">
+        <div class="head">
+            <b>Autor: {$authors[$post['author']]}</b>
+            <i>{date('d.m.Y H:i', $post['time'])}</i>
+            <a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;">RE</a>
+        </div>
+        {$post['post']}
+    </div>
+    {/foreach}
+</div>
+<style>
+    .newPost{
+        position: fixed;
+        background: gray;
+        width: 920px;
+        padding: 6px;
+        /*left: 0;*/
+        bottom: -240px;
+        height: 220px;
+        text-align: center;
+        transition: bottom .2s linear;
+        -moz-transition: bottom .2s linear;        
+        -o-transition: bottom .2s linear;
+        -webkit-transition: bottom .2s linear;
+    }
+    .slideinform{
+        bottom: 0;
+    }
+    #frm-forum-discussion-forumForm{
+        text-align: left;
+    }
+    #frm-forum-discussion-forumForm textarea{
+        width: 914px;
+    }
+</style>
+<div class="newPost">
+    {form forumForm}
+    {label post /}
+    <br/>
+    {input post}
+    <br/>
+    {input send id=>'post'} | <a href="#" onclick="$$('.newPost').removeClass('slideinform'); return false;">skrýt</a>
+    {/form}
+
+</div>

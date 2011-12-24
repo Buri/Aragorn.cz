@@ -15,17 +15,6 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         
         parent::startup();
     }
-    /*protected function createComponent($name) {
-        $class = ucfirst($name);
-        if( !method_exists($this, "createComponent$class") )
-        {
-                if( class_exists($class) )
-                {
-                        return new $class($this, $name);
-                }
-        }
-        return parent::createComponent($name);
-    }*/
 
     public function createComponentLogInForm(){
         $form = new Nette\Application\UI\Form;
@@ -40,7 +29,12 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         return $form;
     }
     
-    public function createComponentForum($id = null, $options = null){}
+    public function createComponentForum($id){
+        return new frontendModule\ForumComponent();
+    }
+    public function createComponentDiscussion($id){
+        return new frontendModule\DiscussionComponent();
+    }
     
     public function actionLogin(){
         $this->handleLogin(array("username"=>"", "password"=>""), 'google');

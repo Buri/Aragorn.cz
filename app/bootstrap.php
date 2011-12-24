@@ -20,10 +20,10 @@ $configurator->addParameters(array("libsDir"=>LIBS_DIR));
 $container = $configurator->createContainer();
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
-Environment::setProductionMode(true);
+Environment::setProductionMode(false);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');
-$application->catchExceptions = TRUE;
+//$application->catchExceptions = TRUE;
 if(empty($_COOKIE['skin'])){
     $skin = Nette\Environment::getVariable('defaultSkin', 'dark');
     setCookie('skin', $skin, time()+3600*24*365);
@@ -32,12 +32,12 @@ if(empty($_COOKIE['skin'])){
 
 $router = $application->getRouter();
 $router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);
-$router[] = new R\Route('ajax/[<action>/[<id>/[<param>/]]]', array(
+$router[] = new R\Route('ajax//[<id>/[<action>[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
                 'action' => 'default'
 ));
-$router[] = new R\Route('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+$router[] = new R\Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
                 'module' => 'admin',
                 'presenter' => 'dashboard',
                 'action' => 'default'
@@ -53,7 +53,7 @@ foreach(array('presenter', 'action') as $type){
     R\Route::setStyleProperty($type, R\Route::FILTER_TABLE, $routing_table);
 }
 
-$router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+$router[] = new R\Route('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
                 'action' => 'default'
