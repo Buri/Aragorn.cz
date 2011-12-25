@@ -12,6 +12,15 @@ namespace frontendModule{
     use \DB;
     
     class registrationPresenter extends \BasePresenter {
+        
+        public function startup(){
+            $bans = DB::bans('ip', $_SERVER['REMOTE_ADDR'])->where('expires > ?', time());
+            $this->template->banned = false;
+            foreach($bans as $ban){
+                $this->template->banned = true;
+            }
+            parent::startup();
+        }
 
         public function createComponentRegisterForm() {
             $form = new Form;
@@ -52,13 +61,11 @@ namespace frontendModule{
             $form->onSuccess[] = callback($this, 'processRegisterForm');
 
             $form->setAction($this->link("register"));
-            //$form->getElementPrototype()->action = $this->link("register");
-
             return $form;
         }
 
         public function processRegisterForm(\Nette\Application\UI\Form $form) {
-        #public function actionRegister(NAppForm $form) {
+            if($this->template->banned) return false;
             $data = $form->getValues();
             $data["token"] = md5(uniqid());
             $data["create_time"] = time();
@@ -88,6 +95,7 @@ namespace frontendModule{
         }
 
         public function actionFinish( $id ){
+            if($this->template->banned) return false;
             $this->getTemplate()->message = "";
             $reg = DB::registration()->where("token = ?", $id);
             if(!count($reg)){

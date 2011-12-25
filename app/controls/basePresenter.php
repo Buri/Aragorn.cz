@@ -8,11 +8,10 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $t->title = "";
         $t->forceReload = false;
         $t->ajax = $this->isAjax();
-        
-        if(DB::bans()->where('expires > ? AND (id = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")->count()){
+        $this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
+        if($t->user->getIdentity() && DB::bans()->where('expires > ? AND (user = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")->count() > 0){
             $this->actionLogout();
         }
-        
         parent::startup();
     }
 
@@ -23,8 +22,6 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $form->addPassword("password", "Heslo:");
         $form->addCheckbox('forever', "Trvalé přihlášení");
         $form->addSubmit("login", "Přihlásit");
-        /*$form->addImage('google', $this->getTemplate()->staticPath . '/images/google-login-button.png', 'Přihlásit pomocí účtu Google')
-                ->onClick[] = callback($this, "googleLogin");*/
         $form->onSuccess[] = callback($this, "userLogin");
         return $form;
     }
@@ -55,9 +52,9 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }else{
                 $user->setExpiration('+ 60 minutes', false, true);
             }
-            $sid = Node::userlogin();
+            $sid = 321; #Node::userlogin();
             setCookie('sessid', $sid);
-            $_COOKIE['sessid'] = $sid;
+            //$_COOKIE['sessid'] = $sid;
             $this->redirect(301, 'this');
         }
         catch(BanAuthenticationException $e){
@@ -82,7 +79,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         Permissions::unload();
         Nette\Environment::getUser()->logout(true);
         $data = '{"command":"user-logout","data":{"nodeSession":"'.'"}}';
-        usock::writeReadClose($data, 4096);
+        //usock::writeReadClose($data, 4096);
         $this->redirect(301, "dashboard:default");
     }
 

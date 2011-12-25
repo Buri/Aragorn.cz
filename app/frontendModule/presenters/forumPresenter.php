@@ -13,11 +13,32 @@ namespace frontendModule{
     }
     
     class DiscussionComponent extends \Nette\Application\UI\Control{
+        public function __construct(){
+        }
+        public function link($target, $args = array()){
+            return $this->getPresenter()->link($target, $args);
+        }
         
         public function render($url = null){
+            $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
             $info = DB::forum_topic('urlfragment', $url)->fetch();
-            $d = DB::forum_posts('forum', $info['id']);
+            $opt = $info['options'];
+            if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
+                
+            }else{
+                $admins = DB::forum_admins('forum', $info['id']);
+                $adms = array();
+                foreach($admins as $admin){
+                    $aname = DB::users($admin['user'])->fetch();
+                    $adms[] = $aname['username'];
+                }
+                $adm = ($user->getId() == $info['owner']) || ($user->getIdentity() ? in_array($user->getIdentity()->name, $adms) : false);
+                $this->template->read = $adm ||$user->isAllowed('discussion', 'read');
+                $this->template->write = $adm || $user->isAllowed('discussion', 'write');
+                $this->template->administrate = $adm || $user->isAllowed('discussion', 'admin');
+            }
+            $d = DB::forum_posts('forum', $info['id'])->order('time desc');
             $this->template->discuss = array();
             $authors = array();
             foreach($d as $r){
@@ -36,12 +57,16 @@ namespace frontendModule{
             $form = new \Nette\Application\UI\Form;
             $form->addTextArea('post', 'Nová zpráva')->addRule(\Nette\Application\UI\Form::FILLED);
             $form->addSubmit('send', 'Přidat příspěvek');
+            $form->onSuccess[] = callback($this, 'addPost');
             return $form;
+        }
+        public function addPost($form){
+            $this->vals = $form->getValues();
         }
     }
         
     class ForumComponent extends \Nette\Application\UI\Control{        
-        static $SUBTOPIC_ALLOWED = 1, $POSTS_ALLOWED = 2;
+        static $SUBTOPIC_ALLOWED = 1, $POSTS_ALLOWED = 2, $HAS_CUSTOM_PERMISSIONS = 4;
         function __construct($id = null, $url = null){
             $this->template->id = $id;
             $this->template->url = $url;
@@ -65,7 +90,6 @@ namespace frontendModule{
                     }while($p["parent"]);
                 }else{
                     $data = DB::forum_topic('parent', 0)->order('name');
-                    
                 }
             }else{
                 $data = DB::forum_topic('id', $id)->order('name');

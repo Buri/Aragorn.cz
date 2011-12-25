@@ -3,7 +3,11 @@
 {block content}
     <h1>Registrace</h1>
 {if Nette\Environment::getVariable('registrationEnabled')}
+{if !$banned}
 {include #innercontent}
+{else}
+<div>Byl vám udělen ban. Nemůžete registrovat další účet.</div>
+{/if}
 {else}
 <div>Registrace je uzavřena.</div>
 <div>{$closeReason = Nette\Environment::getVariable('registrationCloseReason')}</div>

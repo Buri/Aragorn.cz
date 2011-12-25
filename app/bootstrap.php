@@ -52,8 +52,13 @@ foreach(array('presenter', 'action') as $type){
     }
     R\Route::setStyleProperty($type, R\Route::FILTER_TABLE, $routing_table);
 }
-
-$router[] = new R\Route('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+/*$router[] = new R\Route('[<presenter>/]logout/', array(
+                'module' => 'frontend',
+                'presenter' => 'dashboard',
+                'action' => 'logout',
+                'id' => ''
+));*/
+$router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
                 'action' => 'default'

@@ -23,7 +23,6 @@ abstract class BaseAuthenticator extends Nette\Object implements Nette\Security\
     var $id, $gid, $name;
     protected function tryBan(){
         $bans = DB::bans()->where('user = ? OR ip = ?', array($this->id, $_SERVER["REMOTE_ADDR"]))->where('expires >= ?', time())->order('expires DESC');
-
         foreach($bans as $ban){
             $x = DB::users('id = ?', $ban["author"])->select("username")->fetch();
             $y = DB::users('id = ?', $ban["user"])->select("username")->fetch();
@@ -32,7 +31,9 @@ abstract class BaseAuthenticator extends Nette\Object implements Nette\Security\
     }
     protected function newId(){
         $prefs = DB::users_preferences("id", $this->id)->fetch();
-        return new Nette\Security\Identity($this->id, array($this->gid), array("username" => $this->name, "preferences" => json_decode($prefs["preference"]))); // vrátíme identitu
+        // vrátíme identitu
+        $id = new \Nette\Security\Identity($this->id, array($this->gid), array("username" => $this->name, "preferences" => json_decode($prefs["preference"]))); 
+        return $id;
     }
 }
 class UserAuthenticator extends BaseAuthenticator{
