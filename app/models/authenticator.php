@@ -5,8 +5,8 @@
  * @author Buri
  */
 
-use Nette\Environment;
-class BanAuthenticationException extends Nette\Security\AuthenticationException{
+use \Nette\Environment;
+class BanAuthenticationException extends \Nette\Security\AuthenticationException{
     private $bdata;
     public function  __construct($message, $code, $ban, $previous = null) {
         $this->bdata = $ban;
@@ -18,7 +18,7 @@ class BanAuthenticationException extends Nette\Security\AuthenticationException{
     }
 };
 
-abstract class BaseAuthenticator extends Nette\Object implements Nette\Security\IAuthenticator{
+abstract class BaseAuthenticator extends \Nette\Object implements \Nette\Security\IAuthenticator{
     const BANNED = 6;
     var $id, $gid, $name;
     protected function tryBan(){
@@ -32,20 +32,20 @@ abstract class BaseAuthenticator extends Nette\Object implements Nette\Security\
     protected function newId(){
         $prefs = DB::users_preferences("id", $this->id)->fetch();
         // vrátíme identitu
-        $id = new \Nette\Security\Identity($this->id, array($this->gid), array("username" => $this->name, "preferences" => json_decode($prefs["preference"]))); 
-        return $id;
+        return new \Nette\Security\Identity($this->id, array($this->gid), array("username" => $this->name, "preferences" => json_decode($prefs["preference"]))); 
     }
 }
-class UserAuthenticator extends BaseAuthenticator{
+class UserAuthenticator extends \BaseAuthenticator{
     public function authenticate(array $credentials)
     {
+        dump($credentials);
         $username = $credentials[self::USERNAME];
         $password = sha1($credentials[self::PASSWORD]);
     
         // přečteme záznam o uživateli z databáze
         $usrs = DB::users()->select("username,id,groupid")->where("username LIKE ?", $username);
         if (!$usrs->count()) { // uživatel nenalezen?
-            throw new Nette\Secrity\AuthenticationException("User '$username' not found.", self::IDENTITY_NOT_FOUND);
+            throw new \Nette\Secrity\AuthenticationException("User '$username' not found.", self::IDENTITY_NOT_FOUND);
         }
         $row = $usrs->fetch();
         $usr = $row->users_profiles()->select("password")->fetch();

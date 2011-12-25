@@ -32,7 +32,7 @@ if(empty($_COOKIE['skin'])){
 
 $router = $application->getRouter();
 $router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);
-$router[] = new R\Route('ajax//[<id>/[<action>[<param>/]]]', array(
+$router[] = new R\Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
                 'action' => 'default'

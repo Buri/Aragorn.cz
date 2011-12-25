@@ -9,7 +9,7 @@
  * @param string   $title    page title
  *}
 {if $ajax}
-<script type="text/javascript">document.title='{!$title}| Aragorn.cz';{if $forceReload}/*$$('.ajax').removeClass('ajax');*/location.reload();{/if}</script>
+<script type="text/javascript">document.title='{!$title} | Aragorn.cz';{if $forceReload}/*$$('.ajax').removeClass('ajax');*/location.reload();{/if}</script>
 {include #content}
 {else}
 <!DOCTYPE html>
@@ -40,6 +40,11 @@
             <div class="content" id="content">
                 {include #content}
             </div>
+            <footer>
+                Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů. 
+                Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl. 
+                Jakékoliv kopírování obsahu je zakázáno. 
+            </footer>
         </div>    
     </body>
     {include 'scripts.latte'}
