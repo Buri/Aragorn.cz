@@ -52,7 +52,7 @@ var AragornClient = new Class({
         this.notimoo = new Notimoo();
         var t = this.transport;
         t.on('connect', this.fn.connectionEstablished);
-        t.on('connecting', function(){ $('constat').setStyle('background', 'yellow'); $('constat').set('title', 'Connection status: connecting'); console.log('connecting', this);});
+        t.on('connecting', function(){$('constat').setStyle('background', 'yellow');$('constat').set('title', 'Connection status: connecting');console.log('connecting', this);});
         t.on('SESSION_REQUEST_IDENTITY', function(){
             console.log('Server has requested identity');
             if(Cookie.read('sessid')){
@@ -118,6 +118,8 @@ var AragornClient = new Class({
         this.transport.on('connect_failed', this.fn.global);
         this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
+        if(window.AUTHENTICATED)
+            this.resetInactivity();
     },
     notimoo:null,
     transport:null,
@@ -258,10 +260,33 @@ var AragornClient = new Class({
         this.notimoo.show(Object.merge({title:title, message:message}, options));
     },
     prompt:function(){},
-    info:function(){}
+    info:function(){},
+    resetInactivity:function(timeout){
+        if(this.inactive)
+            clearTimeout(this.inactive);
+        this.inactive = setTimeout(function(){this.inactivityOverlay();}.bind(this), timeout || 60*60*1000);
+    },
+    inactivityOverlay:function(){
+        var dialog = new MooDialog.Request('/ajax/loginui/', {
+            title:'Přihlášení vypršelo',
+            scroll:true,
+            useEscKey:false
+        });
+        //dialog.setContent(frm);
+        dialog.addEvent('hide', function(){
+            if(!this.session)
+                location.reload();
+            this.session = false;
+        });
+        dialog.open();
+    },
+    inactive:null,
+    session:false
 }), AC = null;
 
 window.addEvent('domready', function(){
+    AC = new AragornClient();
+    new LazyLoad({elements:'img.ll'});
     History.addEvent('change', function(url){
         new Request.HTML({
              url: url,
@@ -270,6 +295,7 @@ window.addEvent('domready', function(){
              evalResponse:true,
              update:$('content'),
              onComplete:function(){
+                 AC.resetInactivity();
                  $('content').removeClass('contentLoading');
              },
              onFailure:function(){
@@ -277,14 +303,12 @@ window.addEvent('domready', function(){
                  location.href = url;
              }
         }).send();
-        console.log('History changed: ' + url);
+        //console.log('History changed: ' + url);
     });
-    AC = new AragornClient();
-    new LazyLoad({elements:'img.ll'});
     if($$('#content').length){
         $(document.body).addEvent('click:relay(.ajax)', function(event) {
             new Event(event).stop();
-            $('content').addClass('contentLoading');//fade(0.5);
+            $('content').addClass('contentLoading');
             History.push(this.get('href'));
         });
     }
