@@ -24,6 +24,7 @@ namespace frontendModule{
             if($this->postdata){
                 $this->addPostFinish ($url);
             }
+            $this->template->staticPath = $this->presenter->template->staticPath;
             $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
             $info = DB::forum_topic('urlfragment', $url)->fetch();

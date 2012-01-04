@@ -1,0 +1,57 @@
+<?php
+	/**
+	 * @author Mikulas Dite
+	 */
+?>
+
+<style type="text/css" n:syntax="double">
+#frm-UserPanel-login label[for^=frmlogin-user] {margin-left: 0.5em;}
+#frm-UserPanel-login input[type=radio] {margin: 4px 0 4px 0;}
+#frm-UserPanel-login table {width: 100%; margin-bottom: 1em;}
+</style>
+
+{if $user->isLoggedIn()}
+<h1>Logged in as <span style="font-style: italic; margin: 0; padding: 0;">{$username}</span></h1>
+{else}
+<h1>Logged out <span style="font-style: italic; margin: 0; padding: 0;">guest</span></h1>
+{/if}
+
+<div class="nette-inner">
+	{widget login}
+
+	<table n:if="$user" style="width: 100%;">
+		<tbody>
+			<tr n:foreach="$data as $key => $value">
+				<td>{$key}</td>
+				{if is_scalar($value)}
+				<td>{$value}</td>
+				{else}
+				<td style="font-style: italic;">
+					{if is_object($value)} {=get_class($value)}
+					{elseif is_array($value)} Array
+					{else} Object
+					{/if}
+				</td>
+				{/if}
+			</tr>
+			<tr n:if="$user->roles">
+				<td>roles</td>
+				<td>{=implode(', ', $user->roles)}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<script type="text/javascript">
+	var user_panel_form = document.forms['frm-UserPanel-login'];
+	user_panel_form.elements['frmlogin-send'].parentNode.parentNode.style.display = 'none';
+	
+	var user_panel_elements = user_panel_form.getElementsByTagName('input');
+	for (user_panel_index = 0; user_panel_index < user_panel_elements.length; user_panel_index++) {
+		if (user_panel_elements[user_panel_index].getAttribute('class') == 'onClickSubmit') {
+			user_panel_elements[user_panel_index].onclick = function () {
+				user_panel_form.submit();
+			};
+		}
+	}
+</script>

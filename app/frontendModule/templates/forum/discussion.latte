@@ -1,17 +1,26 @@
 <div class="discussion">
     {if count($discuss)}
     {foreach $discuss as $post}
-    <div class="post" name="msg{$post['id']}">
+    <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
         <div class="head">
-            <b>Autor: {$authors[$post['author']]}</b>
-            <i>{date('d.m.Y H:i', $post['time'])}</i>
-            {if $write}
-            <a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;">RE</a>
-            {/if}
+            {!$control->presenter->userLink($post['author'], true)}
+            <img src="{$control->presenter->userIcon($post['author'])}" />
         </div>
+        <div class="post-body">
+            <div class="post-info">
+                <i>{date('d.m.Y H:i', $post['time'])}</i>
+                {if $write}
+                <a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="edit button" title="Upravit příspěvek">&nbsp;</a>
+                <a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="delete button" title="Smazat příspěvek">&nbsp;</a>
+                <a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
+                <a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
+                {if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
+                {/if}
+                {/if}
+            </div>
+        
         {$post['post']}
-        <hr/>
-        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+        </div>
     </div>
     {/foreach}
     {else}
@@ -19,6 +28,75 @@
     {/if}
 </div>
 <style>
+    .discussion{
+        background-color: #222;
+        padding: 15px 0;
+        margin-top: 15px;
+        border-radius: 15px;
+    }
+    .post{
+        margin-top: 5px;
+        background-color: #333;
+        border-radius: 4px;
+    }
+    .post.botline{
+        border-bottom: 1px solid white;
+        border-radius: 5px;
+    }
+    .post .head{
+        display: inline-block;
+        width: 100px;
+        text-align: center;
+        vertical-align: top;
+    }
+    .post .head img{
+        max-width: 90px;
+        max-height: 90px;
+    }
+    .post .post-body{
+        width: 780px;
+        display: inline-block;
+        padding: 5px;
+        padding-top: 0px;
+    }
+    .post .post-info{
+        display: inline-block;
+        width: 780px;
+        text-align: right;
+        font-size: small;
+    }
+    .post .post-info .button{
+        display:inline-block;
+        height: 18px;
+        width: 18px;
+        background-position: center;
+        background-size: 18px;
+    }
+    .post .post-info a.alert{
+        background-image: url({$staticPath}/images/report.png);
+    }
+    .post .post-info a.alert:hover{
+        background-image: url({$staticPath}/images/reporta.png);
+    }
+    .post .post-info a.edit{
+        background-image: url({$staticPath}/images/edit.png);
+    }
+    .post .post-info a.edit:hover{
+        background-image: url({$staticPath}/images/edita.png);
+    }
+    .post .post-info a.delete{
+        background-image: url({$staticPath}/images/delete.png);
+    }
+    .post .post-info a.delete:hover{
+        background-image: url({$staticPath}/images/deletea.png);
+    }
+    .post .post-info a.cite{
+        background-image: url({$staticPath}/images/cite.png);
+    }
+    .post .post-info a.cite:hover{
+        background-image: url({$staticPath}/images/citea.png);
+    }
+
     .newPost{
         position: fixed;
         background: gray;

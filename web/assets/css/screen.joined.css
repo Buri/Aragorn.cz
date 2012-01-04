@@ -43,6 +43,7 @@ footer{
 }
 .content{
     padding: 6px;
+    min-height: 500px;
 }
 
 .menu .left{

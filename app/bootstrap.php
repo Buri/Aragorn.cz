@@ -64,4 +64,12 @@ $router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'action' => 'default'
 ));
 
+/* Debug panel extensions */
+Extras\Debug\ComponentTreePanel::register();
+\Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
+#
+/*MailPanel::register(Environment::getContext());
+Nella\Panels\Version::register();*/
+
+
 $application->run();

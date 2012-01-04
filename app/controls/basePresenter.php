@@ -3,6 +3,13 @@
 class BasePresenter extends Nette\Application\UI\Presenter{
 
     public function startup(){
+        parent::startup();
+        
+        /* Panely */
+        \Extras\Debug\RequestsPanel::register();
+        \Panel\User::register();
+        
+        
         $t = $this->getTemplate();
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
         $t->userPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("userServer", "www.aragorn.cz");
@@ -14,7 +21,6 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         if($t->user->getIdentity() && DB::bans()->where('expires > ? AND (user = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")->count() > 0){
             $this->actionLogout();
         }
-        parent::startup();
     }
     
     public function userLink($id = null, $html = false){
