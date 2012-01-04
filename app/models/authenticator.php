@@ -38,7 +38,7 @@ abstract class BaseAuthenticator extends \Nette\Object implements \Nette\Securit
 class UserAuthenticator extends \BaseAuthenticator{
     public function authenticate(array $credentials)
     {
-        dump($credentials);
+        //dump($credentials);
         $username = $credentials[self::USERNAME];
         $password = sha1($credentials[self::PASSWORD]);
     

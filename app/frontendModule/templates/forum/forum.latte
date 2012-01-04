@@ -5,12 +5,18 @@
 </small>
 {foreach $topics as $topic}
 <div style="border:1px solid silver;">
+    <div style="float:right;display:inline-block;width: 40px; text-align: center;">63</div>
+    <div style="float:right;display:inline-block;width: 130px;height: 100%;border-right: 1px solid white;text-align: center;">Poslední příspěvěk bla bla bla</div>
+    <div style="display:block;">
     <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> <br/>
-    <em>{$topic['description']}</em>{var $subtopics = frontendModule\forumPresenter::getSubtopics($topic['id'])}
+    <em>{$topic['description']}</em> <br/>
+    <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
+    {var $subtopics = frontendModule\forumPresenter::getSubtopics($topic['id'])}
     <div n:if="$subtopics->count()">Podtémata:
         {foreach $subtopics as $subtopic}
             <a href="{link $forum, $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>{sep}, {/sep}
         {/foreach}
+    </div>
     </div>
 </div>
 {/foreach}

@@ -5,6 +5,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     public function startup(){
         $t = $this->getTemplate();
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
+        $t->userPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("userServer", "www.aragorn.cz");
+        $this->userpath = $t->userPath;
         $t->title = "";
         $t->forceReload = false;
         $t->ajax = $this->isAjax();
@@ -13,6 +15,60 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             $this->actionLogout();
         }
         parent::startup();
+    }
+    
+    public function userLink($id = null, $html = false){
+        if($id == null) $id = \Nette\Environment::getUser()->getId ();
+        $u = DB::users('id', $id)->fetch();
+        $n = $u['username'];
+        $link = $this->link(':frontend:users:profile', $n);
+        return $html ? "<a href=\"".$link."\">".$n."</a>\n" : $link;
+    }
+    
+    public function userIcon($id = null){
+        if($id == null) $id = \Nette\Environment::getUser()->getId ();
+        $i = DB::users_profiles('id', $id)->fetch();
+        if($i['icon'])
+            $ic = $i['icon'];
+        else
+            $ic = "default.png";
+        return $this->userpath."/i/".$ic;
+    }
+    
+    public static $UP_ICON = 1, $UP_STATUS = 2, $UP_ACTIVITY = 4, $UP_LOCATION = 8;
+    private $userpath;
+    public function userProfile(array $user, $format = 11, $other = array("class"=>"", "id"=>"")){
+        if(!empty($user['id']) && $user['id'] != "0"){
+            if(isset($user['name'])){
+                $u = DB::users('username', $user['name'])->fetch();
+            }elseif(isset($user['mail'])){
+                $u = DB::users_profiles('mail', $user['mail'])->fetch();
+            }else{
+                throw new Exception("Bad format for user query.");
+            }
+            $user['id'] = $u['id'];
+        }
+        $profile = "<div class=\"userprofile";
+        if($other["class"])
+            $profile .= " ".$other["class"];
+        $profile .= "\"";
+        if($other["id"])
+            $profile .= " id=\"".$other["id"] . "\"";
+        $profile .= ">\n";
+        $profile .= $this->userLink($user['id'], true);
+        if($format & self::$UP_ICON){
+            $profile .= "<img src=\"".$this->userIcon($user['id'])."\" alt=\"Ikona uživatele\" />\n";
+        }
+        if($format & self::$UP_ACTIVITY){
+            // Query node.js here
+        }
+        if($format & self::$UP_STATUS){
+            $i = DB::users_profiles($user['id'])->fetch();
+            $profile .= "<span class=\"profilestatus\">".htmlspecialchars($i['status'])."</span>\n";
+        }
+        
+        $profile .= "</div>\n";
+        return $profile;
     }
 
     public function createComponentLogInForm(){

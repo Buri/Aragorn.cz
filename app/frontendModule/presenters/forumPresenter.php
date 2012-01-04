@@ -13,6 +13,7 @@ namespace frontendModule{
     }
     
     class DiscussionComponent extends \Nette\Application\UI\Control{
+        private $postdata = null;
         public function __construct(){
         }
         public function link($target, $args = array()){
@@ -20,6 +21,9 @@ namespace frontendModule{
         }
         
         public function render($url = null){
+            if($this->postdata){
+                $this->addPostFinish ($url);
+            }
             $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
             $info = DB::forum_topic('urlfragment', $url)->fetch();
@@ -61,7 +65,18 @@ namespace frontendModule{
             return $form;
         }
         public function addPost($form){
-            $this->vals = $form->getValues();
+            $v = $form->getValues();
+            $this->postdata = array(
+                "author"=>\Nette\Environment::getUser()->getId(),
+                "forum"=> -1,
+                "time"=>time(),
+                "post"=> $v["post"]
+                );
+        }
+        private function addPostFinish($url){
+            $this->postdata["forum"] = (int)ForumComponent::getIdByPath($url);
+            DB::forum_posts()->insert($this->postdata);
+            //dump($this->postdata);
         }
     }
         
@@ -110,6 +125,12 @@ namespace frontendModule{
         
         public function createComponentDiscussion($name){
             return $this->presenter->createComponentDiscussion($name);
+        }
+        
+        public static function getIdByPath($path){
+            if(!$path) throw new Exception ("Path is not defined");
+            $p = DB::forum_topic('urlfragment', $path)->fetch();
+            return $p['id'];
         }
     }
 }
