@@ -77,44 +77,7 @@ var AragornClient = new Class({
             Cookie.dispose('sessid');
             this.emit('SESSION_REQUEST_SID');
         });
-/*        switch(msg.cmd){
-                case 'SESSION_HAS_PHPSESSID_REGISTERED':
-                    if(msg.identity === true){
-                        this.fireEvent('SESSION_CONFIRM');
-                    }else{
-                        this.ajax('testidentity', null, null);
-                    }
-                    break;
-                case 'SESSION_RESET_SID':
-                    Cookie.dispose('sid');
-                case 'SESSION_REQUEST_IDENTITY':
-                    if(Cookie.read('sid')){
-                        this.transport.send({cmd:'SESSION_SID', identity:Cookie.read('sid')});
-                    }else{
-                        this.transport.send({cmd:'SESSION_REQUEST_SID'});
-                    }
-                    break;
-                case 'SESSION_REGISTER_SID':
-                    Cookie.write('sid', msg.identity);
-                    this.fireEvent('SESSION_HANDSHAKE');
-                    this.fn.getIdentity.bind(this).call();
-                    break;
-                case 'SESSION_CONFIRMED_SID':
-                    this.fireEvent('SESSION_HANDSHAKE');
-                    this.fn.getIdentity.bind(this).call();
-                    break;
-                case 'INVALID_SID':
-                    break;
-                case 'PING':
-                    $('constat').set('text', new Date().getTime() - this._ping.last.shift());
-                    break;
-                case 'NOTIFY':
-                    this.message(msg.data.title, msg.data.body, msg.data.options);
-                    break;
-                default:
-                    this.fireEvent('cmd_' + msg.cmd, [msg.data, msg, this]);
-                    break;
-            }this.transport.on('message', this.fn.handleMessage.bind(this));*/
+        /*this.transport.on('message', this.fn.handleMessage.bind(this));*/
         this.transport.on('connect_failed', this.fn.global);
         this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
@@ -140,11 +103,11 @@ var AragornClient = new Class({
                 break;
             }
             if(!t){
-                t = new Request.HTML({evalScripts:false, link:'chain'});
+                t = new Request.HTML({evalScripts:false, link:'chain', 'method':'get'});
                 this.Ajax.transports.push(t);
             }
             if(callback) t.addEvent('success', callback.bind(t));
-            t.send({url:'/ajax/' + action + '/', data:data});
+            t.send({url:'/ajax/' + action + '/' + (data.id ? (data.id + '/' + (data.param ? data.param + '/' : '')) : ''), data:data});
         }
     },
     fn:{
@@ -272,7 +235,6 @@ var AragornClient = new Class({
             scroll:true,
             useEscKey:false
         });
-        //dialog.setContent(frm);
         dialog.addEvent('hide', function(){
             if(!this.session)
                 location.reload();
@@ -303,7 +265,6 @@ window.addEvent('domready', function(){
                  location.href = url;
              }
         }).send();
-        //console.log('History changed: ' + url);
     });
     if($$('#content').length){
         $(document.body).addEvent('click:relay(.ajax)', function(event) {
@@ -312,4 +273,11 @@ window.addEvent('domready', function(){
             History.push(this.get('href'));
         });
     }
+    var fn = function(e){
+        if(e.type == 'change' || (e.type == 'keyup' && e.key == 'enter') || e.target.id == 'btnStatus'){
+            AC.ajax('statusupdate', {id:$('msgStatus').get('value')});
+        }
+    };
+    $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});
+
 });

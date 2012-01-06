@@ -1,98 +1,115 @@
-body{
+*{
+    -moz-transition: all 1s linear ;
+}
+body.dark{
     background-color: #000;
     text-align: center;
     margin: 0;
     padding: 0;
     color: #fff;
 }
-a{
+.dark a{
     color: #E4F9E3;
     text-decoration: none;
 }
-footer{
+.dark footer{
     text-align: center;
     font-size: small;
     white-space: pre-line;
 }
-.holder{
+.dark .holder{
     width: 920px;
     display: inline-block;
     text-align: left;
 }
-.logo{
+.dark .logo{
     border: 1px solid white;
     height:174px;
 }
-.leftmenu{
+.dark .leftmenu{
     border:1px solid red;
     float: left;
     width:100px;
     height: 400px;
 }
-.menu{
+.dark .menu{
     border-bottom: 1px solid white;
     border-top: none;
     text-align: center;
 }
-.menu.main{
+.dark .menu.main{
     height: 34px;
-    /*background-color: #DDD;*/
 }
-.menu.main *{
+.dark .menu.main *{
     vertical-align: middle;
 }
-.content{
+.dark .content{
     padding: 6px;
     min-height: 500px;
 }
-
-.menu .left{
+.dark .menu.logo{
+    border-radius: 0 0 16px 16px; 
+}
+.dark .menu .left{
     float:left;
 }
-.menu .right{
+.dark .menu .right{
     float: right;
 }
-.left a, .right a{
+.dark .left a, .dark .right a{
     width:200px;
 }
-.menu.logo a{
+.dark .menu.logo a{
     display: block;
     height: 87px;
     vertical-align: middle;
 }
-.menu a.middle{
+.dark .menu a.middle{
     height: 100%;
 }
-.hidden{
+.dark .hidden{
     display:none;
 }
-.pre{
+.dark .pre{
     white-space: pre-wrap;
 }
-.lock{
+.dark .lock{
     padding-right: 20px;
     background-image: url('/images/chatlock.png');
     background-position: center right;
     background-repeat: no-repeat;
 }
 
-.contentLoading{
+.dark .contentLoading{
     opacity:0.5;
     transition: all 1.5s linear;
 }
 
+.dark .role-root{
+    color: #F00;
+}
+.dark .role-moderator{
+    color: #00F;
+}
+.dark .role-user{
+    color: #3F3;
+}
+.dark .role-guest{
+    color: #333;
+}
+
 /* LogInForm style definition */
-.logInForm{
+.dark .logInForm{
     display: inline;
 }
-.logInForm *{
+.dark .logInForm *{
     font-size: 12px;
     display: inline;
 }
 
 /* Created by Arian Stolwijk <http://www.aryweb.nl> */
 
-.MooDialog {
+.dark .MooDialog {
 	position: fixed;
 	width: 300px;
 	height: 100px;
@@ -115,15 +132,15 @@ footer{
 
 }
 
-.MooDialogTitle {
+.dark .MooDialogTitle {
 	padding-top: 30px;
 }
 
-.MooDialog .content {
+.dark .MooDialog .content {
 	height: 100px;
 }
 
-.MooDialog .title {
+.dark .MooDialog .title {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -138,7 +155,7 @@ footer{
 	border-radius: 7px 7px 0 0;
 }
 
-.MooDialog .close {
+.dark .MooDialog .close {
 	position: absolute;
 	width: 16px;
 	height: 16px;
@@ -150,7 +167,7 @@ footer{
 	cursor: pointer;
 }
 
-.MooDialog .buttons {
+.dark .MooDialog .buttons {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -158,15 +175,159 @@ footer{
 	text-align: right;
 }
 
-.MooDialog .iframe {
+.dark .MooDialog .iframe {
 	width: 100%;
 	height: 100%;
 }
 
-.MooDialog .textInput {
+.dark .MooDialog .textInput {
 	width: 200px;
 	float: left;
 }
-#overlay{
+.dark #overlay{
     background-image: url(/images/overlay.png) !important;
+}
+.dark #msgStatus{
+    border-radius:6px; 
+    padding: 0 6px;
+}
+.dark #msgStatus.sending{
+    background-color: #cc9;
+}
+.dark .menu.main a, .dark .main.menu{
+    vertical-align: middle;
+    color: #332;
+}
+.dark .main.menu{
+    text-align: left;
+    padding-left: 35px;
+    padding-top: 3px;
+    background: #ccd;
+    border-bottom: none;
+    height: 25px;
+}
+.dark .main.menu .float-right{
+    float:right; 
+    padding-right: 6px; 
+    margin-top:-3px;
+}
+.dark .main.menu .float-right img{
+    max-height: 23px; 
+}
+.dark .discussion{
+    background-color: #222;
+    padding: 15px 0;
+    margin-top: 15px;
+    border-radius: 15px;
+}
+.dark .post{
+    margin-top: 5px;
+    background-color: #333;
+    border-radius: 4px;
+}
+.dark .post.botline{
+    border-bottom: 1px solid white;
+    border-radius: 5px;
+}
+.dark .post .head{
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+    vertical-align: top;
+    padding: 2px 4px;
+}
+.dark .post .head img{
+    max-width: 90px;
+    max-height: 90px;
+}
+.dark .post .status{
+    margin-top: 15px;
+    border-top: 1px solid silver;
+    font-size: small;
+}
+.dark .post .post-body{
+    width: 780px;
+    display: inline-block;
+    padding: 5px;
+    padding-top: 0px;
+}
+.dark .post .post-info{
+    display: inline-block;
+    width: 780px;
+    text-align: right;
+    font-size: small;
+}
+.dark .post .post-info .button{
+    display:inline-block;
+    height: 18px;
+    width: 18px;
+    background-position: center;
+    background-size: 18px;
+}
+.dark .post .post-info a.alert{
+    background-image: url(/images/report.png);
+}
+.dark .post .post-info a.alert:hover{
+    background-image: url(/images/reporta.png);
+}
+.dark .post .post-info a.edit{
+    background-image: url(/images/edit.png);
+}
+.dark .post .post-info a.edit:hover{
+    background-image: url(/images/edita.png);
+}
+.dark .post .post-info a.delete{
+    background-image: url(/images/delete.png);
+}
+.dark .post .post-info a.delete:hover{
+    background-image: url(/images/deletea.png);
+}
+.dark .post .post-info a.cite{
+    background-image: url(/images/cite.png);
+}
+.dark .post .post-info a.cite:hover{
+    background-image: url(/images/citea.png);
+}
+
+.dark .newPost{
+    position: fixed;
+    background: gray;
+    width: 895px;
+    padding: 6px;
+    /*left: 0;*/
+    bottom: -205px;
+    height: 220px;
+    text-align: center;
+    transition: bottom .2s linear;
+    border-radius: 6px 6px 0 0;
+    -moz-transition: bottom .2s linear;        
+    -o-transition: bottom .2s linear;
+    -webkit-transition: bottom .2s linear;
+}
+.dark .slideinform{
+    bottom: 0;
+}
+.dark #frm-forum-discussion-forumForm{
+    text-align: left;
+}
+.dark #frm-forum-discussion-forumForm textarea{
+    width: 889px;
+}
+.dark #post{
+    width: 884px;
+}
+.dark .forum-navigation{
+    font-size: small;
+    margin-bottom: 15px;
+}
+.dark .forum-holder{
+    border:1px solid silver;
+    border-radius: 6px;
+    padding: 0 6px;
+}
+.dark .forum-count{
+    float:right;display:inline-block;width: 40px; text-align: center;
+}
+.dark .forum-last-message{
+    float:right;display:inline-block;width: 130px;height: 100%;border-right: 1px solid white;text-align: center;
 }

@@ -2,25 +2,26 @@
             <a href="{link chat:}" class="middle ajax">Chat</a> |
             <a href="{link help:}" class="middle ajax">Nápověda</a> |
             <a href="{link users:}" class="middle ajax">Uživatelé</a>
-            <div style="float:right; padding-right: 6px; margin-top:-3px;">
+            <div class="float-right">
                 {if $user->isLoggedIn()}
-                <input type="text" placeholder="Zpráva stavu" style="border-radius:6px; padding: 0 6px;"/>
-                <a href="{$presenter->userLink()}" title="{$user->getIdentity()->username}" style="background: #333; height:28px; padding: 0 5px; display: inline-block;">
-                    <img src="{$presenter->userIcon()}" style="max-height: 23px;" />
+                <input id="msgStatus" value="{$presenter->userStatus()}" type="text" placeholder="Zpráva stavu" />
+                <input type="button" id="btnStatus" value=">" />
+                <a href="{$presenter->userLink()}" title="{$user->getIdentity()->username}">
+                    <img src="{$presenter->userIcon()}" />
                 </a>
                 <a href="{link settings:}" class="middle ajax" title="Nastavení">
-                    <img src="{$staticPath}/images/settings.png" style="max-height:23px;"/>
+                    <img src="{$staticPath}/images/settings.png" />
                 </a>
                 <a href="{link mail:}" class="middle ajax" title="Pošta">
-                    <img src="{$staticPath}/images/unread_mail.png" style="max-height:23px;"/>
+                    <img src="{$staticPath}/images/unread_mail.png" />
                 </a>
                 {if $user->isAllowed('admin')}
                 <a href="{link :admin:dashboard:}" class="middle" title="Redakční systém">
-                    <img src="{$staticPath}/images/rs.png" style="max-height:23px;"/>
+                    <img src="{$staticPath}/images/rs.png" />
                 </a>
                 {/if}
                 <a href="{link logout}" class="middle" title="Odhlásit">
-                    <img src="{$staticPath}/images/logout.png" style="max-height:23px;"/>
+                    <img src="{$staticPath}/images/logout.png" />
                 </a>
                 {else}
                 <a href="{link registration:}" class="middle ajax">Registrace</a> |
@@ -35,17 +36,3 @@
                 {/if}
             </div>
         </div>
-<style type="text/css">
-    .menu.main a, .main.menu{
-        vertical-align: middle;
-        color: #332;
-    }
-    .main.menu{
-        text-align: left;
-        padding-left: 35px;
-        padding-top: 3px;
-        background: #ccd;
-        border-bottom: none;
-        height: 25px;
-    }
-</style>

@@ -23,12 +23,35 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         }
     }
     
-    public function userLink($id = null, $html = false){
+    public function userLink($id = null, $html = true){
         if($id == null) $id = \Nette\Environment::getUser()->getId ();
         $u = DB::users('id', $id)->fetch();
         $n = $u['username'];
         $link = $this->link(':frontend:users:profile', $n);
-        return $html ? "<a href=\"".$link."\">".$n."</a>\n" : $link;
+        if($html){
+            $role = $u['groupid'];
+            switch($role){
+                case 0: 
+                    $role = 'role-root';
+                    break;
+                case 1:
+                    $role = 'role-moderator';
+                    break;
+                case 2:
+                    $role = 'role-user';
+                    break;
+                default:
+                    $role = 'role-guest';
+            }
+            return "<a href=\"".$link."\" class=\"$role\">".$n."</a>\n";
+        }
+        return $link;
+    }
+    
+    public function userStatus($id = null){
+        if($id == null) $id = \Nette\Environment::getUser()->getId ();
+        $u = DB::users_profiles('id', $id)->fetch();
+        return $u['status'];
     }
     
     public function userIcon($id = null){
