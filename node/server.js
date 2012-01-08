@@ -1,5 +1,4 @@
 var starttime = new Date().getTime();
-require.paths.push('/var/node/modules/');
 require('./node_modules/mootools.js').apply(GLOBAL);
 
 /*
@@ -7,36 +6,19 @@ require('./node_modules/mootools.js').apply(GLOBAL);
  */
     /* System modules */
 var http = require('http'),
-    io = require('socket.io'),
+    io = require('socket.io@0.8.5'),
     net = require('net'),
     fs = require('fs'),
     utility = require('./modules/utility.js'),
-    
-    /* Custom modules */
-    Session = require('./modules/session.js').Session,
+    child = require('child_process'),
     
     /* Other variables */
     Config = require('node-iniparser').parseSync(__dirname + '/../config/config.ini'),
-    socket = null,
+    app = null,
     
-    /* 
-     * Session storage 
-     * @void    remove(@int id)     Callback function for deleting sessions
-     * @object+ session%            Every single session
-     * */
-    Clients = {
-        remove:function(id){
-            if(this['session' + id]) delete this['session' + id];
-        },
-        length:function(){
-            var i = 0;
-            for(var m in this)
-                if(typeOf(this[m]) != 'function')
-                    i++;
-            return i;
-        }
-    },
-    
+    /* Custom modules */
+    Session = require('./modules/session.js').Session,
+      
     /*
      * Module loading system
      * Mods are loaded from modules directive in config.ini (modules=chat,forum)
@@ -111,7 +93,6 @@ var http = require('http'),
             '<tr><td class="b">Memory usage:</td><td>' + process.memoryUsage().rss.bytes2string() + '/1024MB</tr></td>\n' +
             '<tr><td class="b">Uptime:</td><td>' + utility.serverUptime(starttime) + '</tr></td>\n' +
             '<tr><th colspan="2">Software</th></tr>\n' +
-            // '<tr><td class="b">Configuration:</td><td>' + JSON.stringify(Config) + '</tr></td>\n' +
             '<tr><td class="b">Modules:</td><td>' + Modules.getList().combine(['session', 'utils']).sort().join(', ') + '</tr></td>\n' +
             '<tr><td class="b">Sessions:</td><td>' + Clients.length() + '</tr></td>\n' +
             '<tr><td class="b">Clients:</td><td>' + JSON.stringify(io) + '</tr></td>\n' +
@@ -120,10 +101,44 @@ var http = require('http'),
         res.end('<hr />\nCreated by <a href="http://aragorn.cz/">Aragorn.cz</a> &copy; 2011');
     }),
    
-    /*
-     *
-     *
-     */
+    /* 
+     * Session storage 
+     * @void    remove(@int id)     Callback function for deleting sessions
+     * @object+ session%            Every single session
+     * */
+     SessionManager = {
+        createSession:function(){
+            var sid;
+            do{
+                sid = Math.round(Math.random() * 10000000000000000);
+            }while(this._s[sid]);
+
+            this._s[sid] = new Session(sid, {
+                parentStorageRemoval:this.remove.bind(this)
+            });
+            this._s[sid].sessid = sid;
+            return this._s[sid];
+        },
+        remove:function(id){
+            console.log(this._s);
+            if(this._s[id]) delete this._s[id];
+            console.log(this._s);
+        },
+        exists:function(id){
+            return !!this._s[id];
+        },
+        get:function(id){
+            return this._s[id] || null;
+        },
+        length:function(){
+            var i = 0;
+            for(var m in this._s)
+                if(typeOf(this[m]) != 'function')
+                    i++;
+            return i;
+        },
+        _s:{}
+    },
     phpUnixSocket = net.createServer(function(s) {
         s.setEncoding('utf-8');
         s.on('data', function(data){
@@ -131,28 +146,24 @@ var http = require('http'),
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
-                        if(Clients['session' + json.data.nodeSession]){
-                            var s = Clients['session' + json.data.nodeSession];
-                            s.phpid = json.data.PHPSESSID;
-                            s.user.id = json.data.id;
-                            s.user.name = json.data.username;
-                            s.user.preferences = json.data.preferences;
-                            s.user.permissions = json.data.permissions;
-                            s.user.roles = json.data.roles;
-                            this.write('OK');
-                        }else{
-                            this.write("SESSION_NOT_FOUND");
-                        }
+                        var s = SessionManager.createSession(json.data.PHPSESSID);
+                        s.user.id = json.data.id;
+                        s.user.name = json.data.username;
+                        s.user.preferences = json.data.preferences;
+                        s.user.permissions = json.data.permissions;
+                        s.user.roles = json.data.roles;
+                        this.write(s.sessionId + '');
                         break;
                     case "user-logout":
-                        if(Clients['session' + json.data.nodeSession]){
+                        /*if(Clients['session' + json.data.nodeSession]){
                             Clients['session' + json.data.nodeSession].phpid = '';
                             Clients['session' + json.data.nodeSession].user.id = 0;
                             Clients['session' + json.data.nodeSession].user.name = '';
                             this.write('OK');
                         }else{
                             this.write("SESSION_NOT_FOUND");
-                        }
+                        }*/
+                        this.write('OK');
                         break;
                     default:
                         if(Modules.isSet(json.command))
@@ -178,8 +189,10 @@ if(mods.length && mods[0]){
     console.log('Modules found: ' + mods.length);
     mods.each(function(name){
         console.log('Registering module ' + name);
-        Modules.register(name);
+        //Modules.register(name);
+        /*child.spawn('node', ['/var/www/node/module.js', '/var/www/node/modules/' + name, name], {cwd:process.cwd(), customFds: [-1, 1, 1]});*/
     });
+    console.log('All modules were launched.');
 }else{
     console.log('Server loaded without modules.');
 }
@@ -223,8 +236,24 @@ console.log('Unix socket opened in ' + Config.common.usock);
  *          >   %                                   (...)       If clients is registered to session calls Session.handleMessgae(message, client), otherwise logs cmd and replies INVALID_SID
  * Step 3: Send SESSION_REQUEST_IDENTITY command
  */
-socket = io.listen(server, {log:null});
-socket.handleMessage = function(msg){
+app = io.listen(server);
+app.configure(function(){
+    app.set('log level', 2);                    // reduce logging
+    app.set('transports', [                     // enable all transports (optional if you want flashsocket)
+        'websocket'
+      , 'flashsocket'
+      , 'htmlfile'
+      , 'xhr-polling'
+      , 'jsonp-polling'
+    ]);
+/*    app.set('authorization', function (handshakeData, callback) {
+        //console.dir(handshakeData);
+        callback(null, true); // error first callback style 
+    });*/
+});
+
+
+/*socket.handleMessage = function(msg){
         msg = msg || {cmd:''};
         switch(msg.cmd){
             case 'SESSION_HAS_PHPSESSID_REGISTERED':
@@ -235,7 +264,7 @@ socket.handleMessage = function(msg){
                 break;
             case 'SESSION_REQUEST_SID':
                 /* Create new client */
-                do{
+/*                do{
                     this.identity = Math.round(Math.random() * 10000000000000000);
                 }while(Clients['session' + this.identity]);
                 
@@ -272,24 +301,36 @@ socket.handleMessage = function(msg){
                 break;
         }
     };
-
-socket.on('connection', function (client) {
+*/
+app.sockets.on('connection', function (client) {
     /*
      *  Implement basic remote-client <=> node.js <=> redis protocol
      */
+    //console.log(client);
+    client.on('SESSION_SID', function(sid){
+        if(!SessionManager.exists(sid)){
+            client.emit('SESSION_RESET_SID');
+        }else{
+            client.set('session', SessionManager.get(sid));
+            client.emit('SESSION_CONFIRMED_SID', sid);
+        }
+    });
     
-    client.on('message', function(msg){
-        if(typeOf(msg) == 'array')
-            msg.each(socket.handleMessage.bind(this));
-        else
-            socket.handleMessage.bind(this)(msg);
+    client.on('SESSION_REQUEST_SID', function(){
+        var s = SessionManager.createSession();
+        var sid = s.sessid;
+        //client.sessionId = sid;
+        s.registerClient(this);
+        client.emit('SESSION_REGISTER_SID', sid);
     });
 
     client.on('disconnect', function(){
-        if(Clients['session' + this.identity])
-            Clients['session' + this.identity].removeClient(this);
+        var s = client.session;
+        s.removeClient(client);
+        //if(Clients['session' + this.identity])
+        //    Clients['session' + this.identity].removeClient(this);
     });
 
     /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
-    client.send({cmd:'SESSION_REQUEST_IDENTITY'});
+    client.emit('SESSION_REQUEST_IDENTITY');
 });

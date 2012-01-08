@@ -1,4 +1,4 @@
-var redis = require('node-redis');
+//var redis = require('node-redis');
 require('mootools.js').apply(GLOBAL);
 
 /*
@@ -32,7 +32,6 @@ exports.Session = new Class({
     initialize:function(sid, options){
         this.setOptions(options);
         this.sessionId = sid;
-        this.redis = redis.createClient();
         
         /* Setup aliases */
         this.pub = this.sendToChannel;
@@ -52,7 +51,6 @@ exports.Session = new Class({
         ips:[]
     },
     phpid:'',
-    redis:null,
     eraseTimeout:null,
     
     /* Methods */
@@ -61,34 +59,28 @@ exports.Session = new Class({
             clearTimeout(this.eraseTimeout);
             this.eraseTimeout = {};
         }
-        this.clients.push(client.sessionId);
-        this.user.ips.include(client.connection.remoteAddress); /* Probably users real ip address, always good to know */
-        
-        client.redis = redis.createClient();
-        client.redis.on('message', this.handleRedis.bind(client));
-        client.redis.on('end', this.reconnectRedis.bind(client));
+        this.clients.push(client.id);
+        this.user.ips.include(client.handshake.address); /* Probably users real ip address, always good to know */
         client.sendToChannel = this.sendToChannel.bind(this);
         client.session = this;
+        console.log('Session clients: ', this.clients);
     },
     removeClient:function(client){
-        if(typeOf(client.redis.quit) == 'function')
-            client.redis.quit();
-        delete client.redis;
-        this.clients.erase(client.sessionId);
+        console.log('Session clients: ', this.clients);
+        this.clients.erase(client.id);
+        console.log(this.clients);
         if(this.clients.length == 0){
             /* UPDATE, SET LARGER TIMEOUT, FOR DEBUG PURPOSES ONLY */
-            this.eraseTimeout = setTimeout(this.erase.bind(this), 1000 * 15);
+            this.eraseTimeout = setTimeout(this.erase.bind(this), 1000 * 5);
         }
     },
     exit:function(){
-        if(this.redis && typeOf(this.redis.quit) == 'function')
-            this.redis.quit();
-        delete this.redis;
     },
     erase:function(){
         this.exit();
         this.fireEvent('disconnect', this);
         this.options.parentStorageRemoval(this.sessionId); // AKA "Delete me, pls!"
+        console.log('Deleted session');
     },
     
     /* Permission handling */
@@ -106,15 +98,6 @@ exports.Session = new Class({
             return ps['_ALL'];
         }
         return false; /* Fallback */
-    },
-
-    /* Redis handling */
-    handleRedis:function(channel, message){
-        message = JSON.parse(message);
-        return this.session.options.redisHook(message, this, channel);
-    },
-    reconnectRedis:function(e){
-        this.redis = redis.createClient();
     },
     
     sendToChannel:function(channel, message){
