@@ -19,9 +19,35 @@
 -- Current Database: `aragorn_cz`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `aragorn_cz` /*!40100 DEFAULT CHARACTER SET latin1 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `aragorn_cz` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci */;
 
 USE `aragorn_cz`;
+
+--
+-- Table structure for table `bank_transfer`
+--
+
+DROP TABLE IF EXISTS `bank_transfer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bank_transfer` (
+  `from` int(11) NOT NULL,
+  `to` int(11) NOT NULL,
+  `time` int(11) NOT NULL,
+  `amount` int(11) NOT NULL,
+  `bank_transfercol` int(11) NOT NULL,
+  `comment` text COLLATE utf8_czech_ci
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bank_transfer`
+--
+
+LOCK TABLES `bank_transfer` WRITE;
+/*!40000 ALTER TABLE `bank_transfer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bank_transfer` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `bans`
@@ -36,11 +62,11 @@ CREATE TABLE `bans` (
   `author` int(10) unsigned NOT NULL,
   `time` int(10) unsigned NOT NULL,
   `expires` int(10) unsigned NOT NULL,
-  `ip` varchar(255) NOT NULL,
-  `reason` text NOT NULL,
+  `ip` varchar(255) CHARACTER SET latin1 NOT NULL,
+  `reason` text CHARACTER SET latin1 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -139,28 +165,25 @@ LOCK TABLES `chronicles` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `forum_admins`
+-- Table structure for table `forum_moderator`
 --
 
-DROP TABLE IF EXISTS `forum_admins`;
+DROP TABLE IF EXISTS `forum_moderator`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `forum_admins` (
-  `forum` int(11) NOT NULL,
-  `user` int(11) NOT NULL,
-  PRIMARY KEY (`forum`,`user`),
-  KEY `fk_žžž_forum_topic1` (`forum`),
-  KEY `fk_forum_admins_users1` (`user`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+CREATE TABLE `forum_moderator` (
+  `userid` int(10) unsigned NOT NULL DEFAULT '0',
+  `forumid` int(10) unsigned NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `forum_admins`
+-- Dumping data for table `forum_moderator`
 --
 
-LOCK TABLES `forum_admins` WRITE;
-/*!40000 ALTER TABLE `forum_admins` DISABLE KEYS */;
-/*!40000 ALTER TABLE `forum_admins` ENABLE KEYS */;
+LOCK TABLES `forum_moderator` WRITE;
+/*!40000 ALTER TABLE `forum_moderator` DISABLE KEYS */;
+/*!40000 ALTER TABLE `forum_moderator` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -180,7 +203,7 @@ CREATE TABLE `forum_posts` (
   UNIQUE KEY `idforum_posts_UNIQUE` (`id`),
   KEY `fk_forum_posts_users1` (`author`),
   KEY `fk_forum_posts_forum_topic1` (`forum`)
-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -189,7 +212,7 @@ CREATE TABLE `forum_posts` (
 
 LOCK TABLES `forum_posts` WRITE;
 /*!40000 ALTER TABLE `forum_posts` DISABLE KEYS */;
-INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...');
+INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze');
 /*!40000 ALTER TABLE `forum_posts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -202,17 +225,18 @@ DROP TABLE IF EXISTS `forum_topic`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `forum_topic` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) DEFAULT NULL,
+  `name` varchar(45) CHARACTER SET latin1 DEFAULT NULL,
   `owner` int(11) unsigned NOT NULL,
-  `description` text,
+  `description` text CHARACTER SET latin1,
   `parent` int(10) unsigned zerofill NOT NULL,
-  `urlfragment` text,
-  `options` int(10) unsigned NOT NULL,
+  `urlfragment` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
+  `options` int(10) unsigned NOT NULL DEFAULT '3',
   `created` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `uqname` (`name`,`urlfragment`),
   KEY `adress` (`urlfragment`(64))
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,7 +245,7 @@ CREATE TABLE `forum_topic` (
 
 LOCK TABLES `forum_topic` WRITE;
 /*!40000 ALTER TABLE `forum_topic` DISABLE KEYS */;
-INSERT INTO `forum_topic` VALUES (1,'Server',0,'Vse tykajici se serveru',0000000000,'server',1,1325522043),(2,'Herna',0,'DRD...',0000000000,'herna',3,1325522043),(3,'Larp',0,'a vse kolem',0000000000,'larp',3,1325522043),(4,'Bug',0,'Hlaseni chyb',0000000001,'server-bug',3,1325522043),(5,'Napady',0,'Co by se mohlo vylepsit',0000000001,'server-napady',3,1325522043);
+INSERT INTO `forum_topic` VALUES (1,'Server',0,'Vse tykajici se serveru',0000000000,'server',1,1325522043),(2,'Herna',0,'DRD...',0000000000,'herna',3,1325522043),(3,'Larp',0,'a vse kolem',0000000000,'larp',3,1325522043),(4,'Bug',0,'Hlaseni chyb',0000000001,'server-bug',3,1325522043);
 /*!40000 ALTER TABLE `forum_topic` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -448,6 +472,7 @@ CREATE TABLE `users_profiles` (
   `login` int(11) unsigned zerofill DEFAULT NULL,
   `icon` varchar(70) COLLATE utf8_czech_ci DEFAULT 'default.png',
   `status` text COLLATE utf8_czech_ci,
+  `bank` int(11) DEFAULT '15',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
@@ -459,7 +484,7 @@ CREATE TABLE `users_profiles` (
 
 LOCK TABLES `users_profiles` WRITE;
 /*!40000 ALTER TABLE `users_profiles` DISABLE KEYS */;
-INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,00000000000,'buri.jpg','Fakt mÄ› to nebavÃ­. NÄ›cadjsÅ¯fadlsf hadslfk hasdlkf adsfa'),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,00000000000,'default.png','Jsem tester!'),(3,'3c33150764403d4be7e7b49dcb9c348b37174f85','test3@aragorn.cz',1309265408,00000000000,'default.png',NULL),(4,'8cb2237d0679ca88db6464eac60da96345513964','darw@centrum.cz',1310236356,00000000000,'default.png',NULL),(5,'d9c2f352e9968706b67559e010cb17156c7ff335','psrutova@noveranet.cz',1310326091,00000000000,'default.png','Miau');
+INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,00000000000,'buri.jpg','A4 under construction.',15),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,00000000000,'default.png','Jsem tester!',15),(3,'3c33150764403d4be7e7b49dcb9c348b37174f85','test3@aragorn.cz',1309265408,00000000000,'default.png',NULL,15),(4,'8cb2237d0679ca88db6464eac60da96345513964','darw@centrum.cz',1310236356,00000000000,'default.png',NULL,15),(5,'d9c2f352e9968706b67559e010cb17156c7ff335','psrutova@noveranet.cz',1310326091,00000000000,'default.png','Miau',15);
 /*!40000 ALTER TABLE `users_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1120,4 +1145,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2012-01-06 19:08:07
+-- Dump completed on 2012-01-08 20:31:23

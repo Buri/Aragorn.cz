@@ -20,6 +20,16 @@
     </div>
 </div>
 {/foreach}
+<script n:syntax="double">
+    function newForumCb(res, dom){
+        AC.message('Nové forum', dom[0].get('html'));
+        AC.Ajax.reloadLocation();
+    }
+    function newForum(name){
+        var ajax = new AC.ajax('newforum', {id:name,'param':{{$id}}}, newForumCb);
+    }    
+</script>
+{if $newforum}<a href="#" onclick="AC.prompt('Název nového fóra?', newForum); return false;">Založit nové forum</a>{/if}
 {if $discussion}
 {control discussion, $id}
 {/if}

@@ -1,4 +1,4 @@
-*{
+.transition *{
     -moz-transition: all 1s linear ;
 }
 body.dark{
@@ -81,8 +81,8 @@ body.dark{
 }
 
 .dark .contentLoading{
-    opacity:0.5;
-    transition: all 1.5s linear;
+    opacity:0.1;
+    -moz-transition: all .9s linear;
 }
 
 .dark .role-root{
@@ -324,6 +324,7 @@ body.dark{
     border:1px solid silver;
     border-radius: 6px;
     padding: 0 6px;
+    margin-bottom: 4px;
 }
 .dark .forum-count{
     float:right;display:inline-block;width: 40px; text-align: center;

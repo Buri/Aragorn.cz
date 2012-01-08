@@ -32,6 +32,8 @@
     {form forumForm}
     <a href="#" onclick="$$('.newPost').toggleClass('slideinform'); return false;">{label post /}</a>
     <br/>
+    <button type="button" style="font-weight: bold;" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[b]', 'after':'[/b]', 'defaultMiddle':''});">B</button>
+    <br/>
     {input post}
     <br/>
     {input send id=>'post'}

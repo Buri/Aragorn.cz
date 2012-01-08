@@ -128,13 +128,15 @@ var MooDialog = new Class({
 });
 
 
-Element.implement({
+/*Element.implement({
 
-	MooDialog: function(options){
-		this.store('MooDialog',
+	MooDialog: function(options, e){
+            console.log(options);
+		$(this).store('MooDialog',
 			new MooDialog(options).setContent(this).open()
 		);
 		return this;
 	}
 
 });
+*/

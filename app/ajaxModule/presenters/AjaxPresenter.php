@@ -12,6 +12,7 @@ namespace ajaxModule{
             header("Content-type: application/xml");
             header("Content-type: text/plain");
             $this->setView('default');
+            $this->template->data = "";
             parent::startup();
         }
 
@@ -35,6 +36,31 @@ namespace ajaxModule{
             catch(\Exception $e){
                 $this->getTemplate()->data = $e->getMessage();
             }
+        }
+        
+        public function actionNewforum($id = null, $param = null){
+            $parentid = 0;
+            if($param != ""){
+                $parent = DB::forum_topic('urlfragment', $param)->fetch();
+                $parentid = $parent['id'];
+            }
+            try{
+                echo DB::forum_topic()->insert(array(
+                    "name"=>$id,
+                    "owner"=>\Nette\Environment::getUser()->getId(),
+                    "description" => "Nové forum",
+                    "parent" => $parentid,
+                    "urlfragment" => \Utilities::string2url($id),
+                    "created" => time()
+                ));
+                $this->template->data = "Forum bylo založeno.";
+            }
+            catch(\Exception $e){
+                $this->template->data = $e->getMessage();
+            }
+        }
+        public function actionWait($id = 1000){
+            usleep($id);
         }
     }
 }

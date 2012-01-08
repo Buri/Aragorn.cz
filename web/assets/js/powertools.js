@@ -1,4 +1,93 @@
-// packager build Mobile/Browser.Mobile Mobile/Mouse Mobile/Touch Mobile/Click Mobile/Pinch Mobile/Swipe Mobile/Touchhold History/History.handleInitialState Form-AutoGrow/* Form-Placeholder/* ScrollLoader/*
+// packager build Custom-Event/* Mobile/* Class-Extras/Class.Instantiate Class-Extras/Class.Properties History/History.handleInitialState DynamicMatcher/* Mootilities/* Form-AutoGrow/* Form-Placeholder/* EventStack/EventStack.OuterClick Tree/Tree Tree/Collapse.Cookie Tree/Collapse.LocalStorage ScrollLoader/* Interface/*
+/*
+---
+
+name: Element.defineCustomEvent
+
+description: Allows to create custom events based on other custom events.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Element.Event]
+
+provides: Element.defineCustomEvent
+
+...
+*/
+
+(function(){
+
+[Element, Window, Document].invoke('implement', {hasEvent: function(event){
+	var events = this.retrieve('events'),
+		list = (events && events[event]) ? events[event].values : null;
+	if (list){
+		var i = list.length;
+		while (i--) if (i in list){
+			return true;
+		}
+	}
+	return false;
+}});
+
+var wrap = function(custom, method, extended){
+	method = custom[method];
+	extended = custom[extended];
+
+	return function(fn, name){
+		if (extended && !this.hasEvent(name)) extended.call(this, fn, name);
+		if (method) method.call(this, fn, name);
+	};
+};
+
+var inherit = function(custom, base, method){
+	return function(fn, name){
+		base[method].call(this, fn, name);
+		custom[method].call(this, fn, name);
+	};
+};
+
+var events = Element.Events;
+
+Element.defineCustomEvent = function(name, custom){
+	var base = events[custom.base];
+
+	custom.onAdd = wrap(custom, 'onAdd', 'onSetup');
+	custom.onRemove = wrap(custom, 'onRemove', 'onTeardown');
+
+	events[name] = base ? Object.append({}, custom, {
+
+		base: base.base,
+
+		condition: function(event, name){
+			return (!base.condition || base.condition.call(this, event, name)) &&
+				(!custom.condition || custom.condition.call(this, event, name));
+		},
+
+		onAdd: inherit(custom, base, 'onAdd'),
+		onRemove: inherit(custom, base, 'onRemove')
+
+	}) : custom;
+
+	return this;
+};
+
+Element.enableCustomEvents = function(){
+  Object.each(events, function(event, name){
+    if (event.onEnable) event.onEnable.call(event, name);
+  });
+};
+
+Element.disableCustomEvents = function(){
+  Object.each(events, function(event, name){
+    if (event.onDisable) event.onDisable.call(event, name);
+  });
+};
+
+})();
+
+
 /*
 ---
 
@@ -41,98 +130,6 @@ Browser.isMobile = !['mac', 'linux', 'win'].contains(Browser.Platform.name);
 /*
 ---
 
-name: Element.defineCustomEvent
-
-description: Allows to create custom events based on other custom events.
-
-authors: Christoph Pojer (@cpojer)
-
-license: MIT-style license.
-
-requires: [Core/Element.Event]
-
-provides: Element.defineCustomEvent
-
-...
-*/
-
-(function(){
-
-[Element, Window, Document].invoke('implement', {hasEvent: function(event){
-	var events = this.retrieve('events'),
-		list = (events && events[event]) ? events[event].values : null;
-	if (list){
-		for (var i = list.length; i--;) if (i in list){
-			return true;
-		}
-	}
-	return false;
-}});
-
-var wrap = function(custom, method, extended, name){
-	method = custom[method];
-	extended = custom[extended];
-
-	return function(fn, customName){
-		if (!customName) customName = name;
-
-		if (extended && !this.hasEvent(customName)) extended.call(this, fn, customName);
-		if (method) method.call(this, fn, customName);
-	};
-};
-
-var inherit = function(custom, base, method, name){
-	return function(fn, customName){
-		base[method].call(this, fn, customName || name);
-		custom[method].call(this, fn, customName || name);
-	};
-};
-
-var events = Element.Events;
-
-Element.defineCustomEvent = function(name, custom){
-
-	var base = events[custom.base];
-
-	custom.onAdd = wrap(custom, 'onAdd', 'onSetup', name);
-	custom.onRemove = wrap(custom, 'onRemove', 'onTeardown', name);
-
-	events[name] = base ? Object.append({}, custom, {
-
-		base: base.base,
-
-		condition: function(event){
-			return (!base.condition || base.condition.call(this, event)) &&
-				(!custom.condition || custom.condition.call(this, event));
-		},
-
-		onAdd: inherit(custom, base, 'onAdd', name),
-		onRemove: inherit(custom, base, 'onRemove', name)
-
-	}) : custom;
-
-	return this;
-
-};
-
-var loop = function(name){
-	var method = 'on' + name.capitalize();
-	Element[name + 'CustomEvents'] = function(){
-		Object.each(events, function(event, name){
-			if (event[method]) event[method].call(event, name);
-		});
-	};
-	return loop;
-};
-
-loop('enable')('disable');
-
-})();
-
-
-/*
----
-
 name: Browser.Features.Touch
 
 description: Checks whether the used Browser has touch events
@@ -157,12 +154,13 @@ Browser.Features.Touch = (function(){
 	return false;
 })();
 
-// Chrome 5 thinks it is touchy!
 // Android doesn't have a touch delay and dispatchEvent does not fire the handler
 Browser.Features.iOSTouch = (function(){
 	var name = 'cantouch', // Name does not matter
 		html = document.html,
 		hasTouch = false;
+
+	if (!html.addEventListener) return false;
 
 	var handler = function(){
 		html.removeEventListener(name, handler, true);
@@ -256,7 +254,8 @@ provides: Touch
 (function(){
 
 var preventDefault = function(event){
-	event.preventDefault();
+	if (!event.target || event.target.tagName.toLowerCase() != 'select')
+		event.preventDefault();
 };
 
 var disabled;
@@ -273,7 +272,7 @@ Element.defineCustomEvent('touch', {
 
 		do {
 			if (target == this) return true;
-		} while ((target = target.parentNode) && target);
+		} while (target && (target = target.parentNode));
 
 		return false;
 	},
@@ -441,24 +440,24 @@ var events = {
 	},
 	
 	touchmove: function(event){
-		event.preventDefault();
 		if (disabled || !active) return;
 		
-		var touch = event.changedTouches[0];
-		var end = {x: touch.pageX, y: touch.pageY};
-		if (this.retrieve(cancelKey) && Math.abs(start.y - end.y) > Math.abs(start.x - end.x)){
+		var touch = event.changedTouches[0],
+			end = {x: touch.pageX, y: touch.pageY};
+		if (this.retrieve(cancelKey) && Math.abs(start.y - end.y) > 10){
 			active = false;
 			return;
 		}
 		
 		var distance = this.retrieve(distanceKey, dflt),
-			diff = end.x - start.x,
-			isLeftSwipe = diff < -distance,
-			isRightSwipe = diff > distance;
+			delta = end.x - start.x,
+			isLeftSwipe = delta < -distance,
+			isRightSwipe = delta > distance;
 
 		if (!isRightSwipe && !isLeftSwipe)
 			return;
 		
+		event.preventDefault();
 		active = false;
 		event.direction = (isLeftSwipe ? 'left' : 'right');
 		event.start = start;
@@ -563,6 +562,81 @@ Element.defineCustomEvent(name, {
 	}
 
 });
+
+})();
+
+
+/*
+---
+
+name: Class.Instantiate
+
+description: Simple Wrapper for Mass-Class-Instantiation
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Class]
+
+provides: Class.Instantiate
+
+...
+*/
+
+Class.Instantiate = function(klass, options){
+	var create = function(object){
+		if (object.getInstanceOf && object.getInstanceOf(klass)) return;
+		new klass(object, options);
+	};
+
+	return function(objects){
+		objects.each(create);
+	};
+};
+
+/*
+---
+
+name: Class.Properties
+
+description: Provides getters/setters sugar for your class properties.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Class, Core/String]
+
+provides: Class.Properties
+
+...
+*/
+
+(function(){
+
+var setter = function(name){
+	return function(value){
+		this[name] = value;
+		return this;
+	};
+};
+
+var getter = function(name){
+	return function(){
+		return this[name] || null;
+	};
+};
+
+Class.Mutators.Properties = function(properties){
+	this.implement(properties);
+
+	for (var prop in properties){
+		var name = prop.replace(/^_+/, '').capitalize().camelCase();
+		this.implement('set' + name, setter(prop));
+		this.implement('get' + name, getter(prop));
+	}
+};
 
 })();
 
@@ -746,6 +820,362 @@ History.handleInitialState = function(base){
 /*
 ---
 
+name: DynamicMatcher
+
+description: Searches elements via complex selectors and executes functions on them
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Events, Core/Element]
+
+provides: DynamicMatcher
+
+...
+*/
+
+(function(){
+
+this.DynamicMatcher = new Class({
+
+	Implements: Events,
+
+	initialize: function(){
+		this.expressions = [];
+		this.handlers = [];
+	},
+
+	register: function(expression, fn){
+		var index = this.handlers.indexOf(fn);
+		if (index != -1 && this.expressions[index] == expression) return this;
+
+		this.expressions.push(expression);
+		this.handlers.push(fn);
+
+		return this;
+	}.overloadSetter(),
+
+	unregister: function(expression, fn){
+		var handlers = this.handlers,
+			expressions = this.expressions;
+
+		for (var i = 0, l = handlers.length; i < l; i++) if (expression == expressions[i] && fn == handlers[i]){
+			delete handlers[i];
+			delete expressions[i];
+			break;
+		}
+
+		return this;
+	}.overloadSetter(),
+
+	update: function(element){
+		element = document.id(element) || document;
+
+		var isDocument = (element == document),
+			handlers = this.handlers,
+			expressions = this.expressions;
+
+		for (var i = 0, l = handlers.length; i < l; i++){
+			var expression = expressions[i];
+			if (!expression) continue;
+
+			var elements = element.getElements(expression);
+			if (!isDocument && element.match(expression)) elements.push(element);
+
+			if (elements.length) handlers[i](elements);
+		}
+
+		this.fireEvent('update', [element]);
+
+		return this;
+	}
+
+});
+
+}).call(this);
+
+
+/*
+---
+
+name: Accessor
+
+description: Adds define/lookup for anything on your objects. Backport of a 2.0 component.
+
+authors: Valerio Proietti (@kamicane)
+
+license: MIT-style license.
+
+requires: [Core/Object]
+
+provides: Accessor
+
+...
+*/
+
+(function(){
+
+this.Accessor = function(singular, plural){
+	if (!singular) singular = '';
+	if (!plural) plural = singular + 's';
+
+	var accessor = {}, matchers = [],
+		define = 'define', lookup = 'lookup', match = 'match', each = 'each';
+
+	this[define + singular] = function(key, value){
+		if (typeOf(key) == 'regexp') matchers.push({regexp: key, value: value, type: typeOf(value)});
+		else accessor[key] = value;
+		return this;
+	};
+
+	this[define + plural] = function(object){
+		for (var key in object) accessor[key] = object[key];
+		return this;
+	};
+
+	var lookupSingular = this[lookup + singular] = function(key){
+		if (accessor.hasOwnProperty(key)) return accessor[key];
+		for (var l = matchers.length; l--; l){
+			var matcher = matchers[l], matched = key.match(matcher.regexp);
+			if (matched && (matched = matched.slice(1))){
+				if (matcher.type == 'function') return function(){
+					return matcher.value.apply(this, Array.from(arguments).concat(matched));
+				}; else return matcher.value;
+			}
+		}
+		return null;
+	};
+
+	this[lookup + plural] = function(){
+		var results = {};
+		for (var i = 0; i < arguments.length; i++){
+			var argument = arguments[i];
+			results[argument] = lookupSingular(argument);
+		}
+		return results;
+	};
+
+	this[each + singular] = function(fn, bind){
+		Object.forEach(accessor, fn, bind);
+	};
+
+};
+
+})();
+
+
+/*
+---
+
+name: Listener
+
+description: Attach listeners to your elements and detach them all at once easily.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Class.Extras, Core/Element.Event]
+
+provides: Listener
+
+...
+*/
+
+(function(){
+
+var property = '$' + String.uniqueID() + '-listener';
+var setup = function(element){
+	var listener = new Events, removeEvent = listener.removeEvent;
+	listener.removeEvent = function(key, value){
+		removeEvent.call(this, key, value);
+		element.removeEvent(key, value);
+	};
+	return listener;
+};
+
+this.Listener = new Class({
+
+	attach: function(key, value){
+		if (!this[property]) this[property] = setup(this.toElement());
+		this[property].addEvent(key, value);
+		this.toElement().addEvent(key, value);
+	}.overloadSetter(),
+
+	detach: function(key, value){
+		if (this[property]){
+			if (typeof key == 'string') this[property].removeEvent(key, value);
+			else this[property].removeEvents(key);
+		}
+		return this;
+	},
+
+	toElement: function(){
+		return this.element;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+name: LocalStorage
+
+description: Simple localStorage wrapper. Does not even attempt to be a fancy plugin.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Cookie, Core/JSON]
+
+provides: LocalStorage
+
+...
+*/
+
+(function(){
+
+var storage, set, get, erase;
+if ('localStorage' in this) {
+	storage = this.localStorage;
+	set = function(key, value){
+		storage.setItem(key, JSON.encode(value));
+		return this;
+	};
+
+	get = function(key){
+		return JSON.decode(storage.getItem(key));
+	};
+
+	erase = function(key){
+		storage.removeItem(key);
+		return this;
+	}.overloadGetter();
+} else {
+	storage = this.Cookie;
+	set = function(key, value){
+		storage.write(key, JSON.encode(value));
+		return this;
+	};
+
+	get = function(key){
+		return JSON.decode(storage.read(key));
+	};
+
+	erase = function(key){
+		storage.dispose(key);
+		return this;
+	}.overloadGetter();
+}
+
+this.LocalStorage = {
+	set: set.overloadSetter(),
+	get: get.overloadGetter(),
+	erase: function(){
+		erase.apply(this, arguments);
+		return this;
+	}
+};
+
+})();
+
+
+/*
+---
+
+name: Queue
+
+description: A really really lightweight queuing system.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Class.Extras, Class-Extras/Class.Binds]
+
+provides: Queue
+
+...
+*/
+
+(function(){
+
+this.Queue = new Class({
+
+	Extends: Chain,
+
+	Implements: Class.Binds,
+
+	call: function(){
+		if (this.busy || !this.$chain.length) return this;
+
+		this.busy = true;
+		this.callChain();
+		return this;
+	},
+
+	next: function(){
+		this.busy = false;
+		this.call();
+		return this;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+name: Stratcom
+
+description: The simplest form of notifying other parts of your app about cool stuff. Will be more awesome in the future.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Class.Extras]
+
+provides: Stratcom
+
+...
+*/
+
+(function(){
+
+var bag = new Events;
+this.Stratcom = {
+
+	notify: function(type, args){
+		bag.fireEvent(type, args);
+		return this;
+	},
+
+	listen: function(type, fn){
+		bag.addEvent(type, fn);
+		return this;
+	}.overloadSetter(),
+
+	ignore: function(type, fn){
+		bag.removeEvent(type, fn);
+		return this;
+	}.overloadSetter()
+
+};
+
+})();
+
+
+/*
+---
+
 name: Class.Singleton
 
 description: Beautiful Singleton Implementation that is per-context or per-object/element
@@ -786,7 +1216,7 @@ Class.Singleton.prototype.check = function(item){
 
 	var instance = item.retrieve('single:' + this.$className);
 	if (!instance) item.store('single:' + this.$className, this);
-	
+
 	return instance;
 };
 
@@ -802,7 +1232,7 @@ if (('Element' in this) && Element.implement) Element.implement({getInstanceOf: 
 
 Class.getInstanceOf = gIO.bind(storage);
 
-}).call(this);
+})();
 
 /*
 ---
@@ -1051,6 +1481,615 @@ this.Form.Placeholder = new Class({
 /*
 ---
 
+name: EventStack
+
+description: Helps you Escape.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Class.Extras, Core/Element.Event, Class-Extras/Class.Binds]
+
+provides: EventStack
+
+...
+*/
+
+(function(){
+
+this.EventStack = new Class({
+
+	Implements: [Options, Class.Binds],
+
+	options: {
+		event: 'keyup',
+		condition: function(event){
+			return (event.key == 'esc');
+		}
+	},
+
+	initialize: function(options){
+		this.setOptions(options);
+		this.stack = [];
+		this.data = [];
+
+		document.addEvent(this.options.event, this.bound('condition'));
+	},
+
+	condition: function(event){
+		if (this.options.condition.call(this, event, this.data.getLast()))
+			this.pop(event);
+	},
+
+	erase: function(fn){
+		this.data.erase(this.data[this.stack.indexOf(fn)]);
+		this.stack.erase(fn);
+
+		return this;
+	},
+
+	push: function(fn, data){
+		this.erase(fn);
+		this.data.push(data || null);
+		this.stack.push(fn);
+		
+		return this;
+	},
+
+	pop: function(event){
+		var fn = this.stack.pop(),
+			data = this.data.pop();
+		
+		if (fn) fn.call(this, event, data);
+
+		return this;
+	}
+
+});
+
+}).call(this);
+
+
+/*
+---
+
+name: EventStack.OuterClick
+
+description: Helps you escape from clicks outside of a certain area.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [EventStack]
+
+provides: EventStack.OuterClick
+
+...
+*/
+
+EventStack.OuterClick = new Class({
+
+	Extends: EventStack,
+
+	options: {
+		event: 'click',
+		condition: function(event, element){
+			return element && !element.contains(event.target);
+		}
+	}
+
+});
+
+
+/*
+---
+
+name: Tree
+
+description: Provides a way to sort and reorder a tree via drag&drop.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Events, Core/Element.Event, Core/Element.Style, Core/Element.Dimensions, Core/Fx.Tween, Core/Element.Delegation, More/Drag.Move, Class-Extras/Class.Binds, Class-Extras/Class.Singleton]
+
+provides: Tree
+
+...
+*/
+
+(function(){
+
+this.Tree = new Class({
+
+	Implements: [Options, Events, Class.Binds, Class.Singleton],
+
+	options: {
+		/*onChange: function(){},*/
+		indicatorOffset: 0,
+		cloneOffset: {x: 16, y: 16},
+		cloneOpacity: 0.8,
+		checkDrag: Function.from(true),
+		checkDrop: Function.from(true)
+	},
+
+	initialize: function(element, options){
+		this.setOptions(options);
+		element = this.element = document.id(element);
+		return this.check(element) || this.setup();
+	},
+
+	setup: function(){
+		this.indicator = new Element('div.treeIndicator');
+
+		var self = this;
+		this.handler = function(e){
+			self.mousedown(this, e);
+		};
+
+		this.attach();
+	},
+
+	attach: function(){
+		this.element.addEvent('mousedown:relay(li)', this.handler);
+		document.addEvent('mouseup', this.bound('mouseup'));
+		return this;
+	},
+
+	detach: function(){
+		this.element.removeEvent('mousedown:relay(li)', this.handler);
+		document.removeEvent('mouseup', this.bound('mouseup'));
+		return this;
+	},
+
+	mousedown: function(element, event){
+		event.preventDefault();
+
+		this.padding = (this.element.getElement('li ul li') || this.element.getElement('li')).getLeft() - this.element.getLeft() + this.options.indicatorOffset;
+		if (this.collapse === undefined && typeof Collapse != 'undefined')
+			this.collapse = this.element.getInstanceOf(Collapse);
+
+		if(!this.options.checkDrag.call(this, element)) return;
+		if (this.collapse && Slick.match(event.target, this.collapse.options.selector)) return;
+
+		this.current = element;
+		this.clone = element.clone().setStyles({
+			left: event.page.x + this.options.cloneOffset.x,
+			top: event.page.y + this.options.cloneOffset.y,
+			opacity: this.options.cloneOpacity
+		}).addClass('drag').inject(document.body);
+
+		this.clone.makeDraggable({
+			droppables: this.element.getElements('li span'),
+			onLeave: this.bound('hideIndicator'),
+			onDrag: this.bound('onDrag'),
+			onDrop: this.bound('onDrop')
+		}).start(event);
+	},
+
+	mouseup: function(){
+		if (this.clone) this.clone.destroy();
+	},
+
+	onDrag: function(el, event){
+		clearTimeout(this.timer);
+		if (this.previous) this.previous.fade(1);
+		this.previous = null;
+
+		if (!event || !event.target) return;
+
+		var droppable = (event.target.get('tag') == 'li') ? event.target : event.target.getParent('li');
+		if (!droppable || this.element == droppable || !this.element.contains(droppable)) return;
+
+		if (this.collapse) this.expandCollapsed(droppable);
+
+		var coords = droppable.getCoordinates(),
+			marginTop =  droppable.getStyle('marginTop').toInt(),
+			center = coords.top + marginTop + (coords.height / 2),
+			isSubnode = (event.page.x > coords.left + this.padding),
+			position = {
+				x: coords.left + (isSubnode ? this.padding : 0),
+				y: coords.top
+			};
+
+		var drop;
+		if ([droppable, droppable.getParent('li')].contains(this.current)){
+			this.drop = {};
+		} else if (event.page.y >= center){
+			position.y += coords.height;
+			drop = {
+				target: droppable,
+				where: 'after',
+				isSubnode: isSubnode
+			};
+			if (!this.options.checkDrop.call(this, droppable, drop)) return;
+			this.setDropTarget(drop);
+		} else if (event.page.y < center){
+			position.x = coords.left;
+			drop = {
+				target: droppable,
+				where: 'before'
+			};
+			if (!this.options.checkDrop.call(this, droppable, drop)) return;
+			this.setDropTarget(drop);
+		}
+
+		if (this.drop.target) this.showIndicator(position);
+		else this.hideIndicator();
+	},
+
+	onDrop: function(el){
+		el.destroy();
+		this.hideIndicator();
+
+		var drop = this.drop,
+			current = this.current;
+		if (!drop || !drop.target) return;
+
+		var previous = current.getParent('li');
+		if (drop.isSubnode) current.inject(drop.target.getElement('ul') || new Element('ul').inject(drop.target), 'bottom');
+		else current.inject(drop.target, drop.where || 'after');
+
+		if (this.collapse){
+			if (previous) this.collapse.updateElement(previous);
+			this.collapse.updateElement(drop.target);
+		}
+
+		this.fireEvent('change');
+	},
+
+	setDropTarget: function(drop){
+		this.drop = drop;
+	},
+
+	showIndicator: function(position){
+		this.indicator.setStyles({
+			left: position.x + this.options.indicatorOffset,
+			top: position.y
+		}).inject(document.body);
+	},
+
+	hideIndicator: function(){
+		this.indicator.dispose();
+	},
+
+	expandCollapsed: function(element){
+		var child = element.getElement('ul');
+		if (!child || !this.collapse.isCollapsed(child)) return;
+
+		element.set('tween', {duration: 150}).fade(0.5);
+		this.previous = element;
+		this.timer = (function(){
+			element.fade(1);
+			this.collapse.expand(element);
+		}).delay(300, this);
+	},
+
+	serialize: function(fn, base){
+		if (!base) base = this.element;
+		if (!fn) fn = function(el){
+			return el.get('id');
+		};
+
+		var result = {};
+		base.getChildren('li').each(function(el){
+			var child = el.getElement('ul');
+			result[fn(el)] = child ? this.serialize(fn, child) : true;
+		}, this);
+		return result;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+name: Collapse
+
+description: Allows to expand or collapse a list or a tree.
+
+authors: Christoph Pojer (@cpojer)
+
+license: MIT-style license.
+
+requires: [Core/Events, Core/Element.Event, Core/Element.Style, Core/Element.Dimensions, Core/Fx, More/Element.Delegation, Class-Extras/Class.Singleton]
+
+provides: Collapse
+
+...
+*/
+
+(function(){
+
+this.Collapse = new Class({
+
+	Implements: [Options, Class.Singleton],
+
+	options: {
+		animate: true,
+		fadeOpacity: 0.5,
+		className: 'collapse',
+		selector: 'a.expand',
+		listSelector: 'li',
+		childSelector: 'ul'
+	},
+
+	initialize: function(element, options){
+		this.setOptions(options);
+		element = this.element = document.id(element);
+
+		return this.check(element) || this.setup();
+	},
+
+	setup: function(){
+		var self = this;
+		this.handler = function(e){
+			self.toggle(this, e);
+		};
+
+		this.mouseover = function(){
+			if (self.hasChildren(this)) this.getElement(self.options.selector).fade(1);
+		};
+
+		this.mouseout = function(){
+			if (self.hasChildren(this)) this.getElement(self.options.selector).fade(self.options.fadeOpacity);
+		};
+
+		this.prepare().attach();
+	},
+
+	attach: function(){
+		var element = this.element;
+		element.addEvent('click:relay(' + this.options.selector + ')', this.handler);
+		if (this.options.animate){
+			element.addEvent('mouseover:relay(' + this.options.listSelector + ')', this.mouseover);
+			element.addEvent('mouseout:relay(' + this.options.listSelector + ')', this.mouseout);
+		}
+		return this;
+	},
+
+	detach: function(){
+		this.element.removeEvent('click:relay(' + this.options.selector + ')', this.handler)
+				.removeEvent('mouseover:relay(' + this.options.listSelector + ')', this.mouseover)
+				.removeEvent('mouseout:relay(' + this.options.listSelector + ')', this.mouseout);
+		return this;
+	},
+
+	prepare: function(){
+		this.prepares = true;
+		this.element.getElements(this.options.listSelector).each(this.updateElement, this);
+		this.prepares = false;
+		return this;
+	},
+
+	updateElement: function(element){
+		var child = element.getElement(this.options.childSelector),
+			icon = element.getElement(this.options.selector);
+
+		if (!this.hasChildren(element)){
+			if (!this.options.animate || this.prepares) icon.setStyle('opacity', 0);
+			else icon.fade(0);
+			return;
+		}
+
+		if (this.options.animate) icon.fade(this.options.fadeOpacity);
+		else icon.setStyle('opacity', this.options.fadeOpacity);
+
+		if (this.isCollapsed(child)) icon.removeClass('collapse');
+		else icon.addClass('collapse');
+	},
+
+	hasChildren: function(element){
+		var child = element.getElement(this.options.childSelector);
+		return (child && child.getChildren().length);
+	},
+
+	isCollapsed: function(element){
+		return (element.getStyle('display') == 'none');
+	},
+
+	toggle: function(element, event){
+		if (event) event.preventDefault();
+
+		if (!element.match(this.options.listSelector)) element = element.getParent(this.options.listSelector);
+
+		if (this.isCollapsed(element.getElement(this.options.childSelector))) this.expand(element);
+		else this.collapse(element);
+
+		return this;
+	},
+
+	expand: function(element){
+		element.getElement(this.options.childSelector).setStyle('display', 'block');
+		element.getElement(this.options.selector).addClass(this.options.className);
+		return this;
+	},
+
+	collapse: function(element){
+		element.getElement(this.options.childSelector).setStyle('display', 'none');
+		element.getElement(this.options.selector).removeClass(this.options.className);
+		return this;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+name: Collapse.Persistent
+
+description: Interface to automatically save the state to persistent storage.
+
+authors: [Christoph Pojer (@cpojer), Sean McArthur (@seanmonstar)]
+
+license: MIT-style license.
+
+requires: [Collapse]
+
+provides: Collapse.Persistent
+
+...
+*/
+
+(function(){
+
+this.Collapse.Persistent = new Class({
+
+	Extends: this.Collapse,
+
+	options: {
+
+		getAttribute: function(element){
+			return element.get('id');
+		},
+
+		getIdentifier: function(element){
+			return 'collapse_' + element.get('id') + '_' + element.get('class').split(' ').join('_');
+		}
+
+	},
+
+	setup: function(){
+		this.key = this.options.getIdentifier.call(this, this.element);
+		this.state = this.getState();
+		this.parent();
+	},
+
+	prepare: function(){
+		var obj = this.state;
+		this.element.getElements(this.options.listSelector).each(function(element){
+			if (!element.getElement(this.options.childSelector)) return;
+
+			var state = obj[this.options.getAttribute.call(this, element)];
+			if (state == 1) this.expand(element);
+			else if (state == 0) this.collapse(element);
+		}, this);
+
+		return this.parent();
+	},
+
+	getState: function(){
+		return {};
+	},
+
+	setState: function(element, state){
+		this.state[this.options.getAttribute.call(this, element)] = state;
+		return this;
+	},
+
+	expand: function(element){
+		this.parent(element);
+		this.setState(element, 1);
+		return this;
+	},
+
+	collapse: function(element){
+		this.parent(element);
+		this.setState(element, 0);
+		return this;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+name: Collapse.Cookie
+
+description: Automatically saves the collapsed/expanded state in a Cookie.
+
+authors: [Christoph Pojer (@cpojer), Sean McArthur (@seanmonstar)]
+
+license: MIT-style license.
+
+requires: [Core/Cookie, Core/JSON, Collapse.Persistent]
+
+provides: Collapse.Cookie
+
+...
+*/
+
+(function(){
+
+this.Collapse.Cookie = new Class({
+
+	Extends: this.Collapse.Persistent,
+
+	getState: function(){
+		var self = this;
+		return Function.attempt(function(){
+			return JSON.decode(Cookie.read(self.key));
+		}) || {};
+	},
+
+	setState: function(element, state){
+		this.parent(element, state);
+		Cookie.write(this.key, JSON.encode(this.state), {duration: 30});
+		return this;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+name: Collapse.LocalStorage
+
+description: Automatically saves the collapsed/expanded state to localStorage.
+
+authors: Sean McArthur (@seanmonstar)
+
+license: MIT-style license.
+
+requires: [Core/JSON, Collapse.Persistent]
+
+provides: Collapse.LocalStorage
+
+...
+*/
+
+(function(){
+
+this.Collapse.LocalStorage = new Class({
+
+	Extends: this.Collapse.Persistent,
+
+	getState: function(){
+		var self = this;
+		return Function.attempt(function(){
+			return JSON.decode(localStorage.getItem(self.key));
+		}) || {};
+	},
+
+	setState: function(element, state){
+		this.parent(element, state)
+		localStorage.setItem(this.key, JSON.encode(this.state));
+		return this;
+	}
+
+});
+
+})();
+
+
+/*
+---
+
 name: ScrollLoader
 
 description: Provides the ability to load more content when a user reaches the end of a page.
@@ -1112,4 +2151,77 @@ this.ScrollLoader = new Class({
 });
 
 }).call(this);
+
+
+/*
+---
+
+name: Interface
+
+description: Interfaces for Class to ensure certain properties are defined.
+
+authors: Christoph Pojer (@cpojer), Luis Merino (@Rendez)
+
+license: MIT-style license.
+
+requires: [Core/Type, Core/Class]
+
+provides: Interface
+
+...
+*/
+
+(function(context){
+
+this.Interface = new Type('Interface', function(object){
+	if (object.Implements){
+		Array.from(object.Implements).each(function(item){
+			Object.append(this, item);
+		}, this);
+
+		delete object.Implements;
+	}
+	
+	return Object.append(this, object);
+});
+
+Class.Mutators.initialize = function(fn){
+	return this.prototype.Interface ? function(){
+		var result = fn.apply(this, arguments);
+
+		if (!this.Interface) return result;
+
+		var interfaces = Array.from(this.Interface);
+		for (var i = 0; i < interfaces.length; i++){
+			var iface = interfaces[i];
+			for (var key in iface){
+				if (key.charAt(0) == '$') continue; // Skip Internal
+				
+				if (!(key in this)) throw new Error('Instance does not implement "' + key + '"');
+				
+				var item = this[key],
+					object = iface[key];
+				
+				if (object == null) continue;
+				
+				var type = typeOf(item),
+					oType = typeOf(object);
+				
+				// Needs to be same datatype OR instance of the provided object
+				if (type != oType && !instanceOf(item, object)){
+					var proto = object.prototype,
+						name = (proto && proto.$family) ? proto.$family().capitalize() : object.displayName;
+					throw new Error('Property "' + key + '" is implemented but not an instance of ' + (name ? '"' + name + '"' : 'the expected type'));
+				}
+				
+				if (oType == 'function' && item.$origin.length < object.length)
+					throw new Error('Property "' + key + '" does not implement at least ' + object.length + ' parameter' + (object.length != 1 ? 's' : ''));
+			}
+		}
+
+		return result;
+	} : fn;
+};
+
+}).call(typeof exports != 'undefined' ? exports : this);
 

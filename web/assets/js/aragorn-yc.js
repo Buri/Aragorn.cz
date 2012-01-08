@@ -42,11 +42,10 @@ var AragornClient = new Class({
     },
     initialize:function(options){
         this.setOptions(options);
-        //this.transport = new io.Socket(this.options.client.url, this.options.client.options);
         this.transport = io.connect(this.options.client.url + ':8000');
         if(!this.transport){
             console.log('Unable to create transport.');
-            return;
+            //return;
         }
         this.ajax = this.Ajax.send.bind(this);
         this.notimoo = new Notimoo();
@@ -93,21 +92,33 @@ var AragornClient = new Class({
     },
     Ajax:{
         transports:[],
+        reloadLocation:function(){
+            History.push(location.href);
+        },
         send:function(action, data, callback){
             var t = null;
             for(var i = 0; i < this.Ajax.transports.length; i++){
-                var transport = this.Ajax.transports[i];
-                if(transport.isRunning())
-                    continue;
-                t = transport;
-                break;
+                if(!this.Ajax.transports[i].isRunning()){
+                    t = this.Ajax.transports[i];
+                    break;
+                }
             }
             if(!t){
                 t = new Request.HTML({evalScripts:false, link:'chain', 'method':'get'});
                 this.Ajax.transports.push(t);
             }
+            t.removeEvents('success');
             if(callback) t.addEvent('success', callback.bind(t));
-            t.send({url:'/ajax/' + action + '/' + (data.id ? (data.id + '/' + (data.param ? data.param + '/' : '')) : ''), data:data});
+            var uri = '/ajax/'+ action + '/';
+            if(data.id){
+                uri += encodeURI(data.id) + '/';
+                delete data.id;
+                if(data.param || data.param === ""){
+                    uri += encodeURI(data.param) + '/';
+                    delete data.param ;
+                }
+            }
+            return t.send({url:uri, data:data});
         }
     },
     fn:{
@@ -220,9 +231,11 @@ var AragornClient = new Class({
         return this.removeEvent('cmd_' + cmd);
     },
     message:function(title, message, options){
-        this.notimoo.show(Object.merge({title:title, message:message}, options));
+        return this.notimoo.show(Object.merge({title:title || '', message:message || ''}, options));
     },
-    prompt:function(){},
+    prompt:function(question, cb){
+        new MooDialog.Prompt(question, cb);
+    },
     info:function(){},
     resetInactivity:function(timeout){
         if(this.inactive)
@@ -244,31 +257,39 @@ var AragornClient = new Class({
     },
     inactive:null,
     session:false
-}), AC = null;
+}), AC = new AragornClient();
 
 window.addEvent('domready', function(){
-    AC = new AragornClient();
     new LazyLoad({elements:'img.ll'});
     History.addEvent('change', function(url){
-        new Request.HTML({
-             url: url,
-             link:'cancel',
-             evalScripts:true,
-             evalResponse:true,
-             update:$('content'),
-             onComplete:function(){
-                 AC.resetInactivity();
-                 $('content').removeClass('contentLoading');
-             },
-             onFailure:function(){
-                 AC.info('Chyba', 'Stránku se nepodařilo načíst.', 'error.png');
-                 location.href = url;
-             }
-        }).send();
+        this.counter = this.counter || 0;
+        if(!this.counter){
+            this.counter++;
+            return;
+        }else{
+            this.counter = 0;
+        }
+        if(!this.req)
+            this.req = new Request.HTML({
+                 url: url,
+                 link:'cancel',
+                 evalScripts:true,
+                 evalResponse:true,
+                 update:$('content'),
+                 onComplete:function(){
+                     AC.resetInactivity();
+                     $('content').removeClass('contentLoading');
+                 },
+                 onFailure:function(){
+                     AC.message('Chyba', 'Stránku se nepodařilo načíst.');
+                     location.href = url;
+                 }
+            });
+        this.req.send({'url':url});
     });
     if($$('#content').length){
         $(document.body).addEvent('click:relay(.ajax)', function(event) {
-            new Event(event).stop();
+            event.stop();
             $('content').addClass('contentLoading');
             History.push(this.get('href'));
         });
@@ -276,8 +297,8 @@ window.addEvent('domready', function(){
     var fn = function(e){
         if(e.type == 'change' || (e.type == 'keyup' && e.key == 'enter') || e.target.id == 'btnStatus'){
             AC.ajax('statusupdate', {id:$('msgStatus').get('value')});
+            $('msgStatus').blur();
         }
     };
     $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});
-
 });

@@ -4,9 +4,10 @@
             <a href="{link users:}" class="middle ajax">Uživatelé</a>
             <div class="float-right">
                 {if $user->isLoggedIn()}
+                Dukáty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
                 <input id="msgStatus" value="{$presenter->userStatus()}" type="text" placeholder="Zpráva stavu" />
                 <input type="button" id="btnStatus" value=">" />
-                <a href="{$presenter->userLink()}" title="{$user->getIdentity()->username}">
+                <a href="{$presenter->userLink(null, false)}" title="{$user->getIdentity()->username}">
                     <img src="{$presenter->userIcon()}" />
                 </a>
                 <a href="{link settings:}" class="middle ajax" title="Nastavení">

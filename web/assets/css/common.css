@@ -19,7 +19,7 @@
         Change it to meet your needs.
 */
 
-.notimoo {
+.dark .notimoo {
 
     /* Don't touch here */
     position: absolute;
@@ -27,13 +27,16 @@
     cursor: pointer;
     
     /* Change this to fit your needs*/
-    padding:10px;
+    text-align: left;
     border: 3px;
-    border-style: solid;
+    border-style: none;
     border-color: #B2B2B2;
-    background: #333333;
-    color: #FFFFFF;
+    sbackground: #ccc;
+    color: #000;
     font-size: 12px;
+    
+    
+    box-shadow:         0px 0px 8px 5px #ccc;
     
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -41,20 +44,25 @@
     border-radius: 10px;
 
 }
+.dark .notimoo-wraper{
+        box-shadow:         inset 0px 0px 150px 150px #ccc;
+        padding:10px;
+        border-radius: 10px;
+    }
 
-.notimoo .title {
+.dark .notimoo .title {
     font-weight: bold;
     border-bottom: 1px solid;
 }
 
-.notimoo .message {
+.dark .notimoo .message {
     margin-top: 2px;
 }
 
-.notimoo a {
+.dark .notimoo a {
     color: #FFFFFF;
 }
-.floating-tip {
+.dark .floating-tip {
     background-color: #333;
     border: 1px solid #666;
     padding: 5px 15px;
@@ -72,8 +80,8 @@
 .runac #constat{
     display: inline-block; 
     position: fixed; 
-    left: 0; 
-    top: 0; 
+    left: 5px; 
+    top: 5px; 
     width: 20px; 
     height: 20px;
     text-align: center;

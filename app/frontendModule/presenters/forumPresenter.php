@@ -1,6 +1,7 @@
 <?php
 namespace frontendModule{
     use \DB;
+    use \Nette\Environment;
     class forumPresenter extends \BasePresenter {
         public function actionDefault($id = "") {
             $this->template->id = $id;
@@ -14,8 +15,6 @@ namespace frontendModule{
     
     class DiscussionComponent extends \Nette\Application\UI\Control{
         private $postdata = null;
-        public function __construct(){
-        }
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
         }
@@ -29,13 +28,16 @@ namespace frontendModule{
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
             $info = DB::forum_topic('urlfragment', $url)->fetch();
             $opt = $info['options'];
+            $this->template->read = false;
+            $this->template->write = false;
+            $this->template->administrate = false;
             if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
                 
             }else{
-                $admins = DB::forum_admins('forum', $info['id']);
+                $admins = DB::forum_moderator('forumid', $info['id']);
                 $adms = array();
                 foreach($admins as $admin){
-                    $aname = DB::users($admin['user'])->fetch();
+                    $aname = DB::users('id', $admin['userid'])->fetch();
                     $adms[] = $aname['username'];
                 }
                 $adm = ($user->getId() == $info['owner']) || ($user->getIdentity() ? in_array($user->getIdentity()->name, $adms) : false);
@@ -74,10 +76,32 @@ namespace frontendModule{
                 "post"=> $v["post"]
                 );
         }
+        public static function parseBB($text){
+            $bb = bbcode_create(array(
+                ''=>         array('type'=>BBCODE_TYPE_ROOT),
+                'i'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<i>',
+                                'close_tag'=>'</i>', 'childs'=>'b'),
+                'url'=>      array('type'=>BBCODE_TYPE_OPTARG,
+                                'open_tag'=>'<a href="{PARAM}" title="Externí odkaz :: {PARAM}">', 'close_tag'=>'</a>',
+                                'default_arg'=>'{CONTENT}',
+                                'childs'=>'b,i,img'),
+                'img'=>      array('type'=>BBCODE_TYPE_NOARG,
+                                'open_tag'=>'<img src="', 'close_tag'=>'" />',
+                                'childs'=>''),
+                'b'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<b>',
+                                'close_tag'=>'</b>'),
+                'list'=>     array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<ul>',
+                                'close_tag'=>'</ul>',
+                                'childs'=>'*'),
+                '*'=>       array('type'=>BBCODE_TYPE_NOARG,
+                                'open_tag'=>'<li>', 'close_tag'=>'</li>'),
+            ));
+            return bbcode_parse($bb, $text);
+        }
         private function addPostFinish($url){
             $this->postdata["forum"] = (int)ForumComponent::getIdByPath($url);
+            //echo DiscussionComponent::parseBB($this->postdata);
             DB::forum_posts()->insert($this->postdata);
-            //dump($this->postdata);
         }
     }
         
@@ -95,10 +119,12 @@ namespace frontendModule{
         private function prepare($id, $url){
             $nav = array();
             $this->template->discussion = false;
+            $this->template->newforum = false;
             if(is_null($id) || !is_numeric($id)){
                 if(isset($url) && $url != ""){
                     $p = DB::forum_topic('urlfragment', $url)->fetch();
                     $this->template->discussion = $p['options'] & self::$POSTS_ALLOWED;
+                    $this->template->newforum = ($p['options'] & self::$SUBTOPIC_ALLOWED) && Environment::getUser()->isAllowed('forum','create');
                     $data = DB::forum_topic('parent', $p['id'])->order('name');
                     do{
                         $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
@@ -106,6 +132,7 @@ namespace frontendModule{
                     }while($p["parent"]);
                 }else{
                     $data = DB::forum_topic('parent', 0)->order('name');
+                    $this->template->newforum = \Nette\Environment::getUser()->isAllowed('forum','create');
                 }
             }else{
                 $data = DB::forum_topic('id', $id)->order('name');
