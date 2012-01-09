@@ -326,6 +326,12 @@ body.dark{
     padding: 0 6px;
     margin-bottom: 4px;
 }
+.dark .forum-holder:hover{
+    background: #cc9;
+}
+.dark .forum-sticky{
+    background: #533;
+}
 .dark .forum-count{
     float:right;display:inline-block;width: 40px; text-align: center;
 }

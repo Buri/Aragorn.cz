@@ -28,7 +28,7 @@ namespace frontendModule{
             $form->addText('username', 'Přezdívka: ')
                     ->addRule(Form::FILLED, 'Musíte vyplnit uživatelské jméno!')
                     ->addRule(function (\Nette\Forms\Controls\TextInput $user){
-                        if(count(db::users()->where("username LIKE ?", $user->getValue()))){
+                        if(count(db::users()->where("username LIKE ? OR urlfragment = ?", array($user->getValue(), \Utilities::string2url($user->getValue()))))){
                             return false;
                         }
                         return true;
@@ -111,7 +111,7 @@ namespace frontendModule{
                     return false;
                 }
                 DB::users()->insert(array("id" => 0, "username" => $row["username"]));
-                DB::users_profiles()->insert(array("id"=>0, "password" => $row["password"], "mail" => $row["mail"], "created" => $row["create_time"], "login"=>0));
+                DB::users_profiles()->insert(array("id"=>0, "password" => $row["password"], "mail" => $row["mail"], "created" => $row["create_time"], "login"=>0, 'urlfragment'=> \Utilities::string2url($row['username'])));
 
                 $reg->delete(); /* Vloží se pouze jednou, ale smažou se všechny odpovídající tokeny */
                 $this->getTemplate()->message = "Registrace byla dokončena. Nyní se můžete přihlásit.";

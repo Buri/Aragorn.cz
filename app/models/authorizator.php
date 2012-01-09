@@ -5,11 +5,13 @@ class Permissions extends Nette\Object{
     private $storage;
     private $uniq_key;
     private $tags;
+    private $modified;
     public function __construct(){
         $user = Environment::getUser();
         $roles = $user->getRoles();
         $this->uniq_key = 'permission_' . $user->getId() . '_' . $roles[0];
         $this->tags = array('permission_user_' . $user->getId(), 'permission_group_' . $roles[0], 'permission_all');
+        $this->modified = false;
         $this->load();
     }
     
@@ -55,6 +57,7 @@ class Permissions extends Nette\Object{
             if(is_null($perm["operation"])) $this->storage[$perm["resource"]]['_ALL'] = $perm["value"];
             else $this->storage[$perm["resource"]][$perm["operation"]] = $perm["value"];
         }    
+        $this->modified = false;
     }
     
     public function get($resource, $priviledge, $forceReload = false){
@@ -71,11 +74,18 @@ class Permissions extends Nette\Object{
     }
     
     public function setResource(Nette\Utils\Strings $resource, array $permissions, $override = false){
-        if($override || $this->hasPermissionSet($resource))
+        if(!$this->hasPermissionSet($resource) || $override){
             $this->storage[$resource] = $permissions;
+            $this->modified = true;
+        }
     }
     public function setOwner(Nette\Utils\Strings $resource){
         $this->storage[$resource] = array("_ALL" => true);
+        $this->storage[$resource]['owner'] = true;
+        $this->modified = true;
+    }
+    public function rollback(){
+        $this->modified = false;
     }
 }
 
