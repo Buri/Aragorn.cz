@@ -137,6 +137,31 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }else{
                 $user->setExpiration('+ 60 minutes', false, true);
             }
+            DB::users_profiles('id', $user->getId())->update(array('login'=>time()));
+            $path = 'safe://' . APP_DIR . '/../db/user_ip_addresses/' . $user->getId() . '.txt';
+            echo $path;
+            if(!file_exists($path)){
+                $fp = fopen($path, 'w');
+                $ips = "";
+            }else{
+                $size = filesize($path);
+                $fp = fopen($path, 'a+');
+                rewind($fp);
+                $ips = fread($fp, filesize($path));
+            }
+            if($ips){
+                $ips = explode(';', $ips);
+                echo "explode";
+            }else{
+                $ips = array();
+                echo "new";
+            }
+            if(array_search($_SERVER['REMOTE_ADDR'], $ips) === false){
+                $ips[] = $_SERVER['REMOTE_ADDR'];
+                rewind($fp);
+                fwrite($fp, implode(';', $ips));
+            }
+            fclose($fp);
             $sid = 321; #Node::userlogin();
             setCookie('sessid', $sid);
             //$_COOKIE['sessid'] = $sid;

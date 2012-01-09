@@ -262,13 +262,6 @@ var AragornClient = new Class({
 window.addEvent('domready', function(){
     new LazyLoad({elements:'img.ll'});
     History.addEvent('change', function(url){
-        this.counter = this.counter || 0;
-        if(!this.counter){
-            this.counter++;
-            return;
-        }else{
-            this.counter = 0;
-        }
         if(!this.req)
             this.req = new Request.HTML({
                  url: url,
@@ -288,8 +281,14 @@ window.addEvent('domready', function(){
         this.req.send({'url':url});
     });
     if($$('#content').length){
-        $(document.body).addEvent('click:relay(.ajax)', function(event) {
+        $(document.body).addEvent('click:relay(a.ajax)', function(event) {
             event.stop();
+            if($(this).get('xhrrunning')){
+                $(this).erase('xhrrunning');
+            }else{
+                $(this).set('xhrrunning',true);
+                return;
+            }
             $('content').addClass('contentLoading');
             History.push(this.get('href'));
         });
