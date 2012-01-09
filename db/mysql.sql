@@ -203,7 +203,7 @@ CREATE TABLE `forum_posts` (
   UNIQUE KEY `idforum_posts_UNIQUE` (`id`),
   KEY `fk_forum_posts_users1` (`author`),
   KEY `fk_forum_posts_forum_topic1` (`forum`)
-) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -212,7 +212,7 @@ CREATE TABLE `forum_posts` (
 
 LOCK TABLES `forum_posts` WRITE;
 /*!40000 ALTER TABLE `forum_posts` DISABLE KEYS */;
-INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze');
+INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze'),(8,1,13,1326148091,'TestovacÃ­ zprÃ¡va'),(9,1,13,1326148199,'TestovacÃ­ zprÃ¡va'),(10,1,13,1326148203,'[b] [/b]TestovacÃ­ zprÃ¡va');
 /*!40000 ALTER TABLE `forum_posts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -247,7 +247,7 @@ CREATE TABLE `forum_topic` (
 
 LOCK TABLES `forum_topic` WRITE;
 /*!40000 ALTER TABLE `forum_topic` DISABLE KEYS */;
-INSERT INTO `forum_topic` VALUES (1,'Aragorn.cz',0,'Vse tykajici se serveru',0000000000,'server',1,1325522043,1,NULL),(2,'Herna',0,'DRD...',0000000000,'herna',3,1325522043,0,NULL),(3,'Larpy a jine aktivity',0,'a vse kolem',0000000000,'larp',3,1325522043,0,NULL),(4,'Bug',0,'Hlaseni chyb',0000000001,'server-bug',3,1325522043,1,NULL),(11,'NÃ¡pady',1,'NovÃ© forum',0000000001,'napady',3,1326129929,0,NULL),(12,'Archiv',1,'NovÃ© forum',0000000000,'archiv',3,1326130876,-1,NULL),(13,'Fantasy, sci-fi a gotika',1,'NovÃ© forum',0000000000,'fantasy-sci-fi-a-gotika',3,1326142999,0,NULL),(14,'Pokec',1,'NovÃ© forum',0000000000,'pokec',3,1326143034,0,NULL),(15,'HlavnÃ­ fÃ³rum',1,'NovÃ© forum',0000000000,'hlavni-forum',3,1326143041,2,NULL);
+INSERT INTO `forum_topic` VALUES (1,'Aragorn.cz',0,'Vse tykajici se serveru',0000000000,'server',1,1325522043,1,'Info o serveru.'),(2,'Herna',0,'DRD...',0000000000,'herna',3,1325522043,0,NULL),(3,'Larpy a jine aktivity',0,'a vse kolem',0000000000,'larp',3,1325522043,0,NULL),(4,'Bug',0,'Hlaseni chyb',0000000001,'server-bug',3,1325522043,1,NULL),(11,'NÃ¡pady',1,'NovÃ© forum',0000000001,'napady',3,1326129929,0,NULL),(12,'Archiv',1,'NovÃ© forum',0000000000,'archiv',3,1326130876,-1,NULL),(13,'Fantasy, sci-fi a gotika',1,'NovÃ© forum',0000000000,'fantasy-sci-fi-a-gotika',3,1326142999,0,NULL),(14,'Pokec',1,'NovÃ© forum',0000000000,'pokec',3,1326143034,0,NULL),(15,'HlavnÃ­ fÃ³rum',1,'NovÃ© forum',0000000000,'hlavni-forum',3,1326143041,2,'Pravidlo tri T: Topic Tu Tneni');
 /*!40000 ALTER TABLE `forum_topic` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1174,4 +1174,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2012-01-09 23:04:04
+-- Dump completed on 2012-01-10  0:25:00

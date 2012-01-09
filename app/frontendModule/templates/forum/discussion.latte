@@ -11,7 +11,7 @@
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
                 {if $write}&nbsp; &nbsp;
                 &nbsp;<a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="edit button" title="Upravit příspěvek">&nbsp;</a>
-                &nbsp;<a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="delete button" title="Smazat příspěvek">&nbsp;</a>
+                &nbsp;<a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
                 &nbsp;<a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
                 &nbsp;<a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
                 {if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
@@ -42,12 +42,25 @@
         $('frm-forum-discussion-forumForm').addEvent('submit', function(e){
             new Event(e).stop()
             var f = new Form.Request(this, $('content'));
+            f.addEvent('success', function(){ console.log('done'); $('frmforumForm-post').set('value', '');}.bind(this));
             f.send();
         });
         var showNMD = function(){
             $$('.newPost')[0].addClass('slideinform'); 
             //$('frmforumForm-post').focus();
         }
+        $('frmforumForm-post').addEvent('keydown', function(e){
+            if(e.key == 'enter' && e.shift){
+                e.stop();
+                $('post').click(); //.fireEvent('submit');
+            }
+        });
+        $$('a.delete.button').addEvent('click', function(e){
+            new Event(e).stop();
+            if(confirm('Opravdu chcete smazat tento příspěvek?')){
+                AC.ajax('forumdeletepost', { id:this.get('data-postid')}, function(){ AC.Ajax.reloadLocation();});
+            }
+        });
         $$('a.cite.button').addEvent('click', function(e){
             new Event(e).stop();
             showNMD();

@@ -59,6 +59,12 @@ namespace ajaxModule{
                 $this->template->data = $e->getMessage();
             }
         }
+        
+        public function actionForumdeletepost($id){
+            // OVĚŘIT OPRÁVNĚNÍ!
+            DB::forum_posts('id', $id)->delete();
+            $this->template->data = "ok";
+        }
         public function actionWait($id = 1000){
             usleep($id);
         }

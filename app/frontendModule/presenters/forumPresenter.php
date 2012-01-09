@@ -14,50 +14,15 @@ namespace frontendModule{
     }
     
     class DiscussionComponent extends \Nette\Application\UI\Control{
-        private $postdata = null, $url = null;
+        private $postdata = null;
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
-        }
-        
-        public function userIsAllowed($resource, $action, $target = null, $targettype = null){
-            $user = \Nette\Environment::getUser();
-            $uid = $user->getId();
-            $info = DB::forum_topic('urlfragment', $this->url)->fetch();
-            $opt = $info['options'];
-            $p = new \Permissions ();
-            if($target){
-                switch($targettype){
-                    case "post":
-                        break;
-                    case "forum":
-                        if($uid == $info['owner']){
-                            $p->setOwner('forum');
-                        }
-                        $adms = DB::forum_moderator('forumid', $info['id']);
-                        foreach($adms as $adm){
-                            if($adm['userid'] == $uid){
-                                
-                            }
-                        }
-                    default:
-                        $p->rollback();
-                        return false;
-                }
-            }
-            if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
-                
-            }else{
-                $resource = 'forum';
-            }
-            $p->rollback();
-            return \Nette\Environment::getUser()->isAllowed($resource, $action);
         }
         
         public function render($url = null){
             if($this->postdata){
                 $this->addPostFinish ($url);
             }
-            $this->url = $url;
             $this->template->staticPath = $this->presenter->template->staticPath;
             $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
@@ -142,6 +107,7 @@ namespace frontendModule{
         
     class ForumComponent extends \Nette\Application\UI\Control{        
         static $SUBTOPIC_ALLOWED = 1, $POSTS_ALLOWED = 2, $HAS_CUSTOM_PERMISSIONS = 4;
+        private $url = null;
         function __construct($id = null, $url = null){
             $this->template->id = $id;
             $this->template->url = $url;
@@ -165,6 +131,7 @@ namespace frontendModule{
         }
         
         public static function deleteForum($id){
+            if($id == 0) return false;
             $discussions = DB::forum_topics('parent', $id);
             foreach($discussions as $topic){
                 $tid = $topic['id'];
@@ -174,6 +141,8 @@ namespace frontendModule{
                 DB::forum_visit('idforum', $tid)->delete();
                 DB::forum_topic('id', $tid)->delete();
             }
+            DB::forum_topics('id', $id)->delete();
+            return true;
         }
         
         private function prepare($id, $url){
@@ -206,6 +175,7 @@ namespace frontendModule{
   
         public function render($id = null, $url = null){
             $p = $this->getPresenter();
+            $this->url = $url;
             $this->template->forum = substr($p->name, strrpos($p->name, ':')+1).':';
             $this->template->id = $url;
             $this->template->setFile(__DIR__ . '/../templates/forum/forum.latte');
@@ -222,5 +192,43 @@ namespace frontendModule{
             $p = DB::forum_topic('urlfragment', $path)->fetch();
             return $p['id'];
         }
+        public function userIsAllowed($resource, $action, $target = null){
+            $user = \Nette\Environment::getUser();
+            $uid = $user->getId();
+            $info = DB::forum_topic('urlfragment', $this->url)->fetch();
+            $opt = $info['options'];
+            $p = new \Permissions ();
+            if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
+                // Load custom permissions
+            }
+            if($target){
+                switch($resource){
+                    case "post":
+                        $post = DB::forum_posts('id', $target);
+                        if($post['author'] == $uid)
+                            $p->setOwner ("post".$target);
+                        break;
+                    case "forum":
+                        if($uid == $info['owner']){
+                            $p->setOwner('forum');
+                        }
+                        $adms = DB::forum_moderator('forumid', $info['id']);
+                        foreach($adms as $adm){
+                            if($adm['userid'] == $uid){
+                                $p->setResource('forum'.$target, array("_ALL" => true, 'owner'=>false));
+                            }
+                        }
+                        break;
+                    default:
+                        $p->rollback();
+                        return false;
+                }
+                $p->rollback();
+                return $user->isAllowed($resource.$target, $action);
+            }
+            $p->rollback();
+            return \Nette\Environment::getUser()->isAllowed($resource, $action);
+        }
+        
     }
 }
