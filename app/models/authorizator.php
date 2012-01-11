@@ -83,13 +83,13 @@ class Permissions extends Nette\Object{
         return isset($this->storage[$permission]);
     }
     
-    public function setResource(Nette\Utils\Strings $resource, array $permissions, $override = false){
+    public function setResource($resource, array $permissions, $override = false){
         if(!$this->hasPermissionSet($resource) || $override){
             $this->storage[$resource] = $permissions;
             $this->modified = true;
         }
     }
-    public function setOwner(Nette\Utils\Strings $resource){
+    public function setOwner($resource){
         $this->storage[$resource] = array("_ALL" => true);
         $this->storage[$resource]['owner'] = true;
         $this->modified = true;

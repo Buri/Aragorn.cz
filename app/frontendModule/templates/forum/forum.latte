@@ -8,7 +8,7 @@
 </div>
 {foreach $topics as $topic}
 <div class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
-    <div class="forum-count">{var $c = \frontendModule\ForumComponent::getPostCount($topic['id'])}{$c['unread']}/{$c['total']}</div>
+    <div class="forum-count">{var $c = \frontendModule\ForumComponent::getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
     <div class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</div>
     <div>
     <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> <br/>

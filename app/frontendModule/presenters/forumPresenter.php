@@ -8,7 +8,7 @@ namespace frontendModule{
             $this->template->url = $id;
         }
         public static function getSubtopics($id){
-            return DB::forum_topic('parent', $id)->order('name');
+            return DB::forum_topic('parent', $id)->where('sticky > ?', 0)->order('name');
         }
         
     }
@@ -124,8 +124,8 @@ namespace frontendModule{
         
         public static function getPostCount($forum){
             $c = DB::forum_posts('forum', $forum)->select('count(id) as count')->fetch();
-            $u = DB::forum_visit('idforum', $forum)->fetch();
-            return array('total' => $c['count'], 'unread' => $u ? $u['unread'] : 0);
+            $u = DB::forum_visit('idforum = ? AND iduser = ?', array($forum, \Nette\Environment::getUser()->getId()))->fetch();
+            return array('total' => $c['count'], 'unread' => $u == null ? (int)$c['count'] : (int)$u['unread']);
         }
         
         public function link($target, $args = array()){
@@ -177,8 +177,9 @@ namespace frontendModule{
         
         private function setLastAccess(){
             $db = DB::forum_topic('urlfragment', $this->url)->fetch();
+            //dump(\Nette\Environment::getUser()->getId());
             if($db['id']){
-                DB::forum_visit('idforum', $db['id'])->insert_update(
+                DB::forum_visit()->insert_update(
                         array('iduser'=>\Nette\Environment::getUser()->getId(), 'idforum'=>$db['id']),
                         array('time'=>time(), 'unread'=>0),
                         array('time'=>time(), 'unread'=>0)
