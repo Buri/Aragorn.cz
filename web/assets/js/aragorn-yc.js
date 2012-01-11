@@ -259,7 +259,7 @@ var AragornClient = new Class({
     session:false
 }), AC = new AragornClient();
 
-window.addEvent('domready', function(){
+window.addEvents({'domready': function(){
     new LazyLoad({elements:'img.ll'});
     History.addEvent('change', function(url){
         if(!this.req)
@@ -301,4 +301,17 @@ window.addEvent('domready', function(){
         }
     };
     $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});
-});
+}/*,
+'resize':function(e){
+    console.log(window.innerWidth);
+    if(window.innerWidth <= 1330){
+        $('sidebar-left').addClass('slide-left');
+        if(window.innerWidth <= 1134){
+            $('sidebar-right').addClass('slide-right');
+        }else{
+            $('sidebar-right').removeClass('slide-right');
+        }
+    }else{
+        $('sidebar-left').removeClass('slide-left');
+    }
+}*/});

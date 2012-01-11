@@ -8,15 +8,17 @@
         </div>
         <div class="post-body">
             <div class="post-info">
-                <i>{date('d.m.Y H:i', $post['time'])}</i>
-                {if $write}&nbsp; &nbsp;
-                &nbsp;<a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="edit button" title="Upravit příspěvek">&nbsp;</a>
-                &nbsp;<a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
-                &nbsp;<a href="#" onclick="$$('.newPost')[0].addClass('slideinform'); $('frmforumForm-post').focus(); return false;" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
-                &nbsp;<a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
+                {if $write}
+                {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id'])}
+                <a href="#" class="edit button" title="Upravit příspěvek">&nbsp;</a>
+                <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
+                {/if}
+                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
+                <a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
                 {if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
                 {/if}
                 {/if}
+                <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
             <span class="post-text">{$post['post']}</span>
             <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
@@ -55,10 +57,23 @@
                 $('post').click(); //.fireEvent('submit');
             }
         });
+        $$('a.alert.button').addEvent('click', function(e){
+            new Event(e).stop();
+            AC.message('Report', 'Send report');
+        });
+        $$('a.edit.button').addEvent('click', function(e){
+            new Event(e).stop();
+            AC.message('Edit', 'Editace příspěvku');
+        });
         $$('a.delete.button').addEvent('click', function(e){
             new Event(e).stop();
             if(confirm('Opravdu chcete smazat tento příspěvek?')){
-                AC.ajax('forumdeletepost', { id:this.get('data-postid')}, function(){ AC.Ajax.reloadLocation();});
+                AC.ajax('forumdeletepost', { id:this.get('data-postid')}, function(html){ 
+                    if(html[2].get('text') == 'ok')
+                        AC.Ajax.reloadLocation();
+                    else
+                        AC.message('Chyba', 'Smazání se nezdařilo. Máte příslušná oprávnění?');
+                });
             }
         });
         $$('a.cite.button').addEvent('click', function(e){

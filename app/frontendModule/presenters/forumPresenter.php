@@ -22,7 +22,7 @@ namespace frontendModule{
         public function render($url = null){
             if($this->postdata){
                 $this->addPostFinish ($url);
-            }
+            }            
             $this->template->staticPath = $this->presenter->template->staticPath;
             $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
@@ -45,7 +45,7 @@ namespace frontendModule{
                 $this->template->write = $adm || $user->isAllowed('discussion', 'write');
                 $this->template->administrate = $adm || $user->isAllowed('discussion', 'admin');
             }
-            $d = DB::forum_posts('forum', $info['id'])->order('time desc');
+            $d = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*');
             $this->template->discuss = array();
             $authors = array();
             foreach($d as $r){
@@ -134,7 +134,8 @@ namespace frontendModule{
         
         public static function deleteForum($id){
             if($id == 0) return false;
-            $discussions = DB::forum_topics('parent', $id);
+            $discussions = DB::forum_topic('parent', $id);
+            //echo $discussions;
             foreach($discussions as $topic){
                 $tid = $topic['id'];
                 self::deleteForum($tid);
@@ -143,7 +144,8 @@ namespace frontendModule{
                 DB::forum_visit('idforum', $tid)->delete();
                 DB::forum_topic('id', $tid)->delete();
             }
-            DB::forum_topics('id', $id)->delete();
+            DB::forum_posts('forum', $id)->delete();
+            DB::forum_topic('id', $id)->delete();
             return true;
         }
         
@@ -212,16 +214,18 @@ namespace frontendModule{
             $uid = $user->getId();
             $info = DB::forum_topic('urlfragment', $this->url)->fetch();
             $opt = $info['options'];
-            $p = new \Permissions ();
+            $p = \Permissions::getInstance();
             if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
                 // Load custom permissions
             }
             if($target){
                 switch($resource){
                     case "post":
-                        $post = DB::forum_posts('id', $target);
-                        if($post['author'] == $uid)
-                            $p->setOwner ("post".$target);
+                    case "forum-post":
+                        $post = DB::forum_posts('id', $target)->fetch();
+                        if($post['author'] == $uid){
+                            $p->setOwner ($resource.$target);
+                        }
                         break;
                     case "forum":
                         if($uid == $info['owner']){
@@ -235,13 +239,12 @@ namespace frontendModule{
                         }
                         break;
                     default:
-                        $p->rollback();
                         return false;
                 }
-                $p->rollback();
+                #$p->dump();
+                #dump($user->isAllowed($resource.$target, $action));
                 return $user->isAllowed($resource.$target, $action);
             }
-            $p->rollback();
             return \Nette\Environment::getUser()->isAllowed($resource, $action);
         }
         

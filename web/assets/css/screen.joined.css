@@ -29,6 +29,16 @@ body.dark{
     border: 1px solid white;
     height:174px;
 }
+.dark .slide-left{
+    margin-left: -170px;
+}
+.dark #sidebar-left, .dark #sidebar-right{
+    /*z-index: 2;
+    position: fixed;*/
+}
+.dark .slide-left:hover{
+    margin-left: 0px;
+}
 .dark .leftmenu{
     border:1px solid red;
     float: left;

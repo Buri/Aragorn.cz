@@ -60,15 +60,27 @@ namespace ajaxModule{
             }
         }
         
+        public function actionDeleteforum($id = null, $param = null){
+            $forum = new \frontendModule\ForumComponent();
+            if($forum->userIsAllowed('forum', 'delete', 'id')){
+                $forum->deleteForum($id);
+                $this->template->data = "Forum smazáno.";
+            }else{
+                $this->template->data = "Nemáte oprávnění ke smazání fora.";
+            }
+        }
+        
         public function actionForumdeletepost($id){
             $this->template->data = "fail";
-            if(\frontendModule\ForumComponent::userIsAllowed('post', 'delete', $id)){
+            $forum = new \frontendModule\ForumComponent();
+            if($forum->userIsAllowed('post', 'delete', $id)){
                 $forum = DB::forum_posts('id', $id);
                 $fid = $forum['id'];
                 $ftime = $forum['time'];
                 DB::forum_posts('id', $id)->delete();
                 DB::forum_visit()->where('idforum = ? AND time() < ? AND iduser <> ?', array($fid, $ftime, \Nette\Environment::getUser()->getId()))
                         ->update(array('unread'=>new \NotORM_Literal("unread - 1")));
+                DB::forum_visit('unread < ?', 0)->update(array('unread'=>0));
                 $this->template->data = "ok";
             }
         }

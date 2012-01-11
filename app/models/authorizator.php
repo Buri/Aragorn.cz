@@ -5,13 +5,12 @@ class Permissions extends Nette\Object{
     private $storage;
     private $uniq_key;
     private $tags;
-    private $modified;
-    public function __construct(){
+    private static $instance;
+    private function __construct(){
         $user = Environment::getUser();
         $roles = $user->getRoles();
         $this->uniq_key = 'permission_' . $user->getId() . '_' . $roles[0];
         $this->tags = array('permission_user_' . $user->getId(), 'permission_group_' . $roles[0], 'permission_all');
-        $this->modified = false;
         $this->load();
     }
     
@@ -27,11 +26,18 @@ class Permissions extends Nette\Object{
             echo $e->getMessage();
         }*/
     }
+    
+    public static function getInstance(){
+        #dump('Permissions::getInstance()');
+        if(!self::$instance)
+            self::$instance = new \Permissions ();
+        return self::$instance;
+    }
+    
     private function updateCache(){
         #echo "Updating cache";
-        dump(MC::getInstance());
+        #dump(MC::getInstance());
         MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
-        $this->modified = false;
     }
     public function getId(){
         return $this->uniq_key;
@@ -66,6 +72,7 @@ class Permissions extends Nette\Object{
             if(is_null($perm["operation"])) $this->storage[$perm["resource"]]['_ALL'] = $perm["value"];
             else $this->storage[$perm["resource"]][$perm["operation"]] = $perm["value"];
         }    
+        #dump($this->storage);
         $this->updateCache();
     }
     
@@ -86,16 +93,14 @@ class Permissions extends Nette\Object{
     public function setResource($resource, array $permissions, $override = false){
         if(!$this->hasPermissionSet($resource) || $override){
             $this->storage[$resource] = $permissions;
-            $this->modified = true;
         }
     }
     public function setOwner($resource){
         $this->storage[$resource] = array("_ALL" => true);
         $this->storage[$resource]['owner'] = true;
-        $this->modified = true;
     }
-    public function rollback(){
-        $this->modified = false;
+    public function dump(){
+        #dump($this->storage);
     }
 }
 
@@ -103,8 +108,9 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
 {
     private static $instance;
     public static function getInstance(){
+        #dump('UserAuthorizator::getInstance()');
         if(!self::$instance){
-            self::$instance = new Permissions();
+            self::$instance = Permissions::getInstance();
         }
         return self::$instance;
     }
@@ -116,6 +122,6 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
         if($role == 0 || Environment::getUser()->getId() == 0 || (is_array($role) && in_array(0, $role))) return true; 
         
         /* Return final priviledge */
-        return $this->getInstance()->get($resource, $privilege);
+        return self::getInstance()->get($resource, $privilege);
     }
 }

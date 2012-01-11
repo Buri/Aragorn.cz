@@ -11,7 +11,9 @@
     <div class="forum-count">{var $c = \frontendModule\ForumComponent::getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
     <div class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</div>
     <div>
-    <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> <br/>
+        <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> 
+        <a href="" onclick="deleteForum({$topic['id']});return false;">X</a>
+        <br/>
         <em>{$topic['description']}</em> <br/>
         <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
         {var $subtopics = frontendModule\forumPresenter::getSubtopics($topic['id'])}
@@ -24,6 +26,11 @@
 </div>
 {/foreach}
 <script n:syntax="double">
+    function deleteForum(id){
+        if(confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?')){
+            AC.ajax('deleteforum', {id:id}, newForumCb);
+        }
+    }
     function newForumCb(res, dom){
         AC.message('Nové forum', dom[0].get('html'));
         AC.Ajax.reloadLocation();

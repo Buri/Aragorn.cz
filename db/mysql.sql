@@ -203,7 +203,7 @@ CREATE TABLE `forum_posts` (
   UNIQUE KEY `idforum_posts_UNIQUE` (`id`),
   KEY `fk_forum_posts_users1` (`author`),
   KEY `fk_forum_posts_forum_topic1` (`forum`)
-) ENGINE=MyISAM AUTO_INCREMENT=23 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -212,7 +212,7 @@ CREATE TABLE `forum_posts` (
 
 LOCK TABLES `forum_posts` WRITE;
 /*!40000 ALTER TABLE `forum_posts` DISABLE KEYS */;
-INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze'),(8,1,13,1326148091,'TestovacÃ­ zprÃ¡va'),(16,1,16,1326151714,'ZabezpeÄenÃ­ mazÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(17,1,16,1326151736,'Editace pÅ™Ã­spÄ›vkÅ¯\nReportovÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(18,1,15,1326287502,'Hola hoj'),(19,1,15,1326287547,'Test?'),(20,2,15,1326290489,'NÄ›jakÃ¡ zprÃ¡va.'),(21,1,15,1326292411,'NÄ›jakÃ¡ odpovÄ›Ä.'),(22,2,15,1326292433,'Shit.');
+INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze'),(8,1,13,1326148091,'TestovacÃ­ zprÃ¡va'),(16,1,16,1326151714,'ZabezpeÄenÃ­ mazÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(17,1,16,1326151736,'Editace pÅ™Ã­spÄ›vkÅ¯\nReportovÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(19,1,15,1326287547,'Test?'),(21,1,15,1326292411,'NÄ›jakÃ¡ odpovÄ›Ä.');
 /*!40000 ALTER TABLE `forum_posts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -238,7 +238,7 @@ CREATE TABLE `forum_topic` (
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `uqname` (`name`,`urlfragment`),
   KEY `adress` (`urlfragment`(64))
-) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -274,7 +274,7 @@ CREATE TABLE `forum_visit` (
 
 LOCK TABLES `forum_visit` WRITE;
 /*!40000 ALTER TABLE `forum_visit` DISABLE KEYS */;
-INSERT INTO `forum_visit` VALUES (15,1,1326293138,0,0);
+INSERT INTO `forum_visit` VALUES (15,1,1326306069,0,0),(15,2,1326305796,1,0),(13,2,1326305497,0,0),(13,1,1326305568,0,0),(17,1,1326306977,1,0),(20,1,1326307267,0,0),(17,2,1326307221,0,0),(12,2,1326307206,0,0);
 /*!40000 ALTER TABLE `forum_visit` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -516,7 +516,7 @@ CREATE TABLE `users_profiles` (
 
 LOCK TABLES `users_profiles` WRITE;
 /*!40000 ALTER TABLE `users_profiles` DISABLE KEYS */;
-INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,01326284536,'buri.jpg','A4 under construction.',15,'buri'),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,01326287182,'default.png','Jsem tester!',15,'tester'),(3,'3c33150764403d4be7e7b49dcb9c348b37174f85','test3@aragorn.cz',1309265408,00000000000,'default.png',NULL,15,'imhotep'),(4,'8cb2237d0679ca88db6464eac60da96345513964','darw@centrum.cz',1310236356,00000000000,'default.png',NULL,15,'darwin'),(5,'d9c2f352e9968706b67559e010cb17156c7ff335','psrutova@noveranet.cz',1310326091,00000000000,'default.png','Miau',15,'chiisai'),(0,NULL,'system@aragorn.cz',1,00000000001,'system.png','Já vás vidím.',0,'system'),(6,'3c33150764403d4be7e7b49dcb9c348b37174f85','test@somewhere.domain',1326140875,01326285926,'default.png',NULL,15,'antitalent');
+INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,01326296937,'buri.jpg','A4 under construction.',15,'buri'),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,01326303141,'default.png','Jsem tester!',15,'tester'),(3,'3c33150764403d4be7e7b49dcb9c348b37174f85','test3@aragorn.cz',1309265408,00000000000,'default.png',NULL,15,'imhotep'),(4,'8cb2237d0679ca88db6464eac60da96345513964','darw@centrum.cz',1310236356,00000000000,'default.png',NULL,15,'darwin'),(5,'d9c2f352e9968706b67559e010cb17156c7ff335','psrutova@noveranet.cz',1310326091,00000000000,'default.png','Miau',15,'chiisai'),(0,NULL,'system@aragorn.cz',1,00000000001,'system.png','Já vás vidím.',0,'system'),(6,'3c33150764403d4be7e7b49dcb9c348b37174f85','test@somewhere.domain',1326140875,01326285926,'default.png',NULL,15,'antitalent');
 /*!40000 ALTER TABLE `users_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1177,4 +1177,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2012-01-11 15:53:12
+-- Dump completed on 2012-01-11 19:45:08

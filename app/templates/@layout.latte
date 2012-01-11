@@ -35,17 +35,21 @@
             <!--<div style="position: absolute;width: 150px; margin-left:-150px; background: red;">&nbsp;</div>
             <div style="margin-left: 920px; z-index: 2;width: 150px; margin-right:-150px; background: blue;">&nbsp;</div>-->
             {include 'logo.latte'}
-            <div class="sidebar">
-            </div>
             <div class="content" id="content">
                 {include #content}
             </div>
-            <footer>
-                Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů. 
-                Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl. 
-                Jakékoliv kopírování obsahu je zakázáno. 
-            </footer>
         </div>    
+        <div id="sidebar-right" style="border-left: 1px solid white; width: 190px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px;">
+                Sidebar
+        </div>    
+        <div id="sidebar-left" style="border-right: 1px solid white; width: 190px; float:left; display:inline-block;min-height: 500px; padding: 5px 3px;">
+                Contactlist
+        </div>    
+        <footer>
+            Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů. 
+            Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl. 
+            Jakékoliv kopírování obsahu je zakázáno. 
+        </footer>
     </body>
     {include 'scripts.latte'}
 </html>
