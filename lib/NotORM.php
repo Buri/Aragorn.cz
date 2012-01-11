@@ -25,8 +25,6 @@ abstract class NotORM_Abstract {
 	protected $freeze = false;
 	protected $rowClass = 'NotORM_Row';
 	
-	abstract protected function __construct();
-	
 	protected function access($key, $delete = false) {
 	}
 	
@@ -62,7 +60,7 @@ class NotORM extends NotORM_Abstract {
 	* @return NotORM_Result
 	*/
 	function __get($table) {
-		return new NotORM_Result($table, $this, true);
+		return new NotORM_Result($this->structure->getReferencingTable($table, ''), $this, true);
 	}
 	
 	/** Set write-only properties
@@ -83,11 +81,11 @@ class NotORM extends NotORM_Abstract {
 	
 	/** Get table data
 	* @param string
-	* @param array (["condition"[, array("value")]]) passed to NotORM_Result::where() or (array|Traversable) passed to NotORM_Result::insert()
+	* @param array (["condition"[, array("value")]]) passed to NotORM_Result::where()
 	* @return NotORM_Result
 	*/
 	function __call($table, array $where) {
-		$return = new NotORM_Result($table, $this);
+		$return = new NotORM_Result($this->structure->getReferencingTable($table, ''), $this);
 		if ($where) {
 			call_user_func_array(array($return, 'where'), $where);
 		}

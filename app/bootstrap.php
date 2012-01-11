@@ -32,6 +32,10 @@ if(empty($_COOKIE['skin'])){
 
 $router = $application->getRouter();
 $router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);
+/*$router[] = new R\Route('login/', array(
+        'module'=>'frontend',
+        'presenter' => 'dashboard',
+), R\Route::SECURED);*/
 $router[] = new R\Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
@@ -52,12 +56,6 @@ foreach(array('presenter', 'action') as $type){
     }
     R\Route::setStyleProperty($type, R\Route::FILTER_TABLE, $routing_table);
 }
-/*$router[] = new R\Route('[<presenter>/]logout/', array(
-                'module' => 'frontend',
-                'presenter' => 'dashboard',
-                'action' => 'logout',
-                'id' => ''
-));*/
 $router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
@@ -67,9 +65,5 @@ $router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
 /* Debug panel extensions */
 Extras\Debug\ComponentTreePanel::register();
 \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
-#
-/*MailPanel::register(Environment::getContext());
-Nella\Panels\Version::register();*/
-
 
 $application->run();

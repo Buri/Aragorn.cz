@@ -61,9 +61,16 @@ namespace ajaxModule{
         }
         
         public function actionForumdeletepost($id){
-            // OVĚŘIT OPRÁVNĚNÍ!
-            DB::forum_posts('id', $id)->delete();
-            $this->template->data = "ok";
+            $this->template->data = "fail";
+            if(\frontendModule\ForumComponent::userIsAllowed('post', 'delete', $id)){
+                $forum = DB::forum_posts('id', $id);
+                $fid = $forum['id'];
+                $ftime = $forum['time'];
+                DB::forum_posts('id', $id)->delete();
+                DB::forum_visit()->where('idforum = ? AND time() < ? AND iduser <> ?', array($fid, $ftime, \Nette\Environment::getUser()->getId()))
+                        ->update(array('unread'=>new \NotORM_Literal("unread - 1")));
+                $this->template->data = "ok";
+            }
         }
         public function actionWait($id = 1000){
             usleep($id);

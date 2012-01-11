@@ -26,7 +26,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     public function userLink($id = null, $html = true){
         if($id == null) $id = \Nette\Environment::getUser()->getId ();
         $u = DB::users('id', $id)->fetch();
-        $n = $u['username'];
+        $v = $u->users_profiles()->fetch();
+        $n = $v['urlfragment'];
         $link = $this->link(':frontend:users:profile', $n);
         if($html){
             $role = $u['groupid'];
@@ -43,7 +44,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 default:
                     $role = 'role-guest';
             }
-            return "<a href=\"".$link."\" class=\"$role\">".$n."</a>\n";
+            return "<a href=\"".$link."\" class=\"$role ajax\">".$u['username']."</a>\n";
         }
         return $link;
     }
@@ -102,11 +103,13 @@ class BasePresenter extends Nette\Application\UI\Presenter{
 
     public function createComponentLogInForm(){
         $form = new Nette\Application\UI\Form;
+        /*$this['logInForm'] = $form;
+        $form->setAction($this->link(':frontend:dashboard:'));*/
         $form->getElementPrototype()->class = "logInForm";
         $form->addText("username", "Nick:");
         $form->addPassword("password", "Heslo:");
         $form->addCheckbox('forever', "Trvalé přihlášení");
-        $form->addSubmit("login", "Přihlásit");
+        $form->addSubmit("login", "Přihlásit");       
         $form->onSuccess[] = callback($this, "userLogin");
         return $form;
     }
@@ -180,7 +183,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             $_SESSION["ban"] = serialize($d);
             $this->redirect(301, 'ban:');
         }
-        catch(NAuthenticationException $e){
+        catch(\Nette\Security\AuthenticationException $e){
             $this->redirect(301, 'badlogin:');
         }
     }

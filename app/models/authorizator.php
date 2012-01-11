@@ -16,15 +16,22 @@ class Permissions extends Nette\Object{
     }
     
     public function __destruct() {
-        try{
-            if(!is_null($this->storage)){
-                MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
+        /* Has to be moddified */
+        /*try{
+            #dump($this);
+            if(!is_null($this->storage) || $this->modified){
+                $this->updateCache();
             }
-        }
+        /*}
         catch(Exception $e){
-            dump($e);
-            die("");
-        }
+            echo $e->getMessage();
+        }*/
+    }
+    private function updateCache(){
+        #echo "Updating cache";
+        dump(MC::getInstance());
+        MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
+        $this->modified = false;
     }
     public function getId(){
         return $this->uniq_key;
@@ -52,19 +59,22 @@ class Permissions extends Nette\Object{
     }
     
     public function forceReload(){
+        #echo "Force realoading";
+        $this->storage = array();
         foreach(DB::permissions("target", Environment::getUser()->getRoles())->where("type", "group")->union(DB::permissions("target", Environment::getUser()->getId())->where("type", "user")) as $perm){
             if(empty($this->storage[$perm["resource"]])) $this->storage[$perm["resource"]] = array();
             if(is_null($perm["operation"])) $this->storage[$perm["resource"]]['_ALL'] = $perm["value"];
             else $this->storage[$perm["resource"]][$perm["operation"]] = $perm["value"];
         }    
-        $this->modified = false;
+        $this->updateCache();
     }
     
     public function get($resource, $priviledge, $forceReload = false){
         if($forceReload) $this->forceReload ();
+        #dump($this->storage);
         if(empty($this->storage[$resource])) return false;                              /* Permission has not been defined */
         if(is_array($this->storage[$resource])){                                        /* Access with exact permission */
-            return (!isset($this->storage[$resource][$priviledge]) ? $this->storage[$resource]['_ALL'] : $this->storage[$resource][$priviledge]) ? true : false; /* If permission for operation is not set, it will try to use global permision for resource */
+            return (!isset($this->storage[$resource][$priviledge]) ? (isset($this->storage[$resource]['_ALL']) ? $this->storage[$resource]['_ALL'] : false) : $this->storage[$resource][$priviledge]) ? true : false; /* If permission for operation is not set, it will try to use global permision for resource */
         }
         return false;                                                                   /* Fallback */
     }

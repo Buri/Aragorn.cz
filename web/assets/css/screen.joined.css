@@ -12,6 +12,9 @@ body.dark{
     color: #E4F9E3;
     text-decoration: none;
 }
+.dark img{
+    border: none;
+}
 .dark footer{
     text-align: center;
     font-size: small;
@@ -256,6 +259,9 @@ body.dark{
     width: 780px;
     text-align: right;
     font-size: small;
+}
+.dark .post .post-text{
+    white-space: pre-wrap;
 }
 .dark .post .post-info .button{
     display:inline-block;

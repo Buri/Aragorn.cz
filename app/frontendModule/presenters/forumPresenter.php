@@ -102,6 +102,7 @@ namespace frontendModule{
             $this->postdata["forum"] = (int)ForumComponent::getIdByPath($url);
             //echo DiscussionComponent::parseBB($this->postdata);
             DB::forum_posts()->insert($this->postdata);
+            DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
         }
     }
         
@@ -115,7 +116,7 @@ namespace frontendModule{
         }
         
         public function getLastPost($forum){
-            $r = DB::forum_posts('forum', $forum)->order('time DESC')->limit('0,1');
+            $r = DB::forum_posts('forum', $forum)->order('time DESC')->limit(1);
             if(!$r->count()) return false;
             $r = $r->fetch();
             return array('time' => $r['time'], 'author'=>$this->template->control->presenter->userLink($r['author']));
@@ -123,7 +124,8 @@ namespace frontendModule{
         
         public static function getPostCount($forum){
             $c = DB::forum_posts('forum', $forum)->select('count(id) as count')->fetch();
-            return $c['count'];
+            $u = DB::forum_visit('idforum', $forum)->fetch();
+            return array('total' => $c['count'], 'unread' => $u ? $u['unread'] : 0);
         }
         
         public function link($target, $args = array()){
@@ -155,7 +157,7 @@ namespace frontendModule{
                     $p = DB::forum_topic('urlfragment', $url)->fetch();
                     $this->template->noticeboard = $p['noticeboard'];
                     $this->template->discussion = $p['options'] & self::$POSTS_ALLOWED;
-                    $this->template->newforum = ($p['options'] & self::$SUBTOPIC_ALLOWED) && Environment::getUser()->isAllowed('forum','create');
+                    $this->template->newforum = ($p['options'] & self::$SUBTOPIC_ALLOWED) && $this->userIsAllowed('forum','create', $p['id']);
                     $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
                     do{
                         $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
@@ -172,6 +174,17 @@ namespace frontendModule{
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
         }
+        
+        private function setLastAccess(){
+            $db = DB::forum_topic('urlfragment', $this->url)->fetch();
+            if($db['id']){
+                DB::forum_visit('idforum', $db['id'])->insert_update(
+                        array('iduser'=>\Nette\Environment::getUser()->getId(), 'idforum'=>$db['id']),
+                        array('time'=>time(), 'unread'=>0),
+                        array('time'=>time(), 'unread'=>0)
+                    );
+            }
+        }
   
         public function render($id = null, $url = null){
             $p = $this->getPresenter();
@@ -180,6 +193,7 @@ namespace frontendModule{
             $this->template->id = $url;
             $this->template->setFile(__DIR__ . '/../templates/forum/forum.latte');
             $this->prepare($id, $url);
+            $this->setLastAccess();
             $this->template->render();
         }
         

@@ -16,6 +16,7 @@ class MC {
         if(!self::$instance){
             $mccfg = Nette\Environment::getConfig('memcache');
             $journal = new Nette\Caching\Storages\FileJournal(TEMP_DIR);
+            #dump($journal);
             self::$instance = new Nette\Caching\Storages\MemcachedStorage($mccfg["host"], $mccfg["port"], '', $journal);
         }
         return self::$instance;

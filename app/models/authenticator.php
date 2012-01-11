@@ -38,19 +38,19 @@ abstract class BaseAuthenticator extends \Nette\Object implements \Nette\Securit
 class UserAuthenticator extends \BaseAuthenticator{
     public function authenticate(array $credentials)
     {
-        //dump($credentials);
+        #dump($credentials);
         $username = $credentials[self::USERNAME];
         $password = sha1($credentials[self::PASSWORD]);
     
         // přečteme záznam o uživateli z databáze
         $usrs = DB::users()->select("username,id,groupid")->where("username LIKE ?", $username);
         if (!$usrs->count()) { // uživatel nenalezen?
-            throw new \Nette\Secrity\AuthenticationException("User '$username' not found.", self::IDENTITY_NOT_FOUND);
+            throw new \Nette\Security\AuthenticationException("User $username not found.", self::IDENTITY_NOT_FOUND);
         }
         $row = $usrs->fetch();
         $usr = $row->users_profiles()->select("password")->fetch();
         if ($usr["password"] !== $password) { // hesla se neshodují?
-            throw new Nette\Secutity\AuthenticationException("Invalid password.", self::INVALID_CREDENTIAL);
+            throw new \Nette\Security\AuthenticationException("Invalid password.", self::INVALID_CREDENTIAL);
         }
         $this->gid = $row["groupid"];
         $this->id = $usr['id'];

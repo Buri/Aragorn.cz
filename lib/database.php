@@ -8,8 +8,9 @@ include_once dirname(__FILE__) . "/NotORM.php";
  *
  */
 class ConventionTable extends NotORM_Structure_Convention implements NotORM_Structure{
+   
     function getReferencingColumn($target, $source) {
-        //echo "$source=>$target<br>\n";
+#        echo "$source=>$target<br>\n";
         switch($target){
             case "users_profiles":
                 if($source == "users") return "id";
@@ -20,9 +21,11 @@ class ConventionTable extends NotORM_Structure_Convention implements NotORM_Stru
                 break;
             case "users":
                 if($source == "chatroom_occupants") return "id";
+                if($source == "users_profiles") return "id";
                 break;
         }
-        return parent::getReferencedTable($target, $source);
+        
+        return parent::getReferencedColumn($target, $source);
     }
 }
 

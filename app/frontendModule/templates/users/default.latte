@@ -1,3 +1,59 @@
 {$title='Uživatelé'}
 {block content}
-Uživatelé
+<style>
+    .dark .proflie-list-item{
+        
+    }
+    .dark .proflile-list-icon{
+        max-width: 60px;
+        vertical-align: middle;
+    }
+    .dark .proflie-list-item.table-tr-odd{
+        background: #020202;
+    }
+    .dark .proflie-list-item:hover{
+        background: #111;
+    }
+    #mytable{
+        width: 100%;
+    }
+    th {
+        background-color:grey; padding: 2px; cursor: pointer; }
+td { padding: 2px;}
+</style>
+<h>Uživatelé</h>
+<table id="mytable" cellspacing="0">
+    <thead>
+    <tr><th>dsa</th><th>Uživatel</th><th>Poslední přihlášení</th><th>Stav</th></tr>
+    </thead>
+    <tbody>
+{foreach $users as $user}
+<tr class="proflie-list-item{if $iterator->odd} table-tr-odd{/if}">{var $profile=$presenter->getUserProfile($user['id'])}
+    <td><a href="{$control->presenter->userLink($user,false)}"><img src="{$control->presenter->userIcon($user)}" class="proflile-list-icon" /></a></td>
+    <td>{!$control->presenter->userLink($user)}</td>
+    <td>{!$profile['login']}</td>
+    <td><img src="{$staticPath}/images/{\Node::isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></td>
+</tr>
+{/foreach}
+    </tbody>
+</table>
+<script n:syntax="double">
+    var myTable;
+    window.addEvent('domready', function(){
+        myTable = new HtmlTable($('mytable'), {sortable: true});
+        myTable.view = {start:0, offset:3};
+        myTable.addEvent('sort', function(body){
+            var els = body.getElements('tr');
+            els.removeClass('hide');
+            var i = 0;
+            els.each(function(el){
+                if(!(i >= this.view.start && i < this.view.start + this.view.offset)){
+                    el.addClass('hide');
+                }
+                i++;
+            }.bind(this));
+        });
+        myTable.fireEvent('sort', myTable.body)
+    });
+    
+</script>

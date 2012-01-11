@@ -27,4 +27,8 @@ class Node {
                 )));
         return usock::writeReadClose($data, 4096);
     }
+    
+    static function isUserOnline($id){
+        return false;
+    }
 }

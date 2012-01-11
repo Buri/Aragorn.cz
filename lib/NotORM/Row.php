@@ -2,11 +2,12 @@
 
 /** Single row representation
 */
-class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAccess {
+class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAccess, Countable {
 	private $modified = array();
 	protected $row, $result;
 	
-	protected function __construct(array $row, NotORM_Result $result) {
+	/** @access protected must be public because it is called from Result */
+	function __construct(array $row, NotORM_Result $result) {
 		$this->row = $row;
 		$this->result = $result;
 	}
@@ -54,7 +55,24 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 		return ($this->__get($name) !== null);
 	}
 	
-	// __set is not defined to allow storing custom references (undocumented)
+	/** Store referenced value
+	* @param string
+	* @param NotORM_Row or null
+	* @return null
+	*/
+	function __set($name, NotORM_Row $value = null) {
+		$column = $this->result->notORM->structure->getReferencedColumn($name, $this->result->table);
+		$this[$column] = $value;
+	}
+	
+	/** Remove referenced column from data
+	* @param string
+	* @return null
+	*/
+	function __unset($name) {
+		$column = $this->result->notORM->structure->getReferencedColumn($name, $this->result->table);
+		unset($this[$column]);
+	}
 	
 	/** Get referencing rows
 	* @param string table name
@@ -81,7 +99,8 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 		if (!isset($data)) {
 			$data = $this->modified;
 		}
-		return $this->result->notORM->__call($this->result->table, array($this->result->primary, $this[$this->result->primary]))->update($data);
+		$result = new NotORM_Result($this->result->table, $this->result->notORM);
+		return $result->where($this->result->primary, $this[$this->result->primary])->update($data);
 	}
 	
 	/** Delete row
@@ -89,12 +108,14 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 	*/
 	function delete() {
 		// delete is an SQL keyword
-		return $this->result->notORM->__call($this->result->table, array($this->result->primary, $this[$this->result->primary]))->delete();
+		$result = new NotORM_Result($this->result->table, $this->result->notORM);
+		return $result->where($this->result->primary, $this[$this->result->primary])->delete();
 	}
 	
 	protected function access($key, $delete = false) {
-		if ($this->result->notORM->cache && $this->result->access($key, $delete)) {
-			$this->row = $this->result[$this->row[$this->result->primary]]->row;
+		if ($this->result->notORM->cache && !isset($this->modified[$key]) && $this->result->access($key, $delete)) {
+			$id = (isset($this->row[$this->result->primary]) ? $this->row[$this->result->primary] : $this->row);
+			$this->row = $this->result[$id]->row;
 		}
 	}
 	
@@ -103,6 +124,12 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 	function getIterator() {
 		$this->access(null);
 		return new ArrayIterator($this->row);
+	}
+	
+	// Countable implementation
+	
+	function count() {
+		return count($this->row);
 	}
 	
 	// ArrayAccess implementation

@@ -280,6 +280,7 @@ window.addEvent('domready', function(){
             });
         this.req.send({'url':url});
     });
+    History.handleInitialState();
     if($$('#content').length){
         $(document.body).addEvent('click:relay(a.ajax)', function(event) {
             event.stop();

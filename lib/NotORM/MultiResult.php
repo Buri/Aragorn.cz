@@ -36,9 +36,18 @@ class NotORM_MultiResult extends NotORM_Result {
 		return call_user_func_array(array($this, 'parent::insert'), $args); // works since PHP 5.1.2, array('parent', 'insert') issues E_STRICT in 5.1.2 <= PHP < 5.3.0
 	}
 	
+	function insert_update(array $unique, array $insert, array $update = array()) {
+		$unique[$this->column] = $this->active;
+		return parent::insert_update($unique, $insert, $update);
+	}
+	
+	protected function single() {
+		$this->where[0] = "$this->column = " . $this->quote($this->active);
+	}
+	
 	function update(array $data) {
 		$where = $this->where;
-		$this->where[0] = "$this->column = " . $this->notORM->connection->quote($this->active);
+		$this->single();
 		$return = parent::update($data);
 		$this->where = $where;
 		return $return;
@@ -46,17 +55,17 @@ class NotORM_MultiResult extends NotORM_Result {
 	
 	function delete() {
 		$where = $this->where;
-		$this->where[0] = "$this->column = " . $this->notORM->connection->quote($this->active);
+		$this->single();
 		$return = parent::delete();
 		$this->where = $where;
 		return $return;
 	}
 	
 	function select($columns) {
-		if (!$this->select) {
-			$this->select[] = "$this->table.$this->column";
-		}
 		$args = func_get_args();
+		if (!$this->select) {
+			array_unshift($args, "$this->table.$this->column");
+		}
 		return call_user_func_array(array($this, 'parent::select'), $args);
 	}
 	
@@ -99,25 +108,27 @@ class NotORM_MultiResult extends NotORM_Result {
 		if (!isset($this->rows)) {
 			$referencing = &$this->result->referencing[$this->__toString()];
 			if (!isset($referencing)) {
-				$limit = $this->limit;
-				$rows = count($this->result->rows);
-				if ($this->limit && $rows > 1) {
-					$this->limit = null;
-				}
-				parent::execute();
-				$this->limit = $limit;
-				$referencing = array();
-				$offset = array();
-				foreach ($this->rows as $key => $row) {
-					$ref = &$referencing[$row[$this->column]];
-					$skip = &$offset[$row[$this->column]];
-					if (!isset($limit) || $rows <= 1 || (count($ref) < $limit && $skip >= $this->offset)) {
-						$ref[$key] = $row;
-					} else {
-						unset($this->rows[$key]);
+				if (!$this->limit || count($this->result->rows) <= 1 || $this->union) {
+					parent::execute();
+				} else { //! doesn't work with union
+					$result = clone $this;
+					$first = true;
+					foreach ((array) $this->result->rows as $val) {
+						if ($first) {
+							$result->where[0] = "$this->column = " . $this->quote($val);
+							$first = false;
+						} else {
+							$clone = clone $this;
+							$clone->where[0] = "$this->column = " . $this->quote($val);
+							$result->union($clone);
+						}
 					}
-					$skip++;
-					unset($ref, $skip);
+					$result->execute();
+					$this->rows = $result->rows;
+				}
+				$referencing = array();
+				foreach ($this->rows as $key => $row) {
+					$referencing[$row[$this->column]][$key] = $row;
 				}
 			}
 			$this->data = &$referencing[$this->active];
