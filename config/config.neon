@@ -1,33 +1,33 @@
 development < production:
 production:
-	php:
-		date.timezone: Europe/Prague
-	services:
-		robotLoader:
-			run: true
-			class: Nette\Loaders\RobotLoader
-		authorizator:
-			class: \UserAuthorizator
-		
-	parameters:
-		logdir: %appDir%/../logs
-		presenterRoutingTable: "uzivatele:users,registrace:registration,napoveda:help,posta:mail,nastaveni:settings,chat:chat,neplatne-prihlaseni:badlogin,diskuze:forum,herna:den,galerie:gallery,clanky:articles,databaze:database"
-		actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile"
-		staticServer: static.aragorn.cz
-		userServer: user.aragorn.cz
-		registrationEnabled: true
-		registrationCloseReason: Připravujeme databázi. 			
+  php:
+    date.timezone: Europe/Prague
+  services:
+    robotLoader:
+      run: true
+      class: Nette\Loaders\RobotLoader
+    authorizator:
+      class: \UserAuthorizator
+    
+  parameters:
+    logdir: /var/www/logs
+    presenterRoutingTable: "uzivatele:users,registrace:registration,napoveda:help,posta:mail,nastaveni:settings,chat:chat,neplatne-prihlaseni:badlogin,diskuze:forum,herna:den,galerie:gallery,clanky:articles,databaze:database"
+    actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile"
+    staticServer: static.aragorn.cz
+    userServer: user.aragorn.cz
+    registrationEnabled: true
+    registrationCloseReason: Připravujeme databázi.       
 
-		memcache:
-			host: 127.0.0.1
-			port: "11211"		
-		database:
-			lazy: true
-			driver: mysql
-			params: "host=127.0.0.1;port=3306;dbname=aragorn_cz;"
-			user: aragorncz
-			password: arag
+    memcache:
+      host: 127.0.0.1
+      port: "11211"    
+    database:
+      lazy: true
+      driver: mysql
+      params: "host=127.0.0.1;port=3306;dbname=aragorn_cz;"
+      user: aragorncz
+      password: arag
 
-		port: "8000"
-		usock: /var/run/nodejs.sock
-		modules: chat
+    port: 8000
+    usock: /var/run/nodejs.sock
+    modules: chat

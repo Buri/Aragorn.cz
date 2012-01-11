@@ -1,5 +1,5 @@
 var starttime = new Date().getTime();
-require('./node_modules/mootools.js').apply(GLOBAL);
+require('mootools.js').apply(GLOBAL);
 
 /*
  * Module loading
@@ -11,10 +11,12 @@ var http = require('http'),
     fs = require('fs'),
     utility = require('./modules/utility.js'),
     child = require('child_process'),
+    yaml = require('js-yaml'),
     
     /* Other variables */
-    Config = require('node-iniparser').parseSync(__dirname + '/../config/config.ini'),
+    Config = yaml.load(fs.readFileSync('../config/config.neon', 'utf8')).production.parameters;
     app = null,
+    
     
     /* Custom modules */
     Session = require('./modules/session.js').Session,
@@ -74,6 +76,7 @@ var http = require('http'),
         list:{}
     };
     utility.apply(GLOBAL);
+    
     
     /*
      * Setup servers 
@@ -176,15 +179,15 @@ var http = require('http'),
             }
         }.bind(s));
     });
-server.listen(parseInt(Config.common.port));
-console.log('Server listening at port ' + Config.common.port);
+server.listen(parseInt(Config.port));
+console.log('Server listening at port ' + Config.port);
 
 /*
  * Load modules
  * Module list in config.ini
  * Names separated by comma (,)
  */
-var mods = Config.common.modules.split(',');
+var mods = Config.modules.split(',');
 if(mods.length && mods[0]){
     console.log('Modules found: ' + mods.length);
     mods.each(function(name){
@@ -192,7 +195,7 @@ if(mods.length && mods[0]){
         //Modules.register(name);
         /*child.spawn('node', ['/var/www/node/module.js', '/var/www/node/modules/' + name, name], {cwd:process.cwd(), customFds: [-1, 1, 1]});*/
     });
-    console.log('All modules were launched.');
+    console.log(mods.length + ' modules were launched.');
 }else{
     console.log('Server loaded without modules.');
 }
@@ -201,11 +204,12 @@ if(mods.length && mods[0]){
  * Creates unix socket at target location for PHP => node.js communication
  * Faster than standart socket + safe from outer connections
  */
+
 var oldUmask = process.umask(0000);
-phpUnixSocket.listen(Config.common.usock, function() {
+phpUnixSocket.listen(Config.usock, function() {
   process.umask(oldUmask);
 });
-console.log('Unix socket opened in ' + Config.common.usock);
+console.log('Unix socket opened in ' + Config.usock);
 
 
 /*
@@ -307,7 +311,7 @@ app.sockets.on('connection', function (client) {
      *  Implement basic remote-client <=> node.js <=> redis protocol
      */
     //console.log(client);
-    client.on('SESSION_SID', function(sid){
+/*    client.on('SESSION_SID', function(sid){
         if(!SessionManager.exists(sid)){
             client.emit('SESSION_RESET_SID');
         }else{
@@ -332,5 +336,6 @@ app.sockets.on('connection', function (client) {
     });
 
     /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
-    client.emit('SESSION_REQUEST_IDENTITY');
+    client.on('PING', function(){ client.emit('PING'); });
+    //client.emit('SESSION_REQUEST_IDENTITY');
 });

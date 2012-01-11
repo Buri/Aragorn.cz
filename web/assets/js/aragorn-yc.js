@@ -50,9 +50,10 @@ var AragornClient = new Class({
         this.ajax = this.Ajax.send.bind(this);
         this.notimoo = new Notimoo();
         var t = this.transport;
-        t.on('connect', this.fn.connectionEstablished);
-        t.on('connecting', function(){$('constat').setStyle('background', 'yellow');$('constat').set('title', 'Connection status: connecting');console.log('connecting', this);});
-        t.on('SESSION_REQUEST_IDENTITY', function(){
+        t.on('connect', this.fn.connectionEstablished.bind(this));
+        t.on('connecting', function(){ $('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
+        t.on('PING', function(){ $('constat').set('text', new Date().getTime() - this._ping.last.shift()); }.bind(this));
+        /*t.on('SESSION_REQUEST_IDENTITY', function(){
             console.log('Server has requested identity');
             if(Cookie.read('sessid')){
                 this.emit('SESSION_SID',Cookie.read('sessid'));
@@ -127,11 +128,12 @@ var AragornClient = new Class({
         },
         ping:function(){
             this._ping.last.push(new Date().getTime());
-            this.send('PING');
+            this.transport.emit('PING');
         },
         connectionEstablished:function(){
             $('constat').set('class', 'online');
             $('constat').set('title', 'Connection status: online');
+            this.fireEvent('SESSION_HANDSHAKE');
         },
         sessionHandshake:function(){
             console.log('HANDSHAKE!');
