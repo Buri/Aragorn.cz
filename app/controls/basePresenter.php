@@ -142,7 +142,6 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }
             DB::users_profiles('id', $user->getId())->update(array('login'=>time()));
             $path = 'safe://' . APP_DIR . '/../db/user_ip_addresses/' . $user->getId() . '.txt';
-            echo $path;
             if(!file_exists($path)){
                 $fp = fopen($path, 'w');
                 $ips = "";
@@ -154,10 +153,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }
             if($ips){
                 $ips = explode(';', $ips);
-                echo "explode";
             }else{
                 $ips = array();
-                echo "new";
             }
             if(array_search($_SERVER['REMOTE_ADDR'], $ips) === false){
                 $ips[] = $_SERVER['REMOTE_ADDR'];
@@ -165,9 +162,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 fwrite($fp, implode(';', $ips));
             }
             fclose($fp);
-            $sid = 321; #Node::userlogin();
-            setCookie('sessid', $sid);
-            //$_COOKIE['sessid'] = $sid;
+            $sid = Node::userlogin();
+            setCookie('sid', $sid);
             $this->redirect(301, 'this');
         }
         catch(BanAuthenticationException $e){
@@ -189,10 +185,10 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     }
 
     public function actionLogout(){
+        $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE['sid'].'"}}';
+        setCookie('sid', usock::writeReadClose($data, 4096));
         Permissions::unload();
         Nette\Environment::getUser()->logout(true);
-        $data = '{"command":"user-logout","data":{"nodeSession":"'.'"}}';
-        //usock::writeReadClose($data, 4096);
         $this->redirect(301, "dashboard:default");
     }
 

@@ -38,26 +38,32 @@ var AragornClient = new Class({
                 port:8000,
                 rememberTransport:false
             }
+        },
+        notifications:{
+            sound:true,
+            source:'audioNotification'
         }
     },
     initialize:function(options){
         this.setOptions(options);
+        this.ajax = this.Ajax.send.bind(this);
+        this.notimoo = new Notimoo();
+        if(this.options.notifications.sound)
+            this.notificationAudio = $(this.options.notifications.source);
         this.transport = io.connect(this.options.client.url + ':8000');
         if(!this.transport){
             console.log('Unable to create transport.');
             //return;
         }
-        this.ajax = this.Ajax.send.bind(this);
-        this.notimoo = new Notimoo();
         var t = this.transport;
         t.on('connect', this.fn.connectionEstablished.bind(this));
         t.on('connecting', function(){ $('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
         t.on('PING', function(){ $('constat').set('text', new Date().getTime() - this._ping.last.shift()); }.bind(this));
-        /*t.on('SESSION_REQUEST_IDENTITY', function(){
+        t.on('SESSION_REQUEST_IDENTITY', function(){
             console.log('Server has requested identity');
-            if(Cookie.read('sessid')){
-                this.emit('SESSION_SID',Cookie.read('sessid'));
-                console.log('Responded with ' + Cookie.read('sessid'));
+            if(Cookie.read('sid')){
+                this.emit('SESSION_SID',Cookie.read('sid'));
+                console.log('Responded with ' + Cookie.read('sid'));
             }else{
                 console.log('Requested new identity');
                 this.emit('SESSION_REQUEST_SID');
@@ -65,7 +71,7 @@ var AragornClient = new Class({
         });
         t.on('SESSION_REGISTER_SID', function(sid){
             console.log('Recieved new identity: ' + sid);
-            Cookie.write('sessid', sid);
+            Cookie.write('sid', sid);
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_CONFIRMED_SID', function(sid){
@@ -74,7 +80,7 @@ var AragornClient = new Class({
         }.bind(this));
         t.on('SESSION_RESET_SID', function(){
             console.log('Session invalid, reseting');
-            Cookie.dispose('sessid');
+            Cookie.dispose('sid');
             this.emit('SESSION_REQUEST_SID');
         });
         /*this.transport.on('message', this.fn.handleMessage.bind(this));*/
@@ -84,10 +90,11 @@ var AragornClient = new Class({
         if(window.AUTHENTICATED)
             this.resetInactivity();
     },
+    notificationAudio:{play:function(){}},
     notimoo:null,
     transport:null,
     ajax:null,
-    _ping:{
+    _ping:{ 
         timeout:null,
         last:[]
     },
@@ -133,7 +140,7 @@ var AragornClient = new Class({
         connectionEstablished:function(){
             $('constat').set('class', 'online');
             $('constat').set('title', 'Connection status: online');
-            this.fireEvent('SESSION_HANDSHAKE');
+            //this.fireEvent('SESSION_HANDSHAKE');
         },
         sessionHandshake:function(){
             console.log('HANDSHAKE!');
@@ -233,6 +240,7 @@ var AragornClient = new Class({
         return this.removeEvent('cmd_' + cmd);
     },
     message:function(title, message, options){
+        this.notificationAudio.play();
         return this.notimoo.show(Object.merge({title:title || '', message:message || ''}, options));
     },
     prompt:function(question, cb){

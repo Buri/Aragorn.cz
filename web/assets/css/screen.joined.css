@@ -8,6 +8,10 @@ body.dark{
     padding: 0;
     color: #fff;
 }
+.dark div, .dark menu{
+    padding:0;
+    margin:0;
+}
 .dark a{
     color: #E4F9E3;
     text-decoration: none;

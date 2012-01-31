@@ -39,17 +39,24 @@
                 {include #content}
             </div>
         </div>    
-        <div id="sidebar-right" style="border-left: 1px solid white; width: 190px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px;">
-                Sidebar
-        </div>    
-        <div id="sidebar-left" style="border-right: 1px solid white; width: 190px; float:left; display:inline-block;min-height: 500px; padding: 5px 3px;">
-                Contactlist
-        </div>    
+        <menu id="sidebar-right" style="border-left: 1px solid white; width: 150px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px;">
+            Záložky
+        </menu>    
+        <menu id="sidebar-left" style="border-right: 1px solid white; width: 150px; float:left; display:inline-block;min-height: 500px; padding: 5px 3px;">
+            Contactlist
+        </menu>    
         <footer>
             Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů. 
             Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl. 
             Jakékoliv kopírování obsahu je zakázáno. 
         </footer>
+        <div style="display:none;">
+            <audio id="audioNotification" preload="full">
+                <source src="http://static.aragorn.cz/sound/global.ogg" />
+                <source src="http://static.aragorn.cz/sound/global.mp3" />
+                <source src="http://static.aragorn.cz/sound/global.wav" />
+            </audio>
+        </div>
     </body>
     {include 'scripts.latte'}
 </html>
