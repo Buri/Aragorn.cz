@@ -45,8 +45,7 @@ var http = require('http'),
         /* Public api */
         register:function(name){
             var module = require('./modules/' + name + '.js');
-            var namespace = this.app.of('/' + name);
-            //console.log(namespace);
+            var namespace = this.app.sockets; //of('/' + name);
             return this.list[name] = module.create(namespace, Config);
         },
         remove:function(name){
@@ -60,9 +59,9 @@ var http = require('http'),
         isSet:function(name){return this.list[name] ? true : false;},        
         
         /* Private api */
-        /*redisHook:function(message, client, channel){
+        redisHook:function(message, client, channel){
             return this.list[message.cmd].redisHook(message, client, channel);
-        },*/
+        },
         unixHook:function(message){
             return this.list[message.command].unixHook(message);
         },
@@ -71,6 +70,12 @@ var http = require('http'),
                 return this.list[message.cmd].sessionHook(message, client);
             console.error('Undefined message', message);
             return false;
+        },
+        setupClient:function(client){
+            this.getList().each(function(mod){
+                //console.log(mod);
+                client.on(mod, this.list[mod].sessionHook.bind(this.list[mod], client));
+            }.bind(this));
         },
         getList:function(){
             var r = [];
@@ -131,7 +136,9 @@ var http = require('http'),
             }while(this._s[sid]);
 
             this._s[sid] = new Session(sid, {
-                parentStorageRemoval:this.remove.bind(this)
+                parentStorageRemoval:this.remove.bind(this),
+                redisHook:Modules.redisHook.bind(Modules),
+                //modulesManager:Modules
             });
             this._s[sid].sessid = sid;
             return this._s[sid];
@@ -174,14 +181,13 @@ var http = require('http'),
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
-                        var old = SessionManager.get(json.data.nodeSession);
-                        if(old) old.erase();
-                        var s = SessionManager.createSession(json.data.PHPSESSID);
+                        var s = SessionManager.get(json.data.nodeSession) || SessionManager.createSession(json.data.PHPSESSID);
                         s.user.id = json.data.id;
                         s.user.name = json.data.username;
                         s.user.preferences = json.data.preferences;
                         s.user.permissions = json.data.permissions;
                         s.user.roles = json.data.roles;
+                        //console.log(s.user);
                         this.write(s.sessionId + '');
                         break;
                     case "user-logout":
@@ -192,6 +198,12 @@ var http = require('http'),
                         }else{
                             this.write("SESSION_NOT_FOUND");
                         }
+                        break;
+                    case 'get-number-of-sessions':
+                        this.write(SessionManager.length());
+                        break;
+                    case 'get-number-of-clients':
+                        this.write(io.sockets.clients().length);
                         break;
                     default:
                         if(Modules.isSet(json.command))
@@ -250,7 +262,7 @@ console.log('Unix socket opened in ' + Config.usock);
 
 app = io.listen(server);
 app.configure(function(){
-    app.set('log level', 2);                    // reduce logging
+    app.set('log level', 0);                    // reduce logging
     app.set('transports', [                     // enable all transports (optional if you want flashsocket)
         'websocket'
       , 'flashsocket'
@@ -263,8 +275,7 @@ app.configure(function(){
 app.sockets.on('connection', function (client) {
     /*
      *  Implement basic remote-client <=> node.js <=> redis protocol
-     */
-    //console.log(client);
+     */    
     client.on('SESSION_SID', function(sid){
         if(!SessionManager.exists(sid)){
             client.emit('SESSION_RESET_SID');
@@ -275,23 +286,24 @@ app.sockets.on('connection', function (client) {
             client.emit('SESSION_CONFIRMED_SID', sid);
         }
     });
-    
     client.on('SESSION_REQUEST_SID', function(){
         var s = SessionManager.createSession();
         var sid = s.sessid;
         s.registerClient(this);
         client.emit('SESSION_REGISTER_SID', sid);
     });
-
+    Modules.setupClient(client);
     client.on('disconnect', function(){
         var s = client.session;
         if(s) s.removeClient(client);
-        console.log(app.sockets);
     });
-
+    
     /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
-    client.on('PING', function(){client.emit('PING');});
+    client.on('PING', function(){ 
+        client.emit('PING');
+    });
     client.emit('SESSION_REQUEST_IDENTITY');
+    client.on('SESS', function(){console.log(client.session.user);});
 });
 
 /*

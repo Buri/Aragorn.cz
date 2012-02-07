@@ -1,5 +1,5 @@
 require('mootools.js').apply(GLOBAL);
-var Redis = require('node-redis');
+var redis = require('redis');
 
 exports.ChatServer = new Class({
     Implements:[Options, Events],
@@ -8,9 +8,10 @@ exports.ChatServer = new Class({
         timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
         userServer:'static.aragorn.cz' // From where to serve icons?
     },
-    initialize:function(options){
+    initialize:function(socket, options){
         this.setOptions(options);
-        this.redis = Redis.createClient();
+        this.redis = redis.createClient();
+        this.socket = socket;
     },
     sysMsg:function(channel, message, store){
         message.user = {id:0, name:'System'};
@@ -21,9 +22,10 @@ exports.ChatServer = new Class({
         message.data.id = this.newMsgId(channel);
         if(store)
             this.storeMessage(channel, message);
+        console.log(message);
         this.redis.publish(channel, JSON.stringify(message));
     },
-    redis:null,
+    socket:null,
     storage:{},
     users:{},
     usersInfo:{},
@@ -115,12 +117,17 @@ exports.ChatServer = new Class({
     clearChannel:function(channel){
         delete this.storage[channel];
     },
-    sessionHook:function(message, client){
+    sessionHook:function(client, message){
+        //console.log(message);
+        //client = this;
+        //message.data = message;
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
+        //console.log(message);
         switch(message.data.action){
             case "enter":
                 client.redis.subscribe(cname); // Public channel
                 client.redis.subscribe(cname + '/' + client.session.user.name); // Whisper
+                //console.log('subscribed to ' + cname);
                 if(message.data.noqueue)
                     break;
             case "queue":
@@ -132,20 +139,24 @@ exports.ChatServer = new Class({
                     s.push(msg);
                 }
                 s.sort(function(a,b){var c = a.time - b.time;return (c < 0 ? -1 : (c ? 1 : 0));});
-                client.send({cmd:'chat', data:{action:'queue', queue:s}});
+                client.json.emit('chat', {cmd:'chat', data:{action:'queue', queue:s}});
                 break;
             case 'userlist':
-                client.send({cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
+                client.json.emit('chat', {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
                 break;
             case 'leave':
                 client.redis.unsubscribe(cname);
                 client.redis.unsubscribe(cname + '/' + client.session.user.name);
                 break;
             case 'post':
+                /*console.log('action post');
+                console.log(message, this.getUsers(cname), client.session.user.name);*/
                 if(this.getUsers(cname).indexOf(client.session.user.name) == -1) return;
+                console.log('Passed 1');
                 if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
                     message.data.color = client.session.user.preferences.chat.color || '#fff' ;
                 message.data.id = this.newMsgId(cname);
+                console.log(message);
                 if(message.data.whisper == client.session.user.name){
                     cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
                     delete message.data.whisper;
@@ -209,11 +220,13 @@ exports.ChatServer = new Class({
         }
     },
     redisHook:function(message, client, channel){
+        console.log(message, channel);
         message.data.from = message.user.name;
         message.data.time = message.itime || message.time || new Date().getTime();
-        client.send(message);
+        client.json.emit('chat', message);
     },
     unixHook:function(message){
+        //console.log(message);
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.room || 'null');
         switch(message.data.action){
             case "enter":
@@ -237,4 +250,6 @@ exports.ChatServer = new Class({
         return "OK";
     }
 });
-exports.create = function(conf){return new exports.ChatServer({userServer:conf.common['variable.userServer']});}
+exports.create = function(namespace, conf){
+    return new exports.ChatServer(namespace, {userServer:conf.userServer});
+}

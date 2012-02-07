@@ -2,8 +2,34 @@
 <html>
     <head>
         {include '../../../templates/head.latte'}
-        {include '../../../templates/scripts.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
+    </head>
+    <body n:syntax="double">
+        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px;"></div>
+        <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed; padding: 16px;"></div>
+        <footer>
+            {{if $param != "ninja"}}
+            <form id="frmMsg">
+                Zpráva: <input type="text" name="msg" id="msg" size="40" autocomplete="off" /> <button type="submit">Odeslat</button>
+            </form>
+            {{if $user->isAllowed('chat', 'delete')}}
+            <button id="showDeletes" onclick="$(this).setStyle('background', Chat.toggleDeletes() ? 'red' : '#339');">Mazáni zpráv</button>
+            {{/if}}
+            {{else}}
+            <button data-href="{{link enter $rid}}" onclick="location.href = $(this).get('data-href');">Vstoupit</button>
+            {{/if}}
+            <select name="glassLength" id="glass-length" title="Počet zobrazovaných zpráv">
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="150">150</option>
+                <option value="200">200</option>
+                <option value="250">250</option>
+                <option value="300">300</option>
+            </select>
+            <button data-href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" onclick="location.href = $(this).get('data-href');">Odejít</button>
+            <div id="constat" title="Connection status: offline" class="offline" style="display: inline-block; position: relative;">&infin;</div>
+        </footer>
+        {{include '../../../templates/scripts.latte'}}
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.rid = {{$rid}};
@@ -40,8 +66,10 @@
                     this.setOptions(options);
                     t.registerCmd('chat', this._handle.bind(this));
                     this.transport = t;
-                    t.send('chat', {action:'enter', rid:rid});
-                    t.send('chat', {action:'userlist', rid:rid});
+                    t.addEvent('SESSION_HANDSHAKE',function(){
+                        t.send('chat', {action:'enter', rid:rid});
+                        t.send('chat', {action:'userlist', rid:rid});
+                    });
                     this.tips = new FloatingTips(this.options.tipsSelector, this.options.tips);
                     this.options.input = $(this.options.input);
                     if(this.options.input)
@@ -103,9 +131,11 @@
                     }
                 },
                 _handle:function(msg){
+                    msg = msg.data;
                     //console.log(msg);
                     switch(msg.action){
                         case 'post':
+                            //console.log('New post');
                             var d = new Date();
                             d.setTime(msg.time);
                             new Element('div', {
@@ -144,7 +174,7 @@
                             break;
                         case 'queue':
                             for(var i = 0; i < msg.queue.length; i++){
-                                AC.fireEvent('cmd_chat', msg.queue[i].data);
+                                this._handle(msg.queue[i]);
                             }
                             break;
                         case 'notify':
@@ -173,6 +203,7 @@
                      }
                 },
                 send:function(cmd, params){
+                    //console.info('sending', Object.merge({action:cmd, rid:rid}, params));
                     this.transport.send('chat', Object.merge({action:cmd, rid:rid}, params));
                 }
             });
@@ -235,31 +266,5 @@
                     });
             });
         </script>
-    </head>
-    <body n:syntax="double">
-        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px;"></div>
-        <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed; padding: 16px;"></div>
-        <footer>
-            {{if $param != "ninja"}}
-            <form id="frmMsg">
-                Zpráva: <input type="text" name="msg" id="msg" size="40" /> <button type="submit">Odeslat</button>
-            </form>
-            {{if $user->isAllowed('chat', 'delete')}}
-            <button id="showDeletes" onclick="$(this).setStyle('background', Chat.toggleDeletes() ? 'red' : '#339');">Mazáni zpráv</button>
-            {{/if}}
-            {{else}}
-            <button data-href="{{link enter $rid}}" onclick="location.href = $(this).get('data-href');">Vstoupit</button>
-            {{/if}}
-            <select name="glassLength" id="glass-length" title="Počet zobrazovaných zpráv">
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="150">150</option>
-                <option value="200">200</option>
-                <option value="250">250</option>
-                <option value="300">300</option>
-            </select>
-            <div id="constat" title="Connection status: offline" class="offline" style="display: inline-block; position: relative;">&infin;</div>
-            <button data-href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" onclick="location.href = $(this).get('data-href');">Odejít</button>
-        </footer>
     </body>    
 </html>

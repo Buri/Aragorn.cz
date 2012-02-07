@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-console.mlog = function(x){
+/*console.mlog = function(x){
         console.log('[' + process.argv[2] + '.js]', x);
 };
 console.mlog('Initializing...');
@@ -19,4 +19,11 @@ var http = require('http'),
 //var mod = require('./modules' + process.argv[1] + '.js');
 app = io.listen(80);
 app.of('/' + namespace);
-console.m1log('Module "' + namespace + '" running.');
+console.m1log('Module "' + namespace + '" running.');*/
+var redis = require('redis');
+var client = redis.createClient();
+client.on("error", function (err) {
+    console.log("Error " + err);
+});
+client.set("string key", "string val", redis.print);
+client.quit();

@@ -83,9 +83,9 @@ var AragornClient = new Class({
             Cookie.dispose('sid');
             this.emit('SESSION_REQUEST_SID');
         });
-        /*this.transport.on('message', this.fn.handleMessage.bind(this));*/
-        this.transport.on('connect_failed', this.fn.global);
-        this.transport.on('disconnect', this.fn.handleDisconnect.bind(this));
+        t.on('connect_failed', this.fn.global);
+        t.on('disconnect', this.fn.handleDisconnect.bind(this));
+        t.on('message', function(msg){console.log(msg);});
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
         if(window.AUTHENTICATED)
             this.resetInactivity();
@@ -146,6 +146,7 @@ var AragornClient = new Class({
             console.log('HANDSHAKE!');
             this.connected = true;
             this._ping.timeout = setInterval(this.fn.ping.bind(this), 1000);
+            this.ajax('testIdentity', {});
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
                     this.sendRaw(msg);
@@ -171,7 +172,7 @@ var AragornClient = new Class({
                 return;
             }
             switch(msg.cmd){
-                case 'SESSION_HAS_PHPSESSID_REGISTERED':
+           /*     case 'SESSION_HAS_PHPSESSID_REGISTERED':
                     if(msg.identity === true){
                         this.fireEvent('SESSION_CONFIRM');
                     }else{
@@ -197,7 +198,7 @@ var AragornClient = new Class({
                     this.fn.getIdentity.bind(this).call();
                     break;
                 case 'INVALID_SID':
-                    break;
+                    break;*/
                 case 'PING':
                     $('constat').set('text', new Date().getTime() - this._ping.last.shift());
                     break;
@@ -212,13 +213,23 @@ var AragornClient = new Class({
     },
     connected:false,
     batch:[],
-    send:function(cmd, params){        
-        return this.sendRaw({
-            cmd:cmd, 
-            time:new Date().getTime(), 
-            data:params, 
-            identity:Cookie.read('sid')
-        });
+    send:function(cmd, params){
+        var message = {
+            cmd:cmd,
+            data:params
+        }
+        if(this.connected){
+            if(!message.identity) message.identity = Cookie.read('sid');
+            if(!message.time) message.time = new Date().getTime();
+            return this.transport.json.emit(cmd, message);
+        
+        }else{
+            if(this.options.batchOffline){
+                message.itime = new Date().getTime();
+                return this.batch.push(message);
+            }
+        }
+        return null;
     },
     sendRaw:function(message){
         if(this.connected){
@@ -234,10 +245,12 @@ var AragornClient = new Class({
         return null;
     },
     registerCmd:function(cmd, callback){
-        return this.addEvent('cmd_' + cmd, callback);
+        return this.transport.on(cmd, callback);
+        //return this.addEvent('cmd_' + cmd, callback);
     },
     removeCmd:function(cmd){
-        return this.removeEvent('cmd_' + cmd);
+        return this.transport.removeEvents(cmd);
+        //return this.removeEvent('cmd_' + cmd);
     },
     message:function(title, message, options){
         this.notificationAudio.play();

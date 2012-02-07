@@ -1,7 +1,8 @@
         <div class="menu main">
             <a href="{link chat:}" class="middle ajax">Chat</a> |
             <a href="{link help:}" class="middle ajax">Nápověda</a> |
-            <a href="{link users:}" class="middle ajax">Uživatelé</a>
+            <a href="{link users:}" class="middle ajax">Uživatelé (/)</a>
+            <button onclick="AC.send('SESS');">Info</button> 
             <div class="float-right">
                 {if $user->isLoggedIn()}
                 Dukáty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>

@@ -31,4 +31,18 @@ class Node {
     static function isUserOnline($id){
         return false;
     }
+    
+    static function getNumberOfUsersOnline(){
+        $data = json_encode(array("command" => "get-number-of-sessions",
+                "data" => array(
+                )));
+        return usock::writeReadClose($data, 4096);
+    }
+    
+    static function getNumberOfConnections(){
+        $data = json_encode(array("command" => "get-number-of-clients",
+                "data" => array(
+                )));
+        return usock::writeRead($data, 4096);
+    }
 }
