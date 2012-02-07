@@ -45,6 +45,7 @@ namespace frontendModule{
                     $r = DB::chatrooms('id', $id)->select('id,password,max')->fetch();
                     if(!DB::chatroom_occupants()->where('idusers = ?', Environment::getUser()->getId())->count())
                         DB::chatroom_occupants()->insert(array("id"=>0, "idroom"=>$id, "idusers"=>Environment::getUser()->getId(), "activity"=>time()));
+                    $usr = DB::users_profiles('id', $user->getId())->fetch();
                     usock::writeReadClose(json_encode(array("command" => "chat",
                         "data" => array(
                             "uid" => Environment::getUser()->getId(),
@@ -55,8 +56,8 @@ namespace frontendModule{
                                 "permissions" => array(
                                     "delete" => $user->isAllowed('chat', 'delete')
                                 ),
-                                "icon" => "http://user.aragorn.cz/i/nobody.jpg",
-                                "status" => "Some other status",
+                                "icon" => 'http://' . Environment::getVariable('userServer', 'user.aragorn.cz') . '/i/' . $usr['icon'],
+                                "status" => $usr['status'],
                                 "id" => $user->getId()
                             )
                         )
