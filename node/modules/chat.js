@@ -22,7 +22,7 @@ exports.ChatServer = new Class({
         message.data.id = this.newMsgId(channel);
         if(store)
             this.storeMessage(channel, message);
-        console.log(message);
+        //console.log(message);
         this.redis.publish(channel, JSON.stringify(message));
     },
     socket:null,
@@ -49,9 +49,12 @@ exports.ChatServer = new Class({
         this.broadcastUserUpdate(room);
     },
     removeUser:function(room, user){
-        this.setUsers(room, this.getUsers(room).erase(user).sort(this.sortUsers));
+        //console.log('Delete user ' + user + ' from ' + room, this.users, this.usersInfo);
+        if(this.setUsers(room, this.getUsers(room).erase(user).sort(this.sortUsers)).lenght == 0)
+            this.removeRoom(room);
         if(user)
             delete this.usersInfo[user];
+        //console.log('Result: ', this.users, this.usersInfo);
         this.broadcastUserUpdate(room);
     },
     getUsers:function(room){
@@ -76,6 +79,7 @@ exports.ChatServer = new Class({
         return r;
     },
     broadcastUserUpdate:function(cname){
+        console.log(this.getUsersO(cname));
         this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}}, false);
     },
     setUsers:function(room, users, broadcastUpdate){
@@ -83,6 +87,9 @@ exports.ChatServer = new Class({
         if(broadcastUpdate)
             this.broadcastUserUpdate(room);
         return this.users[room];
+    },
+    removeRoom:function(cname){
+        delete this.users[cname];
     },
     storeMessage:function(cname, message){
         var tmp = this.getQueue(cname);
@@ -118,11 +125,7 @@ exports.ChatServer = new Class({
         delete this.storage[channel];
     },
     sessionHook:function(client, message){
-        //console.log(message);
-        //client = this;
-        //message.data = message;
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
-        //console.log(message);
         switch(message.data.action){
             case "enter":
                 client.redis.subscribe(cname); // Public channel
@@ -152,11 +155,11 @@ exports.ChatServer = new Class({
                 /*console.log('action post');
                 console.log(message, this.getUsers(cname), client.session.user.name);*/
                 if(this.getUsers(cname).indexOf(client.session.user.name) == -1) return;
-                console.log('Passed 1');
+                //console.log('Passed 1');
                 if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
                     message.data.color = client.session.user.preferences.chat.color || '#fff' ;
                 message.data.id = this.newMsgId(cname);
-                console.log(message);
+                //console.log(message);
                 if(message.data.whisper == client.session.user.name){
                     cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
                     delete message.data.whisper;
@@ -220,7 +223,7 @@ exports.ChatServer = new Class({
         }
     },
     redisHook:function(message, client, channel){
-        console.log(message, channel);
+        //console.log(message, channel);
         message.data.from = message.user.name;
         message.data.time = message.itime || message.time || new Date().getTime();
         client.json.emit('chat', message);
@@ -236,10 +239,14 @@ exports.ChatServer = new Class({
                 }
                 break;
             case "leave":
+                //console.log('User leaving ' + message.data.name);
                 if(this.getUsers(cname).binarySearch(message.data.name) != -1){
+                    //console.log('Pass 1');
                     this.removeUser(cname, message.data.name);
-                    if(!message.data.silent)
+                    if(!message.data.silent){
+                        //console.log('Pass 2', message);
                         this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                    }
                 }
                 cname += '/' + message.data.name;
                 this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', silent:true}});
