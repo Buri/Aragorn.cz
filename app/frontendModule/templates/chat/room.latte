@@ -4,8 +4,15 @@
         {include '../../../templates/head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
     </head>
-    <body n:syntax="double">
-        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px;"></div>
+    <body n:syntax="double" class="{$_COOKIE['skin']}">
+        <div style="display:block;">
+            <audio id="audioNotification" preload="full">
+                <source src="http://static.aragorn.cz/sound/global.ogg" />
+                <source src="http://static.aragorn.cz/sound/global.mp3" />
+                <source src="http://static.aragorn.cz/sound/global.wav" />
+            </audio>
+        </div>
+        <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px; padding-top: 25px;"></div>
         <div id="glass" style="white-space: pre-wrap; overflow: auto; right: 150px; left: 0; bottom: 35px; top: 0;position: fixed; padding: 16px;"></div>
         <footer>
             {{if $param != "ninja"}}
@@ -29,10 +36,11 @@
             <button data-href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" onclick="location.href = $(this).get('data-href');">Odejít</button>
             <div id="constat" title="Connection status: offline" class="offline" style="display: inline-block; position: relative;">&infin;</div>
         </footer>
-        {{include '../../../templates/scripts.latte'}}
-        <script type="text/javascript" charset="utf-8" n:syntax="double">
-            window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
+        <script n:syntax="double">window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.rid = {{$rid}};
+            </script>
+        {include '../../../templates/scripts.latte'}
+        <script type="text/javascript" charset="utf-8" n:syntax="double">
             var Chat = null;
             var ChatClient = new Class({
                 Implements:[Events, Options],
@@ -233,6 +241,7 @@
                                         break;
                                     case 'help':
                                         // Load stuff via ajax
+                                        AC.message('Nápověda', 'Nápověda momentálně není dostupná. Pracujeme na nápravě problému');
                                         break;
                                     case 'who':
                                     case 'whois':

@@ -1,10 +1,65 @@
+{if isset($fid) }
+<div>
+    <div style="text-align: center;">
+        <a href="#" id="forum-bookmark-toggle">Záložka</a>
+        <a href="#" id="forum-surveys-toggle">Ankety</a>
+        <a href="#" id="forum-stats-toggle">Statistiky</a>
+    {if $control->userIsAllowed('forum','admin', $fid)}
+        <a href="#" id="forum-admin-toggle" onclick="hideAll();$('forum-admin').slide('toggle');return false;">Administrace</a>
+        <div id="forum-admin">
+            <div>Přidání a odebrání správců</div>
+            <div>Přístup do diskuze</div>
+            <div>Obecné vlastnosti
+                <textarea id="forum-noticeboard-editor">{$noticeboard}</textarea>
+                <textarea id="forum-description-editor">{$info['description']}</textarea>
+                <button onclick="AC.ajax('updateforumnoticeboard', { id:{$fid}, param:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ AC.message('Hotovo'); AC.Ajax.reloadLocation(); }, 'get');">Uložit změny</button>
+            </div>
+            <div>přesunutí/smazání/export/uzamčení diskuze</div>
+        </div>
+    {/if}
+        <div id="forum-surveys">
+            Ankety
+        </div>
+        <div id="forum-stats">
+            <table>
+                <thead>
+                    <th>Jméno</th>
+                    <th>Poslení návštěva</th>
+                    <th>Záložka</th>
+                </thead>
+                <tbody>
+                    {foreach DB::forum_visit('idforum', $fid) as $visit}
+                    <tr>
+                        <td>{!$control->parent->userlink($visit['iduser'])}</td>
+                        <td>{date('d.m.Y H.i', $visit['time'])}</td>
+                        <td>{($visit['bookmark'] ? 'Ano' : 'Ne')}</td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        Správci: 
+        {!$control->presenter->userlink($info['owner'])}{foreach DB::forum_moderator('forumid', $fid) as $mod}{first},{/first}
+            {!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}
+        {/foreach}
+    </div>
+    <div>Popis: {$info['description']}</div>
+    <div>
+        Přístupová práva k serveru:
+        <br />
+        Diskuze je <em>{\frontendModule\ForumComponent::$LOCKED & $info['options'] ? "zamčená" : "odemčená"}</em>
+    </div>
+    <div class="forum-noticeboard">
+    {!$noticeboard}
+    </div>
+</div>
+{/if}
 <div class="forum-navigation"> Navigace:
 {for $i = count($n) - 1; $i >= 0; $i--}
 <a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
 {/for}
-</div>
-<div class="forum-noticeboard">
-{!$noticeboard}
 </div>
 {foreach $topics as $topic}
 <div class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}

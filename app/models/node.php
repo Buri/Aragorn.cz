@@ -36,7 +36,7 @@ class Node {
         $data = json_encode(array("command" => "get-number-of-sessions",
                 "data" => array(
                 )));
-        return usock::writeReadClose($data, 4096);
+        return usock::writeRead($data, 4096);
     }
     
     static function getNumberOfConnections(){

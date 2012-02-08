@@ -50,6 +50,11 @@ var AragornClient = new Class({
         this.notimoo = new Notimoo();
         if(this.options.notifications.sound)
             this.notificationAudio = $(this.options.notifications.source);
+        if(typeof window != 'undefined' && !window.AUTHENTICATED){
+            Cookie.write('sid', Math.random());
+            //alert('return');
+            //return;
+        }
         this.transport = io.connect(this.options.client.url + ':8000');
         if(!this.transport){
             console.log('Unable to create transport.');
@@ -57,31 +62,35 @@ var AragornClient = new Class({
         }
         var t = this.transport;
         t.on('connect', this.fn.connectionEstablished.bind(this));
-        t.on('connecting', function(){ $('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
-        t.on('PING', function(){ $('constat').set('text', new Date().getTime() - this._ping.last.shift()); }.bind(this));
+        t.on('connecting', function(){$('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
+        t.on('PING', function(){$('constat').set('text', new Date().getTime() - this._ping.last.shift());}.bind(this));
         t.on('SESSION_REQUEST_IDENTITY', function(){
-            console.log('Server has requested identity');
+            //console.log('Server has requested identity');
             if(Cookie.read('sid')){
                 this.emit('SESSION_SID',Cookie.read('sid'));
-                console.log('Responded with ' + Cookie.read('sid'));
+                //console.log('Responded with ' + Cookie.read('sid'));
             }else{
-                console.log('Requested new identity');
+                //console.log('Requested new identity');
                 this.emit('SESSION_REQUEST_SID');
             }
         });
         t.on('SESSION_REGISTER_SID', function(sid){
-            console.log('Recieved new identity: ' + sid);
+            //console.log('Recieved new identity: ' + sid);
             Cookie.write('sid', sid);
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_CONFIRMED_SID', function(sid){
-            console.log('Confirmed identity: ' + sid);
+            //console.log('Confirmed identity: ' + sid);
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_RESET_SID', function(){
-            console.log('Session invalid, reseting');
+            //console.log('Session invalid, reseting');
             Cookie.dispose('sid');
             this.emit('SESSION_REQUEST_SID');
+        });
+        t.on('SYSTEM_UPDATE_USERS_ONLINE', function(num){
+            //console.log(num);
+            $$('#numUsrOnline').each(function(e){e.set('text', num);});
         });
         t.on('connect_failed', this.fn.global);
         t.on('disconnect', this.fn.handleDisconnect.bind(this));
@@ -103,7 +112,7 @@ var AragornClient = new Class({
         reloadLocation:function(){
             History.push(location.href);
         },
-        send:function(action, data, callback){
+        send:function(action, data, callback, method){
             var t = null;
             for(var i = 0; i < this.Ajax.transports.length; i++){
                 if(!this.Ajax.transports[i].isRunning()){
@@ -126,7 +135,7 @@ var AragornClient = new Class({
                     delete data.param ;
                 }
             }
-            return t.send({url:uri, data:data});
+            return t.send({url:uri, data:data, method:(method || 'post')});
         }
     },
     fn:{
@@ -143,7 +152,7 @@ var AragornClient = new Class({
             //this.fireEvent('SESSION_HANDSHAKE');
         },
         sessionHandshake:function(){
-            console.log('HANDSHAKE!');
+            //console.log('HANDSHAKE!');
             this.connected = true;
             this._ping.timeout = setInterval(this.fn.ping.bind(this), 1000);
             this.ajax('testIdentity', {});
@@ -303,7 +312,8 @@ window.addEvents({'domready': function(){
             });
         this.req.send({'url':url});
     });
-    History.handleInitialState();
+    //if(!Browser.ie || location.href.indexOf('mistnost') == -1 )
+    //History.handleInitialState();
     if($$('#content').length){
         $(document.body).addEvent('click:relay(a.ajax)', function(event) {
             event.stop();

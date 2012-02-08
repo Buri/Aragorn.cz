@@ -55,3 +55,6 @@ button:focus, input:focus{
     left: inherit;
     position: fixed;
 }
+#user-list{
+    padding-top: 40px;
+}

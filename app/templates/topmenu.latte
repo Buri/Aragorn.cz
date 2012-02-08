@@ -1,7 +1,7 @@
         <div class="menu main">
             <a href="{link chat:}" class="middle ajax">Chat</a> |
             <a href="{link help:}" class="middle ajax">Nápověda</a> |
-            <a href="{link users:}" class="middle ajax">Uživatelé (/)</a>
+            <a href="{link users:}" class="middle ajax" title="Celkem připojení: {\Node::getNumberOfConnections()}">Uživatelé (<span id="numUsrOnline">{Node::getNumberOfUsersOnline()}</span>)</a>
             <button onclick="AC.send('SESS');">Info</button> 
             <div class="float-right">
                 {if $user->isLoggedIn()}

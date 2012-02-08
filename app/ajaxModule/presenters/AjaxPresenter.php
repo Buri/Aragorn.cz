@@ -11,6 +11,7 @@ namespace ajaxModule{
         public function startup(){
             header("Content-type: application/xml");
             header("Content-type: text/plain");
+            header("Content-type: text/html");
             $this->setView('default');
             $this->template->data = "";
             parent::startup();
@@ -62,7 +63,7 @@ namespace ajaxModule{
         
         public function actionDeleteforum($id = null, $param = null){
             $forum = new \frontendModule\ForumComponent();
-            if($forum->userIsAllowed('forum', 'delete', 'id')){
+            if($forum->userIsAllowed('forum', 'delete', $id)){
                 $forum->deleteForum($id);
                 $this->template->data = "Forum smazáno.";
             }else{
@@ -86,6 +87,19 @@ namespace ajaxModule{
         }
         public function actionWait($id = 1000){
             usleep($id);
+        }
+        public function actionUpdateforumnoticeboard($id,$param,$description){
+            $this->template->data = "fail";
+            $forum = new \frontendModule\ForumComponent();
+            if($forum->userIsAllowed('forum', 'admin', $id)){
+                $this->template->data = "off";
+                $row = DB::forum_topic('id', $id);
+//                $row['noticeboard'] = $param;
+                //$row->update();
+                $row->update(array("noticeboard"=>$param, "description" => $description));
+                //echo($row);
+                $this->template->data = "ok";
+            }
         }
     }
 }

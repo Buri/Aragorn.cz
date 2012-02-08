@@ -42,7 +42,7 @@ namespace frontendModule{
                 }
                 $adm = ($user->getId() == $info['owner']) || ($user->getIdentity() ? in_array($user->getIdentity()->name, $adms) : false);
                 $this->template->read = $adm ||$user->isAllowed('discussion', 'read');
-                $this->template->write = $adm || $user->isAllowed('discussion', 'write');
+                $this->template->write = $adm || ($user->isAllowed('discussion', 'write') && !($info['options'] & ForumComponent::$LOCKED));
                 $this->template->administrate = $adm || $user->isAllowed('discussion', 'admin');
             }
             $d = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*');
@@ -107,7 +107,7 @@ namespace frontendModule{
     }
         
     class ForumComponent extends \Nette\Application\UI\Control{        
-        static $SUBTOPIC_ALLOWED = 1, $POSTS_ALLOWED = 2, $HAS_CUSTOM_PERMISSIONS = 4;
+        static $SUBTOPIC_ALLOWED = 1, $POSTS_ALLOWED = 2, $HAS_CUSTOM_PERMISSIONS = 4, $LOCKED = 8;
         private $url = null;
         function __construct($id = null, $url = null){
             $this->template->id = $id;
@@ -157,9 +157,10 @@ namespace frontendModule{
             if(is_null($id) || !is_numeric($id)){
                 if(isset($url) && $url != ""){
                     $p = DB::forum_topic('urlfragment', $url)->fetch();
+                    $fid = $p['id'];
                     $this->template->noticeboard = $p['noticeboard'];
-                    $this->template->discussion = $p['options'] & self::$POSTS_ALLOWED;
-                    $this->template->newforum = ($p['options'] & self::$SUBTOPIC_ALLOWED) && $this->userIsAllowed('forum','create', $p['id']);
+                    $this->template->discussion = !(($p['options'] & self::$POSTS_ALLOWED) & self::$LOCKED);
+                    $this->template->newforum = !(($p['options'] & self::$SUBTOPIC_ALLOWED) & self::$LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
                     $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
                     do{
                         $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
@@ -171,6 +172,12 @@ namespace frontendModule{
                 }
             }else{
                 $data = DB::forum_topic('id', $id)->order('sticky DESC', 'name ASC');
+                $fid = $data['id'];
+            }
+            if(isset($fid)){
+                $info = DB::forum_topic('id', $fid)->fetch();
+                $this->template->info = $info;
+                $this->template->fid = $fid;
             }
             $nav[] = array("name"=>"Diskuze", "url"=>"");
             $this->getTemplate()->topics = $data;
@@ -212,13 +219,13 @@ namespace frontendModule{
         public function userIsAllowed($resource, $action, $target = null){
             $user = \Nette\Environment::getUser();
             $uid = $user->getId();
-            $info = DB::forum_topic('urlfragment', $this->url)->fetch();
+            $info = DB::forum_topic('id = ? OR urlfragment = ? ', array($target, $this->url))->fetch();
             $opt = $info['options'];
             $p = \Permissions::getInstance();
             if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
                 // Load custom permissions
             }
-            if($target){
+            if($target){                
                 switch($resource){
                     case "post":
                     case "forum-post":
@@ -228,8 +235,9 @@ namespace frontendModule{
                         }
                         break;
                     case "forum":
+                        #dump($resource.$target);
                         if($uid == $info['owner']){
-                            $p->setOwner('forum');
+                            $p->setOwner($resource.$target);
                         }
                         $adms = DB::forum_moderator('forumid', $info['id']);
                         foreach($adms as $adm){
@@ -241,7 +249,7 @@ namespace frontendModule{
                     default:
                         return false;
                 }
-                #$p->dump();
+                #dump($p);
                 #dump($user->isAllowed($resource.$target, $action));
                 return $user->isAllowed($resource.$target, $action);
             }

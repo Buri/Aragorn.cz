@@ -28,7 +28,6 @@ class Permissions extends Nette\Object{
     }
     
     public static function getInstance(){
-        #dump('Permissions::getInstance()');
         if(!self::$instance)
             self::$instance = new \Permissions ();
         return self::$instance;
@@ -80,9 +79,11 @@ class Permissions extends Nette\Object{
         if($forceReload) $this->forceReload ();
         #dump($this->storage);
         if(empty($this->storage[$resource])) return false;                              /* Permission has not been defined */
+        #dump("pass1");
         if(is_array($this->storage[$resource])){                                        /* Access with exact permission */
             return (!isset($this->storage[$resource][$priviledge]) ? (isset($this->storage[$resource]['_ALL']) ? $this->storage[$resource]['_ALL'] : false) : $this->storage[$resource][$priviledge]) ? true : false; /* If permission for operation is not set, it will try to use global permision for resource */
         }
+        #dump("Pass 2");
         return false;                                                                   /* Fallback */
     }
     
@@ -119,8 +120,9 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
         /* Role must be defined */
         if($role == null || !Environment::getUser()->isLoggedIn()) return false;
         /* root is allowed to do anything */
+        #dump($role == 0);
         if($role == 0 || Environment::getUser()->getId() == 0 || (is_array($role) && in_array(0, $role))) return true; 
-        
+        #dump('Nonadmin');
         /* Return final priviledge */
         return self::getInstance()->get($resource, $privilege);
     }

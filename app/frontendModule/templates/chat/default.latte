@@ -3,7 +3,7 @@
     {foreach $chatrooms as $room}
     <div>
         {if $user->isLoggedIn() && (!$room["max"] || $room["max"] > count($room["occupants"]) || $user->isAllowed('chat', 'override_limit'))}
-            <a href="{link chat:enter $room['id']}"{if $room['password']} title="Uzamčená místnost - nutné heslo" {if !$user->isAllowed('chat', 'override_password')}onclick="var p = prompt('Zadejte heslo:'); if(!p) return false; this.href += p.sha1();"{/if} class="lock"{/if}>
+            <a href="{link chat:enter $room['id']}"{if $room['password']} title="Uzamčená místnost - nutné heslo" {if !$user->isAllowed('chat', 'override_password')}onclick="var p = prompt('Zadejte heslo:'); if(!p) return false; this.href += p + '/';"{/if} class="lock"{/if}>
             {$room["name"]}</a>
             {if $user->isAllowed('chat', 'ninja')}
             / <a n:href="ninja $room['id']" title="Vstoupit jako pozorovatel"><img src="{!$staticPath}/images/spy.png" /></a>

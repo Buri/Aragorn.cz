@@ -9,7 +9,7 @@
         <div class="post-body">
             <div class="post-info">
                 {if $write}
-                {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id'])}
+                {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
                 <a href="#" class="edit button" title="Upravit příspěvek">&nbsp;</a>
                 <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
                 {/if}

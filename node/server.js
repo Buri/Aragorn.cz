@@ -137,7 +137,7 @@ var http = require('http'),
 
             this._s[sid] = new Session(sid, {
                 parentStorageRemoval:this.remove.bind(this),
-                redisHook:Modules.redisHook.bind(Modules),
+                redisHook:Modules.redisHook.bind(Modules)
                 //modulesManager:Modules
             });
             this._s[sid].sessid = sid;
@@ -171,13 +171,16 @@ var http = require('http'),
                 }
             return r.sort();
         },
+        broadcastSessionNumber:function(){
+            app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', SessionManager.length());
+        },
         _s:{}
     },
     phpUnixSocket = net.createServer(function(s) {
         s.setEncoding('utf-8');
         s.on('data', function(data){
             var json = JSON.parse(data);
-            //console.log(json);
+            console.log(json);
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
@@ -200,10 +203,11 @@ var http = require('http'),
                         }
                         break;
                     case 'get-number-of-sessions':
-                        this.write(SessionManager.length());
+                        this.write(JSON.stringify(SessionManager.length()));
                         break;
                     case 'get-number-of-clients':
-                        this.write(io.sockets.clients().length);
+                        this.write(JSON.stringify(app.sockets.clients().length));
+                        //this.write('0');
                         break;
                     default:
                         if(Modules.isSet(json.command))
@@ -284,6 +288,7 @@ app.sockets.on('connection', function (client) {
             s.registerClient(client);
             client.set('session', s);
             client.emit('SESSION_CONFIRMED_SID', sid);
+            SessionManager.broadcastSessionNumber();
         }
     });
     client.on('SESSION_REQUEST_SID', function(){
@@ -294,6 +299,7 @@ app.sockets.on('connection', function (client) {
     });
     Modules.setupClient(client);
     client.on('disconnect', function(){
+        SessionManager.broadcastSessionNumber();
         var s = client.session;
         if(s) s.removeClient(client);
     });

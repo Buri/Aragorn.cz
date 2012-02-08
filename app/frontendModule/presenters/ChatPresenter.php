@@ -84,7 +84,7 @@ namespace frontendModule{
             $r = DB::chatrooms('id', $id)->select('id,password,max');
             if($r->count()){
                 $r = $r->fetch();
-                if(!$r["password"] || Environment::getUser()->isAllowed('chat', 'override_password') || $r["password"] == $param){                
+                if(!$r["password"] || Environment::getUser()->isAllowed('chat', 'override_password') || $r["password"] == sha1($passwd)){
                     if($r["max"] && !Environment::getUser()->isAllowed('chat', 'override_limit') && DB::chatroom_occupants("idroom", $id)->count() >= $r["max"]){
                         return 'NOT_FOUND';
                     }
