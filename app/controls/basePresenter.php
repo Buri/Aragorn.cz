@@ -24,7 +24,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     }
     
     public function userLink($id = null, $html = true){
-        if($id == null) $id = \Nette\Environment::getUser()->getId ();
+        if($id == null) $id = \Nette\Environment::getUser()->getId();
+        if($id == null) return false;
         $u = DB::users('id', $id)->fetch();
         $v = $u->users_profiles()->fetch();
         $n = $v['urlfragment'];

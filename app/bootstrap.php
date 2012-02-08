@@ -20,6 +20,7 @@ $configurator->addParameters(array("libsDir"=>LIBS_DIR));
 $container = $configurator->createContainer();
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
+Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 Environment::setProductionMode(false);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');
@@ -28,6 +29,9 @@ if(empty($_COOKIE['skin'])){
     $skin = Nette\Environment::getVariable('defaultSkin', 'dark');
     setCookie('skin', $skin, time()+3600*24*365);
     $_COOKIE['skin'] = $skin;
+}
+if(empty($_COOKIE['sid'])){
+    setCookie('sid', rand(0, 2000));
 }
 
 $router = $application->getRouter();

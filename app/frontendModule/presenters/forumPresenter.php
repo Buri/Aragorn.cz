@@ -187,7 +187,7 @@ namespace frontendModule{
         private function setLastAccess(){
             $db = DB::forum_topic('urlfragment', $this->url)->fetch();
             //dump(\Nette\Environment::getUser()->getId());
-            if($db['id']){
+            if($db['id'] && \Nette\Environment::getUser()->getId() != null){
                 DB::forum_visit()->insert_update(
                         array('iduser'=>\Nette\Environment::getUser()->getId(), 'idforum'=>$db['id']),
                         array('time'=>time(), 'unread'=>0),

@@ -4,6 +4,7 @@ namespace frontendModule{
     class dashboardPresenter extends \BasePresenter {
 
         public function renderDefault() {
+            //throw new \Exception;
         }
         public function createComponentWidgets(){
             return new WidgetsControl();
