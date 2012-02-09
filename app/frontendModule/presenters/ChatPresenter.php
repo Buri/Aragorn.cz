@@ -24,7 +24,7 @@ namespace frontendModule{
         }
         public function actionRoom($id, $param = null){
             $room = DB::chatrooms('id', $id);
-            if(!$room->count()){
+            if(!$room->count() || \Nette\Environment::getUser()->getId() == null){
                 $this->redirect(301, 'chat:');
                 exit;
             }

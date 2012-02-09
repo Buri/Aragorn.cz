@@ -27,7 +27,6 @@ exports.ChatServer = new Class({
     socket:null,
     storage:{},
     users:{},
-    usersInfo:{},
     /* 
      * States: idle, writing, deleting, textready, disconnected
      * Roles:  guest, user, moderator, admin or fetched from db?
@@ -35,46 +34,59 @@ exports.ChatServer = new Class({
      */
     sortUsers:function(a,b){
         /* Case insensitive sorting */
-        a = String(a).toUpperCase();
-        b = String(b).toUpperCase();
+        a = String(a.name).toUpperCase();
+        b = String(b.name).toUpperCase();
         if(a > b) return 1;
         else if(a == b) return 0;
         return -1;
     },
     addUser:function(room, user, info){
-        this.setUsers(room, this.getUsers(room).include(user).sort(this.sortUsers));
-//        console.log(info);
-        if(user)
-            this.usersInfo[user] = Object.merge(info || {icon:'http://' + this.options.userServer + '/i/nobody.jpg', status:'Lorem ipsum', permissions:{'delete':false}, id:-1}, {time:new Date().getTime(), state:'idle'});
+        info.name = user;
+        info.state = 'idle';
+        info.time = new Date().getTime();
+        var newusers = this.getUsers(room).include(info).sort(this.sortUsers);
+        this.setUsers(room, newusers);
         this.broadcastUserUpdate(room);
     },
     removeUser:function(room, user){
-        if(this.setUsers(room, this.getUsers(room).erase(user).sort(this.sortUsers)).lenght == 0)
-            this.removeRoom(room);
-        if(user)
-            delete this.usersInfo[user];
+        var pos = this.getUserPosition(room, user);
+        this.users[room].splice(pos, 1);
         this.broadcastUserUpdate(room);
     },
     getUsers:function(room){
         return this.users[room] || [];
     },
     updateUser:function(room, user, data){
-        this.usersInfo[user] = data;
+        var old = this.getUserInfo(user, room);
+        var pos = this.getUserPosition(room, user);
+        this.users[room][pos] = Object.merge(old, data);
         this.broadcastUserUpdate(room);
     },
-    getUserInfo:function(user){
-        return this.usersInfo[user]
+    getUserNames:function(cname){
+        var usr = this.getUsers(cname), r = [];
+        for(var i = 0; i < usr.length; i++)
+            r.push(usr[i].name);
+        return r;
+    },
+    getUserInfo:function(user, room){
+        var users = this.getUsers(room);
+        var pos = this.getUserPosition(room, user);
+        return users[pos];
     },
     getUsersO:function(room){
         var a = this.getUsers(room), r = [];
+        a = this.users[room] || [];
         for(var i = 0; i < a.length; i++){
-            var clone = Object.clone(this.usersInfo[a[i]]);
-            clone.name = a[i];
+            var clone = Object.clone(a[i]);
             delete clone.permissions;
             delete clone.id;
             r.push(clone);
         }
         return r;
+    },
+    getUserPosition:function(room, user){
+        var users = this.getUsers(room);
+        return users.binarySearch({name:user}, this.sortUsers);
     },
     broadcastUserUpdate:function(cname){
         this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}}, false);
@@ -148,7 +160,7 @@ exports.ChatServer = new Class({
                 client.redis.unsubscribe(cname + '/' + client.session.user.name);
                 break;
             case 'post':
-                if(this.getUsers(cname).indexOf(client.session.user.name) == -1) return;
+                if(this.getUserNames(cname).indexOf(client.session.user.name) == -1) return;
                 if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
                     message.data.color = client.session.user.preferences.chat.color || '#fff' ;
                 message.data.id = this.newMsgId(cname);
@@ -158,24 +170,22 @@ exports.ChatServer = new Class({
                 }else if(message.data.whisper){
                     message.data.message = message.data.message.substr(message.data.message.indexOf('#')+1);
                     var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + client.session.user.name;
-//                    console.log('Whisper to self: ' + cname + ' : ' + cname2);
                     this.storeMessage(cname2, message);
                 }
                 this.storeMessage(cname, message);
                 client.sendToChannel(cname, message);
-                var u = this.getUserInfo(client.session.user.name);
+                var u = this.getUserInfo(client.session.user.name, cname);
                 if(u){
                     u.time = new Date().getTime();
                     this.updateUser(cname, client.session.user.name, u);
                 }
-
                 break;
             case 'state':
-                var u = this.getUserInfo(client.session.user.name);
-                if(u){
-                    u.state = message.data.state;
-                    u.time = new Date().getTime();
-                    this.updateUser(cname, client.session.user.name, u);
+                var us = this.getUserInfo(client.session.user.name, cname);
+                if(us){
+                    us.state = message.data.state;
+                    us.time = new Date().getTime();
+                    this.updateUser(cname, client.session.user.name, us);
                 }
                 break;
             case 'cmd':
@@ -229,7 +239,7 @@ exports.ChatServer = new Class({
                 }
                 break;
             case "leave":
-                if(this.getUsers(cname).binarySearch(message.data.name) != -1){
+                if(this.getUserNames(cname).binarySearch(message.data.name) != -1){
                     this.removeUser(cname, message.data.name);
                     if(!message.data.silent){
                         this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);

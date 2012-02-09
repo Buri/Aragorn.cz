@@ -180,7 +180,7 @@ var http = require('http'),
         s.setEncoding('utf-8');
         s.on('data', function(data){
             var json = JSON.parse(data);
-            console.log(json);
+            //console.log(json);
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
