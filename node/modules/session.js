@@ -72,6 +72,11 @@ exports.Session = new Class({
         
         client.sendToChannel = this.sendToChannel.bind(this);
         client.session = this;
+        
+        /*if(this.isAllowed('chat', 'moderator')){
+            console.log('moderator');
+            client.redis.subscribe('/system/moderators');
+        }*/
         //console.log('Client registered');
         //console.log('Session clients: ', this.clients);
     },

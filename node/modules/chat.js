@@ -191,14 +191,14 @@ exports.ChatServer = new Class({
             case 'cmd':
                 switch(message.data.command){
                     case 'kick':
-                        if(client.session.isAllowed('chat', 'kick')){
+                        if(client.session.isAllowed('chat', 'moderator')){
                             this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
                             this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
                         }else
                             client.send('notify', {code:403,msg:'Not allowed'});
                         break;
                     case 'kickall':
-                        if(client.session.isAllowed('chat', 'kickall')){
+                        if(client.session.isAllowed('chat', 'moderator')){
                             this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
                             this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
                         }else
@@ -212,7 +212,7 @@ exports.ChatServer = new Class({
                 }
                 break;
             case 'delete':
-                if(client.session.isAllowed('chat', 'delete')){
+                if(client.session.isAllowed('chat', 'moderator')){
                     var q = this.getQueue(cname), pos = q.binarySearch({id:message.data.messid}, function(a,b){a = parseInt(a.id.substr(a.id.lastIndexOf('-') + 1));b = parseInt(b.id.substr(b.id.lastIndexOf('-') + 1));return ( a < b ? 1 : (a == b ? 0 : -1));});
                     for(pos; pos < q.length - 1; pos++){
                         q[pos] = q[pos + 1];

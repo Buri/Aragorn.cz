@@ -19,7 +19,8 @@
             <form id="frmMsg">
                 Zpráva: <input type="text" name="msg" id="msg" size="40" autocomplete="off" /> <button type="submit">Odeslat</button>
             </form>
-            {{if $user->isAllowed('chat', 'delete')}}
+            <button onclick="AC.send('core',{ call:'request-moderator', page:location.href}); AC.message('Volám správce', 'Až to bude doprogramované');">Zavolat správce</button>
+            {{if $user->isAllowed('chat', 'moderator')}}
             <button id="showDeletes" onclick="$(this).setStyle('background', Chat.toggleDeletes() ? 'red' : '#339');">Mazáni zpráv</button>
             {{/if}}
             {{else}}
@@ -33,10 +34,16 @@
                 <option value="250">250</option>
                 <option value="300">300</option>
             </select>
+            <button onclick="AC.message('Nastavení', 'Zobrazit nastavení chatu? Spíš asi udělat jako link...');">Nastavení</button>
             <button data-href="{{if $param == "ninja"}}{{link chat:}}{{else}}{{link leave $rid}}{{/if}}" onclick="location.href = $(this).get('data-href');">Odejít</button>
+            {{if $type == 'game'}}
+                Něco specifického pro rozcestí?
+                Vyřešit zobrazování postav...
+            {{/if}}
             <div id="constat" title="Connection status: offline" class="offline" style="display: inline-block; position: relative;">&infin;</div>
         </footer>
-        <script n:syntax="double">window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
+        <script n:syntax="double">
+            window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.rid = {{$rid}};
             </script>
         {include '../../../templates/scripts.latte'}
@@ -189,15 +196,14 @@
                             AC.message(msg.title, msg.body, msg.options);
                             break;
                         case 'userlist':
-                            $$('#user-list *').dispose(); 
+                            $$('#user-list div.users, #user-list div.users *').dispose(); 
                             this.connectedUsers = msg.list;
                             this.connectedUsers.each(function(usr){
-                                var img = usr.state == 'typing' ? 'edit-icon' : (usr.state == 'textready' ? 'notepad-icon' : 'spy');
+                                var img = usr.state == 'typing' ? 'edit-icon' : (usr.state == 'textready' ? 'notepad-icon' : 'blank');
                                 var e = new Element('div', {
                                     'class':'users',
-                                    'data-info':JSON.stringify(usr),
-                                    text:usr.name + ' '
-                                }).adopt(new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:'http://static.aragorn.cz/images/' + img + '.png', styles:{'vertical-align':'middle'}}));
+                                    'data-info':JSON.stringify(usr)
+                                }).adopt(new Element('img', {src:usr.icon, 'class':'user-list-icon'}), new Element('span', {text:usr.name + ' '}), new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:'http://static.aragorn.cz/images/' + img + '.png', styles:{'vertical-align':'middle'}}));
                                 $(this.options.userList).grab(e);
                             }.bind(this));
                             this.tips.attach(this.options.tipsSelector);
@@ -211,7 +217,6 @@
                      }
                 },
                 send:function(cmd, params){
-                    //console.info('sending', Object.merge({action:cmd, rid:rid}, params));
                     this.transport.send('chat', Object.merge({action:cmd, rid:rid}, params));
                 }
             });

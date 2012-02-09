@@ -23,10 +23,10 @@ body{
 }
 footer{
     position:fixed; 
-    height: 30px; 
+    min-height: 30px; 
     bottom: 0; 
     left:0;
-    right:0;
+    right:140px;
 }
 button, input{
     border-radius: 3px;
@@ -36,6 +36,12 @@ button, input{
 }
 button:focus, input:focus{
     background-color: #66c
+}
+.user-list-icon{
+    max-height: 26px;
+    max-width: 26px;
+    vertical-align: middle;
+    margin-right: 6px;
 }
 #frmMsg{
     display:inline-block;

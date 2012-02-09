@@ -1,10 +1,8 @@
 <?php
 
-
-
 namespace frontendModule{
     use \DB;
-    use Nette\Environment;
+    use \Nette\Environment;
     use \usock;
     class chatPresenter extends \BasePresenter {
 
@@ -36,6 +34,7 @@ namespace frontendModule{
             $t->param = $param;
             $t->rid = $id;
             $t->title = $room["name"];
+            $t->type = $room['type'];
         }
 
         public function actionEnter($id, $param){

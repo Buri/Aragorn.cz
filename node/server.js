@@ -138,15 +138,12 @@ var http = require('http'),
             this._s[sid] = new Session(sid, {
                 parentStorageRemoval:this.remove.bind(this),
                 redisHook:Modules.redisHook.bind(Modules)
-                //modulesManager:Modules
             });
             this._s[sid].sessid = sid;
             return this._s[sid];
         },
         remove:function(id){
-            //console.log(this._s);
             if(this._s[id]) delete this._s[id];
-            //console.log(this._s);
         },
         exists:function(id){
             return !!this._s[id];
@@ -155,12 +152,10 @@ var http = require('http'),
             return this._s[id] || null;
         },
         length:function(){
-            //return this._s.lenght;
             var i = 0;
             for(var m in this._s)
                 if(typeOf(this._s[m]) != 'function')
                     i++;
-            //console.log(this._s);
             return i;
         },
         list:function(){
@@ -180,7 +175,6 @@ var http = require('http'),
         s.setEncoding('utf-8');
         s.on('data', function(data){
             var json = JSON.parse(data);
-            //console.log(json);
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
@@ -295,6 +289,8 @@ app.sockets.on('connection', function (client) {
         var s = SessionManager.createSession();
         var sid = s.sessid;
         s.registerClient(this);
+        client.set('session', s);
+        //console.log(client.session);
         client.emit('SESSION_REGISTER_SID', sid);
     });
     Modules.setupClient(client);
@@ -303,13 +299,13 @@ app.sockets.on('connection', function (client) {
         var s = client.session;
         if(s) s.removeClient(client);
     });
-    
+        
     /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
     client.on('PING', function(){ 
         client.emit('PING');
     });
     client.emit('SESSION_REQUEST_IDENTITY');
-    client.on('SESS', function(){console.log(client.session.user);});
+    //client.on('SESS', function(){console.log(client.session.user);});
 });
 
 /*
