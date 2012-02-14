@@ -44,9 +44,10 @@ var http = require('http'),
     Modules = {
         /* Public api */
         register:function(name){
-            var module = require('./modules/' + name + '.js');
+            var module = require(fs.readlinkSync('./enabled_modules/' + name)); // + '.js');
             var namespace = this.app.sockets; //of('/' + name);
             return this.list[name] = module.create(namespace, Config);
+            child.spawn('node', ['./module.js', './modules/' + name, name], {cwd:process.cwd(), customFds: [-1, 1, 1]});
         },
         remove:function(name){
             if(this.list[name]) delete this.list[name];
@@ -313,14 +314,13 @@ app.sockets.on('connection', function (client) {
  * Module list in config.ini
  * Names separated by comma (,)
  */
-var mods = Config.modules.split(',');
+var mods = fs.readdirSync('./enabled_modules');
 Modules.setapp(app);
 if(mods.length && mods[0]){
     console.log('Modules found: ' + mods.length);
     mods.each(function(name){
         console.log('Registering module ' + name);
         Modules.register(name);
-        /*child.spawn('node', ['/var/www/node/module.js', '/var/www/node/modules/' + name, name], {cwd:process.cwd(), customFds: [-1, 1, 1]});*/
     });
     console.log(mods.length + ' modules were launched.');
 }else{
