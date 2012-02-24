@@ -13,7 +13,9 @@ var http = require('http'),
     child = require('child_process'),
     yaml = require('js-yaml'),
     redis = require('redis');
-//    console.log(require);
+    RedisStore = require('socket.io/lib/stores/redis');
+    
+    utility.apply(GLOBAL);
     /* Other variables */
     var Config = yaml.load(fs.readFileSync('../config/config.neon', 'utf8')).production.parameters;
     app = null,
@@ -40,28 +42,15 @@ var http = require('http'),
      */
      Modules = {
         /* Public api */
-        register:function(name, child){
+        register:function(name){
             var path = fs.readlinkSync('./enabled_modules/' + name);
             console.log('Resolving module ' + name + ': ' + path);
-            var module = require(path); // + '.js');
+            var module = require(path);
             module.launchurl = name;
             console.log('Loading module information');
-            var namespace = this.app.sockets; //of('/' + name);
+            var namespace = this.app.sockets;
             var handle = module.info.handle;
-            var c;
-            if(child === true){
-                c = child.fork('./module.js', [path, handle], {cwd:process.cwd()});
-                c.mod = module;
-                c.addEvent('exit',function(code, signal){
-                    console.log('Module ' + this.mod.handle + ' exited with code ' + code + (signal ? ' (' + signal + ')' : ''));
-                    if(this.mod.autoRestart && false){
-                        Modules.register(this.mod.launchurl);
-                        console.log('Restarting module');
-                    }
-                }.bind(c));
-            }else{
-                c = module.create(namespace, Config);
-            }
+            var c = module.create(namespace, Config);
             this.list[handle] = c;
             console.log('Module ' + name + ' registered');
             return this.list[handle];
@@ -103,8 +92,6 @@ var http = require('http'),
         app:null,
         list:{}
     };
-    utility.apply(GLOBAL);
-    
     
     /*
      * Setup servers 
@@ -131,9 +118,6 @@ var http = require('http'),
         );
         res.write('<pre>\n');
         res.write(JSON.stringify(SessionManager.list()));
-        /*SessionManager._s.each(function(item,index){
-            res.write(index + '\n');
-        });*/
         res.write('</pre>\n');
         res.end('<hr />\nCreated by <a href="http://aragorn.cz/">Aragorn.cz</a> &copy; 2011');
     }),
@@ -151,9 +135,9 @@ var http = require('http'),
             }while(this._s[sid]);
 
             this._s[sid] = new Session(sid, {
-                parentStorageRemoval:this.remove.bind(this),
+                parentStorageRemoval:this.remove.bind(this)
             });
-            this._s[sid].sessid = sid;
+
             return this._s[sid];
         },
         remove:function(id){
@@ -181,8 +165,9 @@ var http = require('http'),
             return r.sort();
         },
         broadcastSessionNumber:function(){
-            app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', SessionManager.length());
+            app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [SessionManager.length(), app.server.connections]);
         },
+        getStore:function(){},
         _s:{}
     },
     phpUnixSocket = net.createServer(function(s) {
@@ -281,12 +266,11 @@ app.configure(function(){
       , 'xhr-polling'
       , 'jsonp-polling'
     ]);
-    var Redis = require('redis')
-    var pub = Redis.createClient();
-    var sub = Redis.createClient();
-    var store = Redis.createClient();
-    var RedisStore = require('socket.io/lib/stores/redis');
-    app.set('store', new RedisStore({redisPub:pub, redisSub:sub, redisClient:store}));
+    app.set('store', new RedisStore({
+        redisPub:redis.createClient(), 
+        redisSub:redis.createClient(), 
+        redisClient:redis.createClient()
+    }));
 });
 
 app.sockets.on('connection', function (client) {
@@ -308,11 +292,12 @@ app.sockets.on('connection', function (client) {
         var s = SessionManager.createSession();
         var sid = s.sessid;
         s.registerClient(this);
-        client.set('session', s);
-        //console.log(client.session);
-        client.emit('SESSION_REGISTER_SID', sid);
+        this.set('session', s);
+        this.emit('SESSION_REGISTER_SID', sid);
     });
+    
     Modules.setupClient(client);
+    
     client.on('disconnect', function(){
         SessionManager.broadcastSessionNumber();
         var s = client.session;
@@ -324,7 +309,6 @@ app.sockets.on('connection', function (client) {
         client.emit('PING');
     });
     client.emit('SESSION_REQUEST_IDENTITY');
-    //client.on('SESS', function(){console.log(client.session.user);});
 });
 
 /*

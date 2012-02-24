@@ -89,8 +89,7 @@ var AragornClient = new Class({
             this.emit('SESSION_REQUEST_SID');
         });
         t.on('SYSTEM_UPDATE_USERS_ONLINE', function(num){
-            //console.log(num);
-            $$('#numUsrOnline').each(function(e){e.set('text', num);});
+            $$('#numUsrOnline').each(function(e){e.set('text', num[0]);e.set('title', num[1])});
         });
         t.on('connect_failed', this.fn.global);
         t.on('disconnect', this.fn.handleDisconnect.bind(this));
@@ -181,33 +180,6 @@ var AragornClient = new Class({
                 return;
             }
             switch(msg.cmd){
-           /*     case 'SESSION_HAS_PHPSESSID_REGISTERED':
-                    if(msg.identity === true){
-                        this.fireEvent('SESSION_CONFIRM');
-                    }else{
-                        this.ajax('testidentity', null, null);
-                    }
-                    break;
-                case 'SESSION_RESET_SID':
-                    Cookie.dispose('sid');
-                case 'SESSION_REQUEST_IDENTITY':
-                    if(Cookie.read('sid')){
-                        this.transport.send({cmd:'SESSION_SID', identity:Cookie.read('sid')});
-                    }else{
-                        this.transport.send({cmd:'SESSION_REQUEST_SID'});
-                    }
-                    break;
-                case 'SESSION_REGISTER_SID':
-                    Cookie.write('sid', msg.identity);
-                    this.fireEvent('SESSION_HANDSHAKE');
-                    this.fn.getIdentity.bind(this).call();
-                    break;
-                case 'SESSION_CONFIRMED_SID':
-                    this.fireEvent('SESSION_HANDSHAKE');
-                    this.fn.getIdentity.bind(this).call();
-                    break;
-                case 'INVALID_SID':
-                    break;*/
                 case 'PING':
                     $('constat').set('text', new Date().getTime() - this._ping.last.shift());
                     break;
