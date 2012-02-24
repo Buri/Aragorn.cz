@@ -25,7 +25,8 @@ exports.apply = function(o){
             b /= 1024;
             i++;
         }
-        return Math.round(b) + ' ' + u[i];
+        var c = '' + b;
+        return c.substr(0, c.indexOf('.') + 3) + ' ' + u[i];
     }
 }
 

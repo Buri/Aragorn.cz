@@ -1,4 +1,17 @@
-require('mootools.js').apply(GLOBAL);
+require('mootools').apply(GLOBAL);
+exports.info = {
+    'authors':['Buri'],
+    version:{
+        major:0,
+        minor:1,
+        build:0,
+        toString:function(){
+            return this.major + '.' + this.minor + '.' + this.build;
+        }
+    },
+    handle:'chat',
+    autoRestart:true
+};
 var redis = require('redis');
 
 exports.ChatServer = new Class({
@@ -22,7 +35,7 @@ exports.ChatServer = new Class({
         message.data.id = this.newMsgId(channel);
         if(store)
             this.storeMessage(channel, message);
-        this.redis.publish(channel, JSON.stringify(message));
+        app.sockets.in(channel).json.emit('chat', message);
     },
     socket:null,
     storage:{},
@@ -137,8 +150,8 @@ exports.ChatServer = new Class({
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
         switch(message.data.action){
             case "enter":
-                client.redis.subscribe(cname); // Public channel
-                client.redis.subscribe(cname + '/' + client.session.user.name); // Whisper
+                client.join(cname); //.redis.subscribe(cname); // Public channel
+                client.join(cname + '/' + client.session.user.name); // Whisper
                 if(message.data.noqueue)
                     break;
             case "queue":
@@ -156,8 +169,8 @@ exports.ChatServer = new Class({
                 client.json.emit('chat', {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
                 break;
             case 'leave':
-                client.redis.unsubscribe(cname);
-                client.redis.unsubscribe(cname + '/' + client.session.user.name);
+                client.leave(cname);
+                client.leave(cname + '/' + client.session.user.name);
                 break;
             case 'post':
                 if(this.getUserNames(cname).indexOf(client.session.user.name) == -1) return;
@@ -192,7 +205,7 @@ exports.ChatServer = new Class({
                 switch(message.data.command){
                     case 'kick':
                         if(client.session.isAllowed('chat', 'moderator')){
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uĹľivatele ' + message.data.params.param + ' z mĂ­stnosti.'}}, true);
                             this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
                         }else
                             client.send('notify', {code:403,msg:'Not allowed'});
@@ -200,7 +213,7 @@ exports.ChatServer = new Class({
                     case 'kickall':
                         if(client.session.isAllowed('chat', 'moderator')){
                             this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil vĹˇechny z mĂ­stnosti.'}}, true);
                         }else
                             client.send('notify', {code:403,msg:'Not allowed'});
                         break;
@@ -224,25 +237,20 @@ exports.ChatServer = new Class({
                 break;
         }
     },
-    redisHook:function(message, client, channel){
-        message.data.from = message.user.name;
-        message.data.time = message.itime || message.time || new Date().getTime();
-        client.json.emit('chat', message);
-    },
     unixHook:function(message){
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.room || 'null');
         switch(message.data.action){
             case "enter":
                 if(this.getUsers(cname).binarySearch(message.data.name) == -1){
                     this.addUser(cname, message.data.name, message.data.info);
-                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
+                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' pĹ™ichĂˇzĂ­ do mĂ­stnosti.'}}, true);
                 }
                 break;
             case "leave":
                 if(this.getUserNames(cname).binarySearch(message.data.name) != -1){
                     this.removeUser(cname, message.data.name);
                     if(!message.data.silent){
-                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchĂˇzĂ­ z mĂ­stnosti.'}}, true);
                     }
                 }
                 cname += '/' + message.data.name;

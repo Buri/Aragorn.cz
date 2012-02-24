@@ -1,5 +1,5 @@
 var redis = require('redis');
-require('mootools.js').apply(GLOBAL);
+require('mootools').apply(GLOBAL);
 
 /*
  * Sessoion.js
@@ -27,13 +27,12 @@ exports.Session = new Class({
     Implements:[Options, Events],
     options:{
         parentStorageRemoval:null,
-        redisHook:null
     },
     initialize:function(sid, options){
         this.setOptions(options);
         this.sessionId = sid;
         
-        this.redis = redis.createClient();
+        //this.redis = redis.createClient();
         
         /* Setup aliases */
         this.pub = this.sendToChannel;
@@ -43,7 +42,7 @@ exports.Session = new Class({
     
     /* Fields */
     clients:[],
-    redis:null,
+    //redis:null,
     sessionId:0,
     user:{
         id:0,
@@ -66,9 +65,9 @@ exports.Session = new Class({
         this.clients.push(client.id);
         this.user.ips.include(client.handshake.address.address); /* Probably users real ip address, always good to know */
         
-        client.redis = redis.createClient();
+        /*client.redis = redis.createClient();
         client.redis.on('message', this.handleRedis.bind(client));
-        client.redis.on('end', this.reconnectRedis.bind(client));
+        client.redis.on('end', this.reconnectRedis.bind(client));*/
         
         client.sendToChannel = this.sendToChannel.bind(this);
         client.session = this;
@@ -84,9 +83,9 @@ exports.Session = new Class({
         //console.log('Session clients: ', this.clients);
         this.clients.erase(client.id);
         //console.log(this.clients);
-        if(typeOf(client.redis.quit) == 'function')
+        /*if(typeOf(client.redis.quit) == 'function')
             client.redis.quit();
-        delete client.redis;
+        delete client.redis;*/
         if(this.clients.length == 0){
             /* UPDATE, SET LARGER TIMEOUT, FOR DEBUG PURPOSES ONLY */
             //console.log('Prepare removal');
@@ -127,20 +126,12 @@ exports.Session = new Class({
         }
         return false; /* Fallback */
     },
-    handleRedis:function(channel, message){
-	message = JSON.parse(message);
-        return this.session.options.redisHook(message, this, channel);
-    },
-    reconnectRedis:function(e){
-	this.redis = redis.createClient();
-    },
     
     sendToChannel:function(channel, message){
         message.time = new Date().getTime();
         message.user = this.user;
-        if(!this.redis || this.redis.publish)
-            this.redis = redis.createClient();
-        return this.redis.publish(channel, JSON.stringify(message));
+        message.channel = channel;
+        return app.sockets.in(channel).json.emit(message.cmd, message);
     },
     /* Client param can be id of client or client object */
     sendToClient:function(client, message){

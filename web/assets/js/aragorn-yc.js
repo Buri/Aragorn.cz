@@ -94,7 +94,7 @@ var AragornClient = new Class({
         });
         t.on('connect_failed', this.fn.global);
         t.on('disconnect', this.fn.handleDisconnect.bind(this));
-        t.on('message', function(msg){console.log(msg);});
+        t.on('message', function(msg){ console.log(msg);});
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
         if(window.AUTHENTICATED)
             this.resetInactivity();

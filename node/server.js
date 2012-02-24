@@ -1,22 +1,21 @@
 var starttime = new Date().getTime();
 console.log('Server started at ' + new Date());
-require('mootools.js').apply(GLOBAL);
-
+require('mootools').apply(GLOBAL);
 /*
  * Module loading
  */
     /* System modules */
 var http = require('http'),
-    io = require('socket.io@0.8.5'),
+    io = require('socket.io'),
     net = require('net'),
     fs = require('fs'),
     utility = require('./modules/utility.js'),
     child = require('child_process'),
     yaml = require('js-yaml'),
-    redis = require('redis'),
-    
+    redis = require('redis');
+//    console.log(require);
     /* Other variables */
-    Config = yaml.load(fs.readFileSync('../config/config.neon', 'utf8')).production.parameters;
+    var Config = yaml.load(fs.readFileSync('../config/config.neon', 'utf8')).production.parameters;
     app = null,
     
     
@@ -35,19 +34,37 @@ var http = require('http'),
      * 
      * Each module is required to have folowing api:
      * @object  create()                                    Returns new instance of module
-     * @var     redisHook(@object message,
-     *                    @object client, @string channel)  Method to handle messages comming on pubsub
      * @string  unixHook(@object message)                   Method to handle communication from PHP
      * @var     sessionHook(@object message,
      *                      @object client)                 Method to handle messages comming from client.
      */
-    Modules = {
+     Modules = {
         /* Public api */
-        register:function(name){
-            var module = require(fs.readlinkSync('./enabled_modules/' + name)); // + '.js');
+        register:function(name, child){
+            var path = fs.readlinkSync('./enabled_modules/' + name);
+            console.log('Resolving module ' + name + ': ' + path);
+            var module = require(path); // + '.js');
+            module.launchurl = name;
+            console.log('Loading module information');
             var namespace = this.app.sockets; //of('/' + name);
-            return this.list[name] = module.create(namespace, Config);
-            child.spawn('node', ['./module.js', './modules/' + name, name], {cwd:process.cwd(), customFds: [-1, 1, 1]});
+            var handle = module.info.handle;
+            var c;
+            if(child === true){
+                c = child.fork('./module.js', [path, handle], {cwd:process.cwd()});
+                c.mod = module;
+                c.addEvent('exit',function(code, signal){
+                    console.log('Module ' + this.mod.handle + ' exited with code ' + code + (signal ? ' (' + signal + ')' : ''));
+                    if(this.mod.autoRestart && false){
+                        Modules.register(this.mod.launchurl);
+                        console.log('Restarting module');
+                    }
+                }.bind(c));
+            }else{
+                c = module.create(namespace, Config);
+            }
+            this.list[handle] = c;
+            console.log('Module ' + name + ' registered');
+            return this.list[handle];
         },
         remove:function(name){
             if(this.list[name]) delete this.list[name];
@@ -60,9 +77,6 @@ var http = require('http'),
         isSet:function(name){return this.list[name] ? true : false;},        
         
         /* Private api */
-        redisHook:function(message, client, channel){
-            return this.list[message.cmd].redisHook(message, client, channel);
-        },
         unixHook:function(message){
             return this.list[message.command].unixHook(message);
         },
@@ -138,7 +152,6 @@ var http = require('http'),
 
             this._s[sid] = new Session(sid, {
                 parentStorageRemoval:this.remove.bind(this),
-                redisHook:Modules.redisHook.bind(Modules)
             });
             this._s[sid].sessid = sid;
             return this._s[sid];
@@ -223,9 +236,8 @@ console.log('Socket.io listening at port ' + Config.port);
  * Faster than standart socket + safe from outer connections
  */
 
-var oldUmask = process.umask(0000);
 phpUnixSocket.listen(Config.usock, function() {
-  process.umask(oldUmask);
+    fs.chmodSync(Config.usock, 0777);
 });
 console.log('Unix socket opened in ' + Config.usock);
 
@@ -269,6 +281,12 @@ app.configure(function(){
       , 'xhr-polling'
       , 'jsonp-polling'
     ]);
+    var Redis = require('redis')
+    var pub = Redis.createClient();
+    var sub = Redis.createClient();
+    var store = Redis.createClient();
+    var RedisStore = require('socket.io/lib/stores/redis');
+    app.set('store', new RedisStore({redisPub:pub, redisSub:sub, redisClient:store}));
 });
 
 app.sockets.on('connection', function (client) {

@@ -146,13 +146,14 @@
                     }
                 },
                 _handle:function(msg){
+                    //console.log(msg)
+                    var whole = msg;
                     msg = msg.data;
-                    //console.log(msg);
                     switch(msg.action){
                         case 'post':
                             //console.log('New post');
                             var d = new Date();
-                            d.setTime(msg.time);
+                            d.setTime(msg.time || whole.time);
                             new Element('div', {
                                 id:msg.id,
                                 styles:{
@@ -177,7 +178,7 @@
                                     'class':'datetime',
                                     text:' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ' '
                                 }),
-                                new Element('strong', {text:msg.from + (msg.whisper ? ' » ' + msg.whisper : '') + ': '}),
+                                new Element('strong', {text:(msg.from || whole.user.name) + (msg.whisper ? ' » ' + msg.whisper : '') + ': '}),
                                 new Element('span', {text:msg.message})
                             ).inject($(this.options.glass), 'top');
                             if(this.options.limit){

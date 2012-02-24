@@ -20,7 +20,7 @@ $configurator->addParameters(array("libsDir"=>LIBS_DIR));
 $container = $configurator->createContainer();
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
-Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
+//Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 Environment::setProductionMode(false);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');

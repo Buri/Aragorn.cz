@@ -25,9 +25,8 @@ production:
       lazy: true
       driver: mysql
       params: "host=127.0.0.1;port=3306;dbname=aragorn_cz;"
-      user: aragorncz
-      password: arag
+      user: root
+      password: a
 
     port: 8000
     usock: /var/run/nodejs.sock
-    modules: core,chat

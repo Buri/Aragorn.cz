@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.1.58, for debian-linux-gnu (x86_64)
 --
--- Host: localhost    Database: aragorn_cz
+-- Host: localhost    Database: 
 -- ------------------------------------------------------
 -- Server version	5.1.58-1
 
@@ -19,7 +19,8 @@
 -- Current Database: `aragorn_cz`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `aragorn_cz` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci */;
+DROP DATABASE IF EXISTS aragorn_cz;
+CREATE DATABASE `aragorn_cz` ;
 
 USE `aragorn_cz`;
 
@@ -147,7 +148,7 @@ CREATE TABLE `chatroom_occupants` (
   `activity` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MEMORY AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -176,7 +177,7 @@ CREATE TABLE `chatrooms` (
   `creator` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -185,7 +186,7 @@ CREATE TABLE `chatrooms` (
 
 LOCK TABLES `chatrooms` WRITE;
 /*!40000 ALTER TABLE `chatrooms` DISABLE KEYS */;
-INSERT INTO `chatrooms` VALUES (1,'Hospoda','','Hospoda prece musi byt',0,NULL,2),(2,'Dalsi mistnost','','Heslo: test, max 1 clovek',1,'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3',2);
+INSERT INTO `chatrooms` VALUES (1,'Hospoda','','Hospoda prece musi byt',0,NULL,0),(2,'Dalsi mistnost','','Heslo: test, max 1 clovek',1,'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3',2),(3,'Elysium','game','Whatever you think?',0,NULL,0);
 /*!40000 ALTER TABLE `chatrooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -261,7 +262,7 @@ CREATE TABLE `forum_posts` (
   UNIQUE KEY `idforum_posts_UNIQUE` (`id`),
   KEY `fk_forum_posts_users1` (`author`),
   KEY `fk_forum_posts_forum_topic1` (`forum`)
-) ENGINE=MyISAM AUTO_INCREMENT=32 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=34 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -270,8 +271,33 @@ CREATE TABLE `forum_posts` (
 
 LOCK TABLES `forum_posts` WRITE;
 /*!40000 ALTER TABLE `forum_posts` DISABLE KEYS */;
-INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze'),(8,1,13,1326148091,'TestovacÃ­ zprÃ¡va'),(16,1,16,1326151714,'ZabezpeÄenÃ­ mazÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(17,1,16,1326151736,'Editace pÅ™Ã­spÄ›vkÅ¯\nReportovÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(19,1,15,1326287547,'Test?'),(31,6,15,1328709627,'Hola?'),(21,1,15,1326292411,'NÄ›jakÃ¡ odpovÄ›Ä.');
+INSERT INTO `forum_posts` VALUES (1,1,2,1325684139,'Hola?'),(2,2,2,1325703108,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(3,4,2,1325703115,'NÄ›jakÃ¡ dalÅ¡Ã­ zprÃ¡va?'),(4,5,2,1325707324,'NÄ›co by to chtÄ›lo...'),(5,1,2,1325876348,'[b][/b]'),(6,1,2,1325945095,'[cite=msg5][b][/b][/cite]\n'),(7,1,4,1326046298,'Diskuze'),(8,1,13,1326148091,'TestovacÃ­ zprÃ¡va'),(16,1,16,1326151714,'ZabezpeÄenÃ­ mazÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(17,1,16,1326151736,'Editace pÅ™Ã­spÄ›vkÅ¯\nReportovÃ¡nÃ­ pÅ™Ã­spÄ›vkÅ¯'),(33,6,2,1328726366,'NÄ›co se mi tady nezdÃ¡.'),(19,1,15,1326287547,'Test?'),(31,6,15,1328709627,'Hola?'),(21,1,15,1326292411,'NÄ›jakÃ¡ odpovÄ›Ä.');
 /*!40000 ALTER TABLE `forum_posts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `forum_survey`
+--
+
+DROP TABLE IF EXISTS `forum_survey`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `forum_survey` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `question` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
+  `expires` int(11) DEFAULT NULL,
+  `owner` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `forum_survey`
+--
+
+LOCK TABLES `forum_survey` WRITE;
+/*!40000 ALTER TABLE `forum_survey` DISABLE KEYS */;
+/*!40000 ALTER TABLE `forum_survey` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -296,7 +322,7 @@ CREATE TABLE `forum_topic` (
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `uqname` (`name`,`urlfragment`),
   KEY `adress` (`urlfragment`(64))
-) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=32 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -305,7 +331,7 @@ CREATE TABLE `forum_topic` (
 
 LOCK TABLES `forum_topic` WRITE;
 /*!40000 ALTER TABLE `forum_topic` DISABLE KEYS */;
-INSERT INTO `forum_topic` VALUES (1,'Aragorn.cz',0,'Vse tykajici se serveru',0000000000,'server',1,1325522043,1,'Info o serveru.'),(2,'Herna',0,'DRD...',0000000000,'herna',3,1325522043,0,NULL),(3,'Larpy a jine aktivity',0,'a vse kolem',0000000000,'larp',3,1325522043,0,NULL),(4,'Bug',0,'Hlaseni chyb',0000000001,'server-bug',3,1325522043,1,NULL),(11,'NÃ¡pady',1,'NovÃ© forum',0000000001,'napady',3,1326129929,0,NULL),(12,'Archiv',1,'NovÃ© forum',0000000000,'archiv',3,1326130876,-1,NULL),(13,'Fantasy, sci-fi a gotika',1,'NovÃ© forum',0000000000,'fantasy-sci-fi-a-gotika',3,1326142999,0,NULL),(14,'Pokec',1,'NovÃ© forum',0000000000,'pokec',3,1326143034,0,NULL),(15,'HlavnÃ­ fÃ³rum',1,'NovÃ© forum',0000000000,'hlavni-forum',3,1326143041,2,'Pravidlo tri T: Topic Tu Tneni'),(16,'To-do list',1,'NovÃ© forum',0000000001,'to-do-list',3,1326151690,0,NULL);
+INSERT INTO `forum_topic` VALUES (1,'Aragorn.cz',0,'Vse tykajici se serveru',0000000000,'server',1,1325522043,1,'Info o serveru.'),(2,'Herna',0,'DRD...',0000000000,'herna',3,1325522043,0,NULL),(3,'Larpy a jine aktivity',0,'a vse kolem',0000000000,'larp',3,1325522043,0,NULL),(4,'Bug',0,'Hlaseni chyb',0000000001,'server-bug',3,1325522043,1,NULL),(11,'NÃ¡pady',1,'NovÃ© forum',0000000001,'napady',3,1326129929,0,NULL),(12,'Archiv',1,'NovÃ© forum',0000000000,'archiv',11,1326130876,-1,NULL),(13,'Fantasy, sci-fi a gotika',1,'NovÃ© forum',0000000000,'fantasy-sci-fi-a-gotika',3,1326142999,0,'NÃ¡stÄ›nka'),(14,'Pokec',1,'NovÃ© forum',0000000000,'pokec',3,1326143034,0,NULL),(15,'HlavnÃ­ fÃ³rum',1,'HlavnÃ­ forum',0000000000,'hlavni-forum',3,1326143041,2,'Pravidlo tÅ™Ã­ T: Topik tu TnenÃ­'),(16,'To-do list',1,'NovÃ© forum',0000000001,'to-do-list',3,1326151690,0,NULL);
 /*!40000 ALTER TABLE `forum_topic` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -332,7 +358,7 @@ CREATE TABLE `forum_visit` (
 
 LOCK TABLES `forum_visit` WRITE;
 /*!40000 ALTER TABLE `forum_visit` DISABLE KEYS */;
-INSERT INTO `forum_visit` VALUES (15,1,1328709682,0,0),(15,2,1326305796,2,0),(13,2,1326307797,0,0),(13,1,1328720019,0,0),(17,1,1326306977,1,0),(20,1,1326307267,0,0),(17,2,1326307221,0,0),(12,2,1326307794,0,0),(1,2,1326307815,0,0),(16,2,1326307806,0,0),(11,2,1326307810,0,0),(4,2,1326307814,0,0),(12,1,1328705236,0,0),(2,1,1328705258,0,0),(1,1,1328718642,0,0),(4,1,1328705205,0,0),(14,1,1328705242,0,0),(26,1,1328705267,0,0),(16,1,1328705307,0,0),(15,6,1328713742,0,0),(1,6,1328710008,0,0),(4,6,1328709880,0,0),(11,6,1328709999,0,0),(13,6,1328710078,0,0);
+INSERT INTO `forum_visit` VALUES (15,1,1328725521,0,0),(15,2,1326305796,2,0),(13,2,1326307797,0,0),(13,1,1328795636,0,0),(17,1,1326306977,1,0),(20,1,1326307267,0,0),(17,2,1326307221,0,0),(12,2,1326307794,0,0),(1,2,1326307815,0,0),(16,2,1326307806,0,0),(11,2,1326307810,0,0),(4,2,1326307814,0,0),(12,1,1328705236,0,0),(2,1,1328705258,1,0),(1,1,1329220314,0,0),(4,1,1328705205,0,0),(14,1,1328723909,0,0),(26,1,1328705267,0,0),(16,1,1328705307,0,0),(15,6,1328730338,0,0),(1,6,1328727748,0,0),(4,6,1328727733,0,0),(11,6,1328727744,0,0),(13,6,1328727713,0,0),(28,6,1328722633,0,0),(29,6,1328723409,1,0),(2,6,1328730357,0,0),(12,6,1328727590,0,0),(14,6,1328727584,0,0),(16,6,1328727729,0,0),(31,6,1328727762,0,0),(11,1,1329220317,0,0);
 /*!40000 ALTER TABLE `forum_visit` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -574,17 +600,10 @@ CREATE TABLE `users_profiles` (
 
 LOCK TABLES `users_profiles` WRITE;
 /*!40000 ALTER TABLE `users_profiles` DISABLE KEYS */;
-INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,01328705847,'buri.jpg','A4 under construction.',15,'buri'),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,01326378015,'default.png','Jsem tester!',15,'tester'),(3,'3c33150764403d4be7e7b49dcb9c348b37174f85','test3@aragorn.cz',1309265408,00000000000,'default.png',NULL,15,'imhotep'),(4,'8cb2237d0679ca88db6464eac60da96345513964','darw@centrum.cz',1310236356,00000000000,'default.png',NULL,15,'darwin'),(5,'d9c2f352e9968706b67559e010cb17156c7ff335','psrutova@noveranet.cz',1310326091,00000000000,'default.png','Miau',15,'chiisai'),(0,NULL,'system@aragorn.cz',1,00000000001,'system.png','Já vás vidím.',0,'system'),(6,'3c33150764403d4be7e7b49dcb9c348b37174f85','test@somewhere.domain',1326140875,01328709539,'default.png','Jak se mÃ¡m',15,'antitalent');
+INSERT INTO `users_profiles` VALUES (1,'4ff88aaddbd209d8026924c2cc2836b408698823','buri.buster@gmail.com',1304864844,01329220288,'buri.jpg','A4 under construction.',15,'buri'),(2,'86f7e437faa5a7fce15d1ddcb9eaeaea377667b8','test@aragorn.cz',1305046888,01328797955,'default.png','Jsem tester!',15,'tester'),(3,'3c33150764403d4be7e7b49dcb9c348b37174f85','test3@aragorn.cz',1309265408,00000000000,'default.png',NULL,15,'imhotep'),(4,'8cb2237d0679ca88db6464eac60da96345513964','darw@centrum.cz',1310236356,00000000000,'default.png',NULL,15,'darwin'),(5,'d9c2f352e9968706b67559e010cb17156c7ff335','psrutova@noveranet.cz',1310326091,00000000000,'default.png','Miau',15,'chiisai'),(0,NULL,'system@aragorn.cz',1,00000000001,'system.png','Já vás vidím.',0,'system'),(6,'3c33150764403d4be7e7b49dcb9c348b37174f85','test@somewhere.domain',1326140875,01328789331,'default.png','Jak se mÃ¡m',15,'antitalent');
 /*!40000 ALTER TABLE `users_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2012-02-08 17:56:20
+--
+-- Current Database: `mysql`
+--

@@ -1,4 +1,18 @@
-require('mootools.js').apply(GLOBAL);
+require('mootools').apply(GLOBAL);
+
+exports.info = {
+    'authors':['Buri'],
+    version:{
+        major:0,
+        minor:1,
+        build:0,
+        toString:function(){
+            return this.major + '.' + this.minor + '.' + this.build;
+        }
+    },
+    handle:'core',
+    autoRestart:true
+};
 
 exports.Core = new Class({
     Implements:[Options, Events],
