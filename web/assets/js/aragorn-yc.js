@@ -60,6 +60,9 @@ var AragornClient = new Class({
             console.log('Unable to create transport.');
             //return;
         }
+        
+        document.head || (document.head = document.getElementsByTagName('head')[0]);
+        
         var t = this.transport;
         t.on('connect', this.fn.connectionEstablished.bind(this));
         t.on('connecting', function(){$('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
@@ -245,6 +248,10 @@ var AragornClient = new Class({
         if(this.inactive)
             clearTimeout(this.inactive);
         this.inactive = setTimeout(function(){this.inactivityOverlay();}.bind(this), timeout || 60*60*1000);
+    },
+    updateFavicon:function(count){
+        $$('#favicon').dispose();
+        return document.head.appendChild(new Element('link', {rel:'shortcut icon', href:'/icon.php?t=' + new Date().getTime() + '&num=' + (count ? parseInt(count) : ''), id:'favicon'}));
     },
     inactivityOverlay:function(){
         var dialog = new MooDialog.Request('/ajax/loginui/', {
