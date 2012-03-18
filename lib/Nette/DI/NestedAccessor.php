@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -37,8 +37,24 @@ class NestedAccessor extends Nette\Object
 	public function __construct(Container $container, $namespace)
 	{
 		$this->container = $container;
-		$this->namespace = $namespace . '_';
+		$this->namespace = $namespace . '.';
 		$this->parameters = & $container->parameters[$namespace];
+	}
+
+
+
+	/**
+	 * @return object
+	 */
+	public function __call($name, $args)
+	{
+		if (substr($name, 0, 6) === 'create') {
+			return call_user_func_array(array(
+				$this->container,
+				Container::getMethodName($this->namespace . substr($name, 6), FALSE)
+			), $args);
+		}
+		throw new Nette\NotSupportedException;
 	}
 
 

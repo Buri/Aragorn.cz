@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -109,6 +109,9 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	 */
 	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
+		if ($this->flags & self::ONE_WAY) {
+			return NULL;
+		}
 		$params = $appRequest->getParameters();
 
 		// presenter name

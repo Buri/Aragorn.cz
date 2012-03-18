@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -21,7 +21,6 @@ use Nette,
  * Reading and generating NEON files.
  *
  * @author     David Grudl
- * @internal
  */
 class NeonAdapter extends Nette\Object implements Nette\Config\IAdapter
 {
@@ -47,7 +46,7 @@ class NeonAdapter extends Nette\Object implements Nette\Config\IAdapter
 		foreach ($arr as $key => $val) {
 			if (substr($key, -1) === self::PREVENT_MERGING) {
 				if (!is_array($val) && $val !== NULL) {
- 					throw new Nette\InvalidStateException("Replacing operator is available only for arrays, item '$key' is not array.");
+					throw new Nette\InvalidStateException("Replacing operator is available only for arrays, item '$key' is not array.");
 				}
 				$key = substr($key, 0, -1);
 				$val[Helpers::EXTENDS_KEY] = Helpers::OVERWRITE;

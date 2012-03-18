@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -81,6 +81,10 @@ class ServiceDefinition extends Nette\Object
 
 	public function addSetup($target, $args = NULL)
 	{
+		if (!is_array($args)) {
+			$args = func_get_args();
+			array_shift($args);
+		}
 		$this->setup[] = new Statement($target, $args);
 		return $this;
 	}
@@ -115,6 +119,7 @@ class ServiceDefinition extends Nette\Object
 	public function setShared($on)
 	{
 		$this->shared = (bool) $on;
+		$this->autowired = $this->shared ? $this->autowired : FALSE;
 		return $this;
 	}
 

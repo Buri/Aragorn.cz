@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -51,8 +51,8 @@ class Application extends Nette\Object
 	/** @var array of function(Application $sender, \Exception $e); Occurs when an unhandled exception occurs in the application */
 	public $onError;
 
-	/** @var array of string */
-	public $allowedMethods = array('GET', 'POST', 'HEAD', 'PUT', 'DELETE');
+	/** @deprecated */
+	public $allowedMethods;
 
 	/** @var array of Request */
 	private $requests = array();
@@ -66,9 +66,6 @@ class Application extends Nette\Object
 	/** @var Nette\Http\IResponse */
 	private $httpResponse;
 
-	/** @var Nette\Http\Session */
-	private $session;
-
 	/** @var IPresenterFactory */
 	private $presenterFactory;
 
@@ -77,12 +74,10 @@ class Application extends Nette\Object
 
 
 
-	public function __construct(IPresenterFactory $presenterFactory, IRouter $router, Nette\Http\IRequest $httpRequest,
-		Nette\Http\IResponse $httpResponse, Nette\Http\Session $session)
+	public function __construct(IPresenterFactory $presenterFactory, IRouter $router, Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse)
 	{
 		$this->httpRequest = $httpRequest;
 		$this->httpResponse = $httpResponse;
-		$this->session = $session;
 		$this->presenterFactory = $presenterFactory;
 		$this->router = $router;
 	}
@@ -95,18 +90,6 @@ class Application extends Nette\Object
 	 */
 	public function run()
 	{
-		// check HTTP method
-		if ($this->allowedMethods) {
-			$method = $this->httpRequest->getMethod();
-			if (!in_array($method, $this->allowedMethods, TRUE)) {
-				$this->httpResponse->setCode(Nette\Http\IResponse::S501_NOT_IMPLEMENTED);
-				$this->httpResponse->setHeader('Allow', implode(',', $this->allowedMethods));
-				echo '<h1>Method ' . htmlSpecialChars($method) . ' is not implemented</h1>';
-				return;
-			}
-		}
-
-		// dispatching
 		$request = NULL;
 		$repeatedError = FALSE;
 		do {
@@ -264,39 +247,16 @@ class Application extends Nette\Object
 
 
 
-	/**
-	 * Stores current request to session.
-	 * @param  mixed  optional expiration time
-	 * @return string key
-	 */
-	public function storeRequest($expiration = '+ 10 minutes')
+	/** @deprecated */
+	function storeRequest($expiration = '+ 10 minutes')
 	{
-		$session = $this->session->getSection('Nette.Application/requests');
-		do {
-			$key = Nette\Utils\Strings::random(5);
-		} while (isset($session[$key]));
-
-		$session[$key] = end($this->requests);
-		$session->setExpiration($expiration, $key);
-		return $key;
+		return $this->presenter->storeRequest($expiration);
 	}
 
-
-
-	/**
-	 * Restores current request to session.
-	 * @param  string key
-	 * @return void
-	 */
-	public function restoreRequest($key)
+	/** @deprecated */
+	function restoreRequest($key)
 	{
-		$session = $this->session->getSection('Nette.Application/requests');
-		if (isset($session[$key])) {
-			$request = clone $session[$key];
-			unset($session[$key]);
-			$request->setFlag(Request::RESTORED, TRUE);
-			$this->presenter->sendResponse(new Responses\ForwardResponse($request));
-		}
+		return $this->presenter->restoreRequest($key);
 	}
 
 }

@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -20,12 +20,12 @@ use Nette;
  *
  * @author     David Grudl
  *
- * @property-read array|stdClass $payload
+ * @property-read array|\stdClass $payload
  * @property-read string $contentType
  */
 class JsonResponse extends Nette\Object implements Nette\Application\IResponse
 {
-	/** @var array|stdClass */
+	/** @var array|\stdClass */
 	private $payload;
 
 	/** @var string */
@@ -34,7 +34,7 @@ class JsonResponse extends Nette\Object implements Nette\Application\IResponse
 
 
 	/**
-	 * @param  array|stdClass  payload
+	 * @param  array|\stdClass  payload
 	 * @param  string    MIME content type
 	 */
 	public function __construct($payload, $contentType = NULL)
@@ -49,7 +49,7 @@ class JsonResponse extends Nette\Object implements Nette\Application\IResponse
 
 
 	/**
-	 * @return array|stdClass
+	 * @return array|\stdClass
 	 */
 	final public function getPayload()
 	{

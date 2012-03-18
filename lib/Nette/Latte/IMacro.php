@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -36,14 +36,14 @@ interface IMacro
 	function finalize();
 
 	/**
-	 * New node is found. Returns FALSE to reject or code.
-	 * @return bool|string
+	 * New node is found. Returns FALSE to reject.
+	 * @return bool
 	 */
 	function nodeOpened(MacroNode $node);
 
 	/**
-	 * Node is closed. Returns code.
-	 * @return string
+	 * Node is closed.
+	 * @return void
 	 */
 	function nodeClosed(MacroNode $node);
 

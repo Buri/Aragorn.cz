@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -23,7 +23,7 @@ use Nette;
  * @property-write $defaults
  * @property   Nette\ArrayHash $values
  * @property-read bool $valid
- * @property-read ControlGroup $currentGroup
+ * @property   ControlGroup $currentGroup
  * @property-read \ArrayIterator $controls
  * @property-read Form $form
  */
@@ -101,17 +101,18 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 
 	/**
 	 * Returns the values submitted by the form.
-	 * @return Nette\ArrayHash
+	 * @param  bool  return values as an array?
+	 * @return Nette\ArrayHash|array
 	 */
-	public function getValues()
+	public function getValues($asArray = FALSE)
 	{
-		$values = new Nette\ArrayHash;
+		$values = $asArray ? array() : new Nette\ArrayHash;
 		foreach ($this->getComponents() as $name => $control) {
 			if ($control instanceof IControl && !$control->isDisabled() && !$control instanceof ISubmitterControl) {
-				$values->$name = $control->getValue();
+				$values[$name] = $control->getValue();
 
 			} elseif ($control instanceof Container) {
-				$values->$name = $control->getValues();
+				$values[$name] = $control->getValues($asArray);
 			}
 		}
 		return $values;
@@ -186,7 +187,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 	 * @param  IComponent
 	 * @param  string
 	 * @param  string
-	 * @return void
+	 * @return Container  provides a fluent interface
 	 * @throws Nette\InvalidStateException
 	 */
 	public function addComponent(Nette\ComponentModel\IComponent $component, $name, $insertBefore = NULL)
@@ -195,6 +196,7 @@ class Container extends Nette\ComponentModel\Container implements \ArrayAccess
 		if ($this->currentGroup !== NULL && $component instanceof IControl) {
 			$this->currentGroup->add($component);
 		}
+		return $this;
 	}
 
 

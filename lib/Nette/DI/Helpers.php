@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -99,6 +99,7 @@ final class Helpers
 
 	/**
 	 * Generates list of arguments using autowiring.
+	 * @param  Nette\Reflection\GlobalFunction|Nette\Reflection\Method
 	 * @return array
 	 */
 	public static function autowireArguments(\ReflectionFunctionAbstract $method, array $arguments, $container)
@@ -118,13 +119,13 @@ final class Helpers
 				unset($arguments[$parameter->getName()]);
 				$optCount = 0;
 
-			} elseif ($parameter->getClass()) { // has object typehint
-				$res[$num] = $container->getByClass($parameter->getClass()->getName());
+			} elseif ($class = $parameter->getClassName()) { // has object typehint
+				$res[$num] = $container->getByType($class, FALSE);
 				if ($res[$num] === NULL) {
 					if ($parameter->allowsNull()) {
 						$optCount++;
 					} else {
-						throw new Nette\InvalidArgumentException("No service of type {$parameter->getClass()->getName()} found");
+						throw new Nette\InvalidArgumentException("No service of type {$class} found");
 					}
 				} else {
 					if ($container instanceof ContainerBuilder) {

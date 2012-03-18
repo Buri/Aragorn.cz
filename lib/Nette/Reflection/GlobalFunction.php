@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -49,28 +49,6 @@ class GlobalFunction extends \ReflectionFunction
 	public function __construct($name)
 	{
 		parent::__construct($this->value = $name);
-	}
-
-
-
-	/**
-	 * @return array
-	 */
-	public function getDefaultParameters()
-	{
-		return Method::buildDefaultParameters(parent::getParameters());
-	}
-
-
-
-	/**
-	 * Invokes function using named parameters.
-	 * @param  array
-	 * @return mixed
-	 */
-	public function invokeNamedArgs($args)
-	{
-		return $this->invokeArgs(Method::combineArgs($this->getDefaultParameters(), $args));
 	}
 
 

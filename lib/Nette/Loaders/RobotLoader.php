@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -27,7 +27,7 @@ use Nette,
  */
 class RobotLoader extends AutoLoader
 {
-	const RETRY_LIMIT = 5;
+	const RETRY_LIMIT = 3;
 
 	/** @var array */
 	public $scanDirs = array();
@@ -71,23 +71,19 @@ class RobotLoader extends AutoLoader
 
 	/**
 	 * Register autoloader.
-	 * @return void
+	 * @return RobotLoader  provides a fluent interface
 	 */
 	public function register()
 	{
 		$this->list = $this->getCache()->load($this->getKey(), callback($this, '_rebuildCallback'));
-
-		if (isset($this->list[strtolower(__CLASS__)]) && class_exists('Nette\Loaders\NetteLoader', FALSE)) {
-			NetteLoader::getInstance()->unregister();
-		}
-
 		parent::register();
+		return $this;
 	}
 
 
 
 	/**
-	 * Handles autoloading of classes or interfaces.
+	 * Handles autoloading of classes, interfaces or traits.
 	 * @param  string
 	 * @return void
 	 */
@@ -111,7 +107,7 @@ class RobotLoader extends AutoLoader
 		if (isset($info[0])) {
 			Nette\Utils\LimitedScope::load($info[0], TRUE);
 
-			if ($this->autoRebuild && !class_exists($type, FALSE) && !interface_exists($type, FALSE)) {
+			if ($this->autoRebuild && !class_exists($type, FALSE) && !interface_exists($type, FALSE) && (PHP_VERSION_ID < 50400 || !trait_exists($type, FALSE))) {
 				$info = 0;
 				$this->checked[$type] = TRUE;
 				if ($this->rebuilt) {
@@ -249,7 +245,7 @@ class RobotLoader extends AutoLoader
 					$path = $dir->getPathname();
 					if (is_file("$path/netterobots.txt")) {
 						foreach (file("$path/netterobots.txt") as $s) {
-							if ($matches = Strings::match($s, '#^disallow\\s*:\\s*(\\S+)#i')) {
+							if ($matches = Strings::match($s, '#^(?:disallow\\s*:)?\\s*(\\S+)#i')) {
 								$disallow[$path . str_replace('/', DIRECTORY_SEPARATOR, rtrim('/' . ltrim($matches[1], '/'), '/'))] = TRUE;
 							}
 						}
@@ -280,6 +276,7 @@ class RobotLoader extends AutoLoader
 	{
 		$T_NAMESPACE = PHP_VERSION_ID < 50300 ? -1 : T_NAMESPACE;
 		$T_NS_SEPARATOR = PHP_VERSION_ID < 50300 ? -1 : T_NS_SEPARATOR;
+		$T_TRAIT = PHP_VERSION_ID < 50400 ? -1 : T_TRAIT;
 
 		$expected = FALSE;
 		$namespace = '';
@@ -300,7 +297,7 @@ class RobotLoader extends AutoLoader
 			return;
 		}
 
-		foreach (token_get_all($s) as $token) {
+		foreach (@token_get_all($s) as $token) { // intentionally @
 			if (is_array($token)) {
 				switch ($token[0]) {
 				case T_COMMENT:
@@ -318,6 +315,7 @@ class RobotLoader extends AutoLoader
 				case $T_NAMESPACE:
 				case T_CLASS:
 				case T_INTERFACE:
+				case $T_TRAIT:
 					$expected = $token[0];
 					$name = '';
 					continue 2;
@@ -331,6 +329,7 @@ class RobotLoader extends AutoLoader
 				switch ($expected) {
 				case T_CLASS:
 				case T_INTERFACE:
+				case $T_TRAIT:
 					if ($level === $minLevel) {
 						$this->addClass($namespace . $name, $file, $time);
 					}
