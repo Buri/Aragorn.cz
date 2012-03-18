@@ -21,12 +21,17 @@ namespace ajaxModule{
             $this->getTemplate()->data = "<version>1.0</version>";
         }
         
+        public function actionHelp(){
+            
+        }
+        
         public function actionLoginui(){
             $this->setView('loginui');
         }
-        public function actionTestIdentity(){
+        public function actionTestidentity(){
             /* Sync with node.js */
-            $this->getTemplate()->data = Node::userlogin();
+            //$this->getTemplate()->data = Node::userlogin();
+            $this->getTemplate()->data = "ok";
         }
         public function actionStatusupdate($id){
             $ok = DB::users_profiles('id', \Nette\Environment::getUser()->getId())->update(array('status' => $id)) ? true : false;

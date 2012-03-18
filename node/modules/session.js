@@ -26,11 +26,15 @@ require('mootools').apply(GLOBAL);
 exports.Session = new Class({
     Implements:[Options, Events],
     options:{
-        parentStorageRemoval:null
+        parentStorageRemoval:null,
+        getRedis:null
     },
-    initialize:function(sid, options){
+    initialize:function(sid, Redis, options){
         this.setOptions(options);
         this.sessid = sid;
+        if(!this.options.redis)
+            this.options.redis = redis.createClient();
+        this.redis = Redis || redis.createClient();
     },
     
     /* Fields */
@@ -46,33 +50,48 @@ exports.Session = new Class({
     },
     phpid:'',
     eraseTimeout:null,
+    redis:null,
     
     /* Methods */
     registerClient:function(client){
-        if(this.eraseTimeout){
-            clearTimeout(this.eraseTimeout);
-            this.eraseTimeout = {};
-        }
-        this.clients.push(client.id);
-        this.user.ips.include(client.handshake.address.address); /* Probably users real ip address, always good to know */        
-        client.sendToChannel = this.sendToChannel.bind(this);
-        client.session = this;
+        var c = 'session-' + this.sessid; // + '-clients',
+            r = this.redis;
+        if(!r.connected) r = redis.createClient();
+            //console.log(c);
+        r.multi().persist(c).sadd(c, client.id, function(err, res){
+            if(err) return;
+        }).exec();
     },
     removeClient:function(client){
-        this.clients.erase(client.id);
-        if(this.clients.length == 0){
-            this.eraseTimeout = setTimeout(this.erase.bind(this), 1000 * 15);
-        }
+        var r = this.redis,
+            c = 'session-' + this.sessid; // + '-clients';;
+        if(!r.connected) r = redis.createClient();
+        r.srem(c, client.id, function(err, res){
+            if(err) return;
+            r.smembers(c, function(err, mem){
+                if(err) return;
+                if(!mem || !mem.length){
+                    r.multi().expire(c, 15).expire(c + '-user', 15).exec();
+                }
+            });
+        });
     },
     erase:function(){
         this.clients.each(function(client){
             console.log('disconnect client ' + client);
         });
         this.fireEvent('disconnect', this);
-        this.options.parentStorageRemoval(this.sessionId); // AKA "Delete me, pls!"
+      //  this.options.parentStorageRemoval(this.sessionId); // AKA "Delete me, pls!"
     },
     
     /* Permission handling */
+    updateUser:function(usr){
+        this.user = usr;
+    },
+    getUser:function(cb){
+        //this.user = '';
+        return cb(this.user);
+    },
     isAllowed:function(res, op){
         var ps = this.user.permissions || {'_ALL':false}; /* This method doesn't care about real permissions, it simply uses what's pushed from PHP */
         if(!this.user.id || !this.user.roles) return false; /* User is not logged in */

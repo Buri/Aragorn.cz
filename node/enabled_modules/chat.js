@@ -21,6 +21,10 @@ exports.ChatServer = new Class({
         timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
         userServer:'static.aragorn.cz' // From where to serve icons?
     },
+    socket:null,
+    storage:{},
+    users:{},
+    
     initialize:function(socket, options){
         this.setOptions(options);
         this.redis = redis.createClient();
@@ -32,19 +36,49 @@ exports.ChatServer = new Class({
         message.data = message.data || {};
         message.data.color = '#7B6200';
         message.data.size = 'small';
-        message.data.id = this.newMsgId(channel);
-        if(store)
-            this.storeMessage(channel, message);
-        app.sockets.in(channel).json.emit('chat', message);
+        this.sendMessage(channel, message, store);
     },
-    socket:null,
-    storage:{},
-    users:{},
+    sendMessage:function(channel, message, store){
+        console.log('Try send', message);
+        this.redis.incr('chat:msgid:' + channel, function(err, count){
+            if(err){
+                console.log(err);
+                throw new Error(err);
+                }
+            message.id = 'chat:message:' + channel + ':' + count;
+            message.data.id = ('msg' + channel.replace(/\//gi, '-') + count);
+            console.log('Sending:',channel, message, store);
+            app.sockets.in(channel).json.emit('chat', message);
+            if(store)
+                this.storeMessage(channel, message);
+            
+        }.bind(this));
+    },
+    storeMessage:function(cname, message){
+        if(message.data) message.data = JSON.stringify(message.data);
+        if(message.user) message.user = JSON.stringify(message.user);
+        message.channel = cname;
+        //console.log('Storing: ', cname, message);
+        this.redis.multi()                              // Start transaction
+        .hmset(message.id, message)                     // Store message
+        .expire(message.id, this.options.timeout)       // Expire after (timeout) seconds
+        .exec();                                        // Execute transaction
+    },
+    getQueue:function(cname, cb){
+        this.redis.keys('chat:message:' + cname + ':*', cb);
+    },
+    clearChannel:function(channel){
+        delete this.storage[channel];
+    },
+    
     /* 
      * States: idle, writing, deleting, textready, disconnected
      * Roles:  guest, user, moderator, admin or fetched from db?
      *
      */
+    removeRoom:function(cname){
+        delete this.users[cname];
+    },
     sortUsers:function(a,b){
         /* Case insensitive sorting */
         a = String(a.name).toUpperCase();
@@ -110,60 +144,35 @@ exports.ChatServer = new Class({
             this.broadcastUserUpdate(room);
         return this.users[room];
     },
-    removeRoom:function(cname){
-        delete this.users[cname];
-    },
-    storeMessage:function(cname, message){
-        var tmp = this.getQueue(cname);
-        tmp.unshift({
-            t:setTimeout(function(cname){
-                if(this.storage[cname]){
-                    this.storage[cname].pop(); 
-                    /* Delete storage after channel is empty? If not, possible memory leaks... */
-                    if(!this.storage[cname].length) 
-                        delete this.storage[cname];
-                }
-            }.bind(this, cname), this.options.timeout*1000), 
-            d:message,
-            id:message.data.id
-        });
-        if(tmp.length > this.options.length){
-            clearTimeout(tmp[tmp.length - 1].t);
-            tmp.pop();
-        }
-        this.storage[cname] = tmp;
-    },
-    getQueue:function(cname){
-        return this.storage[cname] || [];
-    },
-    newMsgId:function(cname){
-        if(!cname) return 0;
-        var tmp = this.getQueue(cname);
-        tmp.counter = tmp.counter || 0;
-        this.storage[cname] = tmp;
-        return ('msg' + cname.replace(/\//gi, '-') + (tmp.counter++));
-    },
-    clearChannel:function(channel){
-        delete this.storage[channel];
-    },
+    
     sessionHook:function(client, message){
+        //console.log(message);
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
         switch(message.data.action){
             case "enter":
-                client.join(cname); //.redis.subscribe(cname); // Public channel
+                client.join(cname); 
                 client.join(cname + '/' + client.session.user.name); // Whisper
                 if(message.data.noqueue)
                     break;
             case "queue":
-                var t = this.getQueue(cname).combine(this.getQueue(cname + '/' + client.session.user.name)), s = [];
-                for(var i = 0; i < t.length; i++){
-                    var msg = t[i].d;
-                    msg.data.time = msg.time;
-                    msg.data.from = msg.user.name;
-                    s.push(msg);
-                }
-                s.sort(function(a,b){var c = a.time - b.time;return (c < 0 ? -1 : (c ? 1 : 0));});
-                client.json.emit('chat', {cmd:'chat', data:{action:'queue', queue:s}});
+                this.getQueue(cname, function(err, queue){
+                    if(err) throw err;
+                    var m = this.redis.multi();
+                    for(var i = queue.length - 1; i; i--){
+                        m.hgetall(queue[i]);
+                    }
+                    m.exec(function(err, obj){
+                        if(err) throw err;
+                        obj.sort(function(a,b){var c = a.time - b.time;return (c < 0 ? -1 : (c ? 1 : 0));});
+                        //console.log(obj);
+                        for(var i = 0; i < obj.length; i++){
+                            //console.log(obj[i]);
+                           if(obj[i].data) obj[i].data = JSON.parse(obj[i].data);
+                           if(obj[i].user) obj[i].user = JSON.parse(obj[i].user);
+                        }
+                        client.json.emit('chat', {cmd:'chat', data:{action:'queue', queue:obj}});
+                    }.bind(this));
+                }.bind(this));
                 break;
             case 'userlist':
                 client.json.emit('chat', {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
@@ -173,10 +182,13 @@ exports.ChatServer = new Class({
                 client.leave(cname + '/' + client.session.user.name);
                 break;
             case 'post':
-                if(this.getUserNames(cname).indexOf(client.session.user.name) == -1) return;
+                console.log('NEW POST', client.get('user'));
+                if(this.getUserNames(cname).indexOf(client.session.user.name) == -1){
+                    console.log('returning: ', this.getUserNames(cname), client.session.user.name);
+                    return;
+                    }
                 if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
                     message.data.color = client.session.user.preferences.chat.color || '#fff' ;
-                message.data.id = this.newMsgId(cname);
                 if(message.data.whisper == client.session.user.name){
                     cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
                     delete message.data.whisper;
@@ -185,8 +197,8 @@ exports.ChatServer = new Class({
                     var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + client.session.user.name;
                     this.storeMessage(cname2, message);
                 }
-                this.storeMessage(cname, message);
-                client.sendToChannel(cname, message);
+                console.log('NEW POST 2');
+                this.sendMessage(cname, message, true);
                 var u = this.getUserInfo(client.session.user.name, cname);
                 if(u){
                     u.time = new Date().getTime();
@@ -205,7 +217,7 @@ exports.ChatServer = new Class({
                 switch(message.data.command){
                     case 'kick':
                         if(client.session.isAllowed('chat', 'moderator')){
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uĹľivatele ' + message.data.params.param + ' z mĂ­stnosti.'}}, true);
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
                             this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
                         }else
                             client.send('notify', {code:403,msg:'Not allowed'});
@@ -213,7 +225,7 @@ exports.ChatServer = new Class({
                     case 'kickall':
                         if(client.session.isAllowed('chat', 'moderator')){
                             this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil vĹˇechny z mĂ­stnosti.'}}, true);
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
                         }else
                             client.send('notify', {code:403,msg:'Not allowed'});
                         break;
@@ -226,12 +238,8 @@ exports.ChatServer = new Class({
                 break;
             case 'delete':
                 if(client.session.isAllowed('chat', 'moderator')){
-                    var q = this.getQueue(cname), pos = q.binarySearch({id:message.data.messid}, function(a,b){a = parseInt(a.id.substr(a.id.lastIndexOf('-') + 1));b = parseInt(b.id.substr(b.id.lastIndexOf('-') + 1));return ( a < b ? 1 : (a == b ? 0 : -1));});
-                    for(pos; pos < q.length - 1; pos++){
-                        q[pos] = q[pos + 1];
-                    }
-                    q = q.pop();
-                    if(q) clearTimeout(q.t);
+                    var msgid = 'chat:message:' + cname + message.data.messid;
+                    this.redis.del(msgid);
                     this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
                 }
                 break;
@@ -243,14 +251,14 @@ exports.ChatServer = new Class({
             case "enter":
                 if(this.getUsers(cname).binarySearch(message.data.name) == -1){
                     this.addUser(cname, message.data.name, message.data.info);
-                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' pĹ™ichĂˇzĂ­ do mĂ­stnosti.'}}, true);
+                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
                 }
                 break;
             case "leave":
                 if(this.getUserNames(cname).binarySearch(message.data.name) != -1){
                     this.removeUser(cname, message.data.name);
                     if(!message.data.silent){
-                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchĂˇzĂ­ z mĂ­stnosti.'}}, true);
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
                     }
                 }
                 cname += '/' + message.data.name;

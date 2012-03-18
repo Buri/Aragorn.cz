@@ -30,3 +30,4 @@ production:
 
     port: 8000
     usock: /var/run/nodejs.sock
+    jobs: 1

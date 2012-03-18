@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var START_TIME = new Date().getTime();
 console.log('Booting cluster... ' + new Date());
 
@@ -5,8 +7,12 @@ require('mootools').apply(GLOBAL);
 require('./modules/utility.js').apply(GLOBAL);
 var cluster = require('cluster'),
     os = require('os'),
+    Tracer = require('tracer'),
+    log = Tracer.colorConsole(),
+    Config = require('./modules/config.js').parse(),
     CPU_NUM = os.cpus().length, 
-    WORKER_NUM = CPU_NUM / CPU_NUM;
+    WORKER_NUM = Config.jobs || (CPU_NUM + 2);
+    
 console.log('================\n' + 
             'Host:   ' + os.hostname() + '\n' +
             'OS:     ' + os.type() + ' (' + os.arch() + ')/' + os.platform() + ' ' + os.release() + '\n' + 
@@ -19,27 +25,27 @@ cluster.setupMaster({
     silent:false
 });
 
-console.log('Cluster ready, spawning ' + WORKER_NUM + ' workers.');
+console.log(' * Cluster ready, spawning ' + WORKER_NUM + ' workers.');
 var ONLINE_WORKERS = 0;
 for(var i = WORKER_NUM; i; i--){
     var worker = cluster.fork();
     worker.on('death', function(w){
-        console.log('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
+        log.info('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
         if(!w.suicide){
             var w1 = cluster.fork();
-            console.log('Worker ' + w1.uniqueID + ' spawned.');
+            log.debug('Worker ' + w1.uniqueID + ' spawned.');
         }
     });
     worker.on('online', function(){
         ONLINE_WORKERS++;
         if(ONLINE_WORKERS == WORKER_NUM){
-            console.log('All workers are ready.\n================');
+            console.log(' * All workers are ready.\n================');
         }
     });
 }
 
 process.on('SIGINT', function(){
-    console.log('Graceful shutdown!');
+    log.info('Graceful shutdown!');
     for(var worker in cluster.workers){
         var w = cluster.workers[worker];
         w.destroy();
@@ -52,4 +58,4 @@ process.on('SIGINT', function(){
     }, 1000);
 });
 
-console.log('Spawning complete, cluster is on standby.');
+console.log(' * Spawning complete, cluster is on standby.');
