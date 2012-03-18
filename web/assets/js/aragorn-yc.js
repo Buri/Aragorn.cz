@@ -60,26 +60,25 @@ var AragornClient = new Class({
             console.log('Unable to create transport.');
             //return;
         }
-        
-        document.head || (document.head = document.getElementsByTagName('head')[0]);
-        
+               
         var t = this.transport;
         t.on('connect', this.fn.connectionEstablished.bind(this));
         t.on('connecting', function(){$('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
         t.on('PING', function(){$('constat').set('text', new Date().getTime() - this._ping.last.shift());}.bind(this));
         t.on('SESSION_REQUEST_IDENTITY', function(){
-            //console.log('Server has requested identity');
+  //          console.log('Server has requested identity');
             if(Cookie.read('sid')){
                 this.emit('SESSION_SID',Cookie.read('sid'));
-                //console.log('Responded with ' + Cookie.read('sid'));
+//                console.log('Responded with ' + Cookie.read('sid'));
             }else{
-                //console.log('Requested new identity');
+              //  console.log('Requested new identity');
                 this.emit('SESSION_REQUEST_SID');
             }
         });
         t.on('SESSION_REGISTER_SID', function(sid){
             //console.log('Recieved new identity: ' + sid);
             Cookie.write('sid', sid);
+            //console.log(Cookie.read('sid'));
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_CONFIRMED_SID', function(sid){
@@ -87,7 +86,7 @@ var AragornClient = new Class({
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_RESET_SID', function(){
-            //console.log('Session invalid, reseting');
+          //  console.log('Session invalid, reseting');
             Cookie.dispose('sid');
             this.emit('SESSION_REQUEST_SID');
         });
@@ -98,8 +97,10 @@ var AragornClient = new Class({
         t.on('disconnect', this.fn.handleDisconnect.bind(this));
         t.on('message', function(msg){ console.log(msg);});
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
+        //console.log('BOOT');
         if(window.AUTHENTICATED)
             this.resetInactivity();
+        document.head || (document.head = document.getElementsByTagName('head')[0]);
     },
     notificationAudio:{play:function(){}},
     notimoo:null,

@@ -48,7 +48,7 @@ ul {
 }
 
 .mooupload_btncontainer {  
-  background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; 
+  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
   padding: 10px;    
 }
 
@@ -60,11 +60,13 @@ ul {
   margin-right: 10px;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
-  border-radius: 3px; 
+  border-radius: 3px;
+  width: 130px;
+  height: 60px;
 }
 
 .mooupload_btncontainer button.addfile {
-  background: #F3F3F3 url({{!$staticPath}}/images/add.png) 3px center no-repeat;
+  background: #F3F3F3 url({{!$staticPath}}/images/add.png) 15px center no-repeat;
 }
 
 .mooupload_btncontainer button.start {
@@ -177,6 +179,12 @@ ul {
 	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE8 Trash */
 	z-index: 300;	
 }	
+#imgouter, #imglayer{
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
 
 #cropframe {
 	position: absolute; width: 40px; height: 40px; left: 0px; top: 0px; padding: 0px; border: 1px dashed #333; background-repeat: no-repeat;
@@ -233,15 +241,12 @@ ul {
 </style>
 <form onsubmit="return false;">
 <ul id="set-nav">
-    <li><a class="tab" href="#" id="set-nav-first">Ikona a barva</a></li>
-    <li><a class="tab" href="#" id="two">Chat</a></li>
-    <li><a class="tab" href="#" id="three">Systém</a></li>
-    <li><a class="tab" href="#" id="set-nav-last">TRUHLA</a></li>
+    <li><a class="tab" href="#" id="set-nav-first">Ikonky</a></li><li><a class="tab" href="#" id="two">Chat</a></li><li><a class="tab" href="#" id="three">Systém</a></li><li><a class="tab" href="#" id="set-nav-last">TRUHLA</a></li>
 </ul> 
 <div id="set-content"> 
-    <div class="feature"> 
+    <div class="feature" style="text-align:center;"> 
         <div>
-            <div id="filecontrol" class="half" sstyle="background: url({!$staticPath}/images/drop_item.png); background-repeat:no-repeat;background-position:center middle;"></div>
+            <div id="filecontrol" sstyle="background: url({!$staticPath}/images/drop_item.png); background-repeat:no-repeat;background-position:center middle;"></div>
             <div id="iconCrop" style="opacity:0;">
                 <div id="imgouter">
                     <div id="cropframe">
@@ -255,17 +260,16 @@ ul {
                     <div id="imglayer" style="width: 200px; height: 192px; padding: 1px; background-position: center center; background-image: url('{!$staticPath}/images/progress.gif')"></div>
                 </div>
             </div>
-	</div>
-	
+	</div>	
+    </div> 
+    <div class="feature">
         <fieldset n:syntax="double">
             
             <caption>Barva</caption>
             {{$user->getIdentity()->preferences->chat->color}}
             Barva: <div id="ccolor" style="cursor: pointer;background-color: {{!$user->getIdentity()->preferences->chat->color}}; display: inline-block; width: 40px;">&nbsp;</div>
         </fieldset> 
-    </div> 
-    <div class="feature">
-         Chat
+    
     </div> 
     <div class="feature"> 
        Systém
@@ -307,36 +311,38 @@ ul {
                 var p = '{{!$userPath}}/u/' + response.upload_name;
                 var i = new Image();
                 i.addEvent('load', function(){
-                    $('imglayer').setStyle('width', this.width + 'px');
-                    $('imglayer').setStyle('height', this.height + 'px');
-                    //Crop.options.maxsize = {x: this.width, y: this.height};
+                    if(this.width > 880){
+                        $$('#imglayer, #imgouter').setStyles({
+                            'width': 880 + 'px',
+                            'height': 880/this.width*this.height + 'px',
+                            'background-image': 'url(' + p + ')'
+                        });
+                    }else{
+                        $$('#imglayer, #imgouter').setStyles({
+                            'width': this.width + 'px',
+                            'height': this.height + 'px',
+                            'background-image': 'url(' + p + ')'
+                        });
+                    }
                     Crop = new CwCrop({
                         minsize: {x: 60, y: 60},
-                      //  maxratio: {x: 1.5, y: 1.5},
                         maxsize: {x: this.width, y:this.height},
+                        originalsize: {x:this.width, y: this.height},
+                        cropdims:null, 
                         onCrop: function(v) {
-                            console.log(v);
-                            window.open('/convertico.php?x='+ v.x + '&y=' + v.y + '&h=' + v.h + '&w=' + v.w + '&f=' + response.upload_name, '', '');
-                            /*document.forms["crop"].elements["crop[x]"].value = values.x;
-                            document.forms["crop"].elements["crop[y]"].value = values.y;
-                            document.forms["crop"].elements["crop[w]"].value = values.w;
-                            document.forms["crop"].elements["crop[h]"].value = values.h;
-                            alert("Selected area is: " + values.x + "," + values.y + " @ " + values.w + " x " + values.h);*/
-                            /*
-                        Here the form should be submitted usually (instead of the alert..):
-                        document.forms["crop"].submit();
-                        */
+                            var path = '/convertico.php?x='+ v.x + '&y=' + v.y + '&h=' + v.h + '&w=' + v.w + '&f=' + response.upload_name;
+                            window.open(path, '', '');
                         }
                     });
                 });
                 i.src = p;
-                $('imglayer').setStyle('background-image', 'url(' + p + ')');
-                $('imgouter').setStyle('background-image', 'url(' + p + ')');
+                /*$('imglayer').setStyle('background-image', 'url(' + p + ')');
+                //$('imgouter').setStyle('background-image', 'url(' + p + ')');*/
                 $('filecontrol').fade(0);
                 $('iconCrop').fade(1);
             },
             texts: {
-                selectfile : 'Vybrat soubor'
+                selectfile : 'Vybrat fotku'
             }
 	});
     });

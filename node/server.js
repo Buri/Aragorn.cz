@@ -25,7 +25,7 @@ var http = require('http'),
     
     
     /* Custom modules */
-    Session = require('./modules/session.js').Session,
+    //Session = new Class(),//= require('./modules/session.js').Session,
       
     /*
      * Module loading system
@@ -116,78 +116,13 @@ var http = require('http'),
             '<tr><td class="b">Sessions:</td><td>' + SessionManager.length() + '</tr></td>\n' +
             '<tr><td class="b">Clients:</td><td>' + JSON.stringify(io) + '</tr></td>\n' +
             '</table>\n'
-        );
-        res.write('<pre>\n');
+        )
+        /*res.write('<pre>\n');
         res.write(JSON.stringify(SessionManager.list()));
-        res.write('</pre>\n');
+        res.write('</pre>\n');*/
         res.end('<hr />\nCreated by <a href="http://aragorn.cz/">Aragorn.cz</a> &copy; 2011');
     }),
    
-    /* 
-     * Session storage 
-     * @void    remove(@int id)     Callback function for deleting sessions
-     * @object+ session%            Every single session
-     * */
-     SessionManager = {
-        storageKey:'session-',
-        redis:redis.createClient(),
-        init:function(){
-            /* Clear all sessions from old run */
-            this.redis.keys('session-*', function(err, res){
-                if(err) return;
-                var m = this.redis.multi();
-                for(var i = 0; i < res.length; i++){
-                    m.del(res[i]);
-                }
-                m.exec();
-            }.bind(this));
-        },
-        createSession:function(cb){
-            var sid = Math.round(Math.random() * 10000000000000000);
-            this.redis.exists(this.storageKey + sid, function(err, res){
-                if(err) return;
-                if(res){
-                    this.createSession(cb);
-                }else{
-                    cb(new Session(sid, this.redis, {
-                        parentStorageRemoval:this.remove.bind(this)                        
-                    }));
-                }
-            }.bind(this));
-        },
-        remove:function(id){
-            log.warn(id);
-            this.redis.srem(this.storageKey, id, function(){});
-        },
-        exists:function(id, cb){
-            this.redis.exists(this.storageKey +  id, function(err, res){
-                if(err) return;
-                cb(res);
-            }.bind(this));
-        },
-        get:function(id, cb){
-            this.exists(id, function(e){
-                if(e) cb(new Session(id, this.redis, {
-                    parentStorageRemoval:this.remove
-                }));
-                else cb(null);
-            });
-            //return this._s[id] || null;
-        },
-        length:function(){
-            var i = 0;
-            for(var m in this._s)
-                if(typeOf(this._s[m]) != 'function')
-                    i++;
-            return i;
-        },
-        list:function(cb){
-            this.redis.members(this.storageKey, cb);
-        },
-        broadcastSessionNumber:function(){
-            app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [SessionManager.length(), app.server.connections]);
-        }
-    },
     phpUnixSocket = net.createServer(function(s) {
         s.setEncoding('utf-8');
         s.on('data', function(data){
@@ -195,30 +130,11 @@ var http = require('http'),
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
-                        var call = function(s){
-                            if(!s){
-                                SessionManager.createSession(json.data.PHPSESSID, call);
-                                return;
-                            }
-                            s.user.id = json.data.id;
-                            s.user.name = json.data.username;
-                            s.user.preferences = json.data.preferences;
-                            s.user.permissions = json.data.permissions;
-                            s.user.roles = json.data.roles;
-                            //console.log(s.user);
-                            s.write(s.sessionId + '');
-                        };
-                        SessionManager.get(json.data.nodeSession, call);
+                        SessionManager.login(json.data.nodeSession, json.data, function(sid){this.write(sid + '');}.bind(this));
                         break;
                     case "user-logout":
-                        SessionManager.get(json.data.nodeSession, function(sess){
-                            if(sess){
-                                sess.erase();
-                                this.write('OK');
-                            }else{
-                                this.write("SESSION_NOT_FOUND");
-                            }
-                        }.bind(this));
+                        SessionManager.logout(json.data.nodeSession);
+                        this.write('OK');
                         break;
                     case 'get-number-of-sessions':
                         this.write(JSON.stringify(SessionManager.length()));
@@ -279,7 +195,6 @@ console.log('Unix socket opened in ' + Config.usock);
  *          >   %                                   (...)       If clients is registered to session calls Session.handleMessgae(message, client), otherwise logs cmd and replies INVALID_SID
  * Step 3: Send SESSION_REQUEST_IDENTITY command
  */
-
 app = io.listen(server);
 app.configure(function(){
     app.set('log level', 0);                    // reduce logging
@@ -296,46 +211,135 @@ app.configure(function(){
         redisClient:redis.createClient()
     }));
 });
-
-SessionManager.init();
-app.sockets.on('connection', function (client) {
-    /*
-     *  Implement basic remote-client <=> node.js <=> redis protocol
-     */    
-    client.on('SESSION_SID', function(sid){
-        SessionManager.exists(sid, function(ex){
-            if(!ex) client.emit('SESSION_RESET_SID');
-            else SessionManager.get(sid, function(s){
-                s.registerClient(client);
-                client.set('sessid', sid);
-                client.emit('SESSION_CONFIRMED_SID', sid);
-                SessionManager.broadcastSessionNumber();
+/* 
+     * Session storage 
+     * @void    remove(@int id)     Callback function for deleting sessions
+     * @object+ session%            Every single session
+     * */
+     var SessionManager = {
+        storageKey:'session-',
+        redis:redis.createClient(),
+        init:function(){
+            /* Clear all sessions from old run */
+            console.log('Clearing up old sessions...');
+            this.redis.keys('session-*', function(err, res){
+                if(err) return;
+                var m = this.redis.multi();
+                for(var i = 0; i < res.length; i++){
+                    m.del(res[i]);
+                }
+                m.exec();
+            }.bind(this));
+        },
+        removeConnection:function(client){
+            var r = this.redis;
+            client.get('session-id', function(err, res){
+            if(!r.connected) r = redis.createClient();
+                var c = this.storageKey + res;
+                r.srem(c, client.id, function(err, res){
+                    if(err) return;
+                    r.smembers(c, function(err, mem){
+                        if(err) return;
+                        if(!mem || !mem.length){
+                            r.multi().expire(c, 35).expire(c + '-user', 35).exec();
+                        }
+                    });
+                });
+            }.bind(this));    
+            SessionManager.broadcastSessionNumber();
+        },
+        handleNewConnection:function(client){
+             client.on('SESSION_SID', function(sid){
+                SessionManager.exists(sid, function(ex){
+                    //console.log('Sid exists: ' + (ex ? 'yes' : 'no'));
+                    if(!ex){ 
+                        client.emit('SESSION_RESET_SID');
+                    }else {
+                        SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
+                        client.set('session-id', sid);
+                        client.emit('SESSION_CONFIRMED_SID', sid);
+                        client.join('/sessions/' + sid);
+                        SessionManager.broadcastSessionNumber();
+                    }
+                }.bind(this));
             });
-        });
-    });
-    client.on('SESSION_REQUEST_SID', function(){
-        SessionManager.createSession(function(s){
-            var sid = s.sessid;
-            s.registerClient(this);
-            //console.log(sid);
-            this.set('sessid', sid);
-            this.emit('SESSION_REGISTER_SID', sid);
-        }.bind(this));
-    });
+            client.on('SESSION_REQUEST_SID', function(){
+                SessionManager.createSession(function(sid){
+                    SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
+                    SessionManager.setEmptyUser(sid);
+                    SessionManager.redis.HMSET(SessionManager.storageKey + sid + '-user', 
+                        'ips', JSON.stringify([client.handshake.address.address])
+                    );
+                    client.set('session-id', sid);
+                    client.emit('SESSION_REGISTER_SID', sid);
+                    client.join('/sessions/' + sid);
+                }.bind(this));
+            });
+            client.on('disconnect', function(){
+                SessionManager.removeConnection(this);
+            });
+
+            /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
+            client.on('PING', function(){ 
+                client.emit('PING');
+            });
+
+            client.emit('SESSION_REQUEST_IDENTITY');
+        },
+        createSession:function(cb){
+            var sid = Math.round(Math.random() * 10000000000000000);
+            this.redis.exists(this.storageKey + sid + '-user', function(err, res){
+                if(err) return;
+                if(res){
+                    this.createSession(cb);
+                }else{
+                    cb(sid);
+                }
+            }.bind(this));
+        },
+        exists:function(id, cb){
+            this.redis.exists(this.storageKey +  id + '-user', function(err, res){
+                if(err) return;
+                cb(res);
+            }.bind(this));
+        },
+        login:function(sid, user, cb){
+            console.log(sid + ' - ', user);
+            this.redis.hmset(this.storageKey + sid + '-user',
+                'id', user.id,
+                'name', user.username,
+                'preferences', JSON.stringify(user.preferences),
+                'permissions', JSON.stringify(user.permissions),
+                'roles', JSON.stringify(user.roles),
+                function(err){
+                    if(err) return;
+                    cb(sid);
+                });
+        },
+        logout:function(sid){
+            this.setEmptyUser(sid);
+        },
+        setEmptyUser:function(sid){
+            SessionManager.redis.HMSET(SessionManager.storageKey + sid + '-user', 
+                'id', 0,
+                'roles', '[]',
+                'name', '',
+                'preferences', '{}',
+                'permissions', '{}',
+                'ips', '[]'
+            );
+        },
+        length:function(){return 0;},
+        broadcastSessionNumber:function(){
+            app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [SessionManager.length(), app.server.connections]);
+        }
+    };
+    SessionManager.init();
     
+/* Handle new connection */    
+app.sockets.on('connection', function (client) {   
+    SessionManager.handleNewConnection(client);
     Modules.setupClient(client);
-    
-    client.on('disconnect', function(){
-        var s = client.session;
-        if(s) s.removeClient(client);
-        SessionManager.broadcastSessionNumber();
-    });
-        
-    /* When all events are set up, client is requested to identify himself, otherwise server will register him as new client. */
-    client.on('PING', function(){ 
-        client.emit('PING');
-    });
-    client.emit('SESSION_REQUEST_IDENTITY');
 });
 
 /*
