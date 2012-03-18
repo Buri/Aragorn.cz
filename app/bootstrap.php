@@ -27,11 +27,10 @@ $container->session->setExpiration('+ 365 days');
 //$application->catchExceptions = TRUE;
 if(empty($_COOKIE['skin'])){
     $skin = Nette\Environment::getVariable('defaultSkin', 'dark');
-    setCookie('skin', $skin, time()+3600*24*365);
-    $_COOKIE['skin'] = $skin;
+    setCookie('skin', $skin, time()+3600*24*365, '/');
 }
 if(empty($_COOKIE['sid'])){
-    setCookie('sid', rand(0, 2000));
+    setCookie('sid', 0, 0, '/');
 }
 
 $router = $application->getRouter();

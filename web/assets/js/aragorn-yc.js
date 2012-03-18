@@ -158,7 +158,7 @@ var AragornClient = new Class({
             //console.log('HANDSHAKE!');
             this.connected = true;
             this._ping.timeout = setInterval(this.fn.ping.bind(this), 1000);
-            this.ajax('testIdentity', {});
+            this.ajax('testIdentity', {sid:Cookie.read('sid')});
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
                     this.sendRaw(msg);

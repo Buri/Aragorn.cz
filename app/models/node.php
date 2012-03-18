@@ -1,12 +1,13 @@
 <?php
 
 class Node {
-    static function userlogin(){
+    static function userlogin($sid = 0){
+        if(!$sid) $sid = $_COOKIE["sid"];
         $user = Nette\Environment::getUser();
         $p = \Permissions::getInstance();
         $data = json_encode(array("command" => "user-login",
                 "data" => array("PHPSESSID" => session_id(),
-                    "nodeSession" => $_COOKIE["sid"],
+                    "nodeSession" => $sid,
                     "roles" => $user->getIdentity()->getRoles(),
                     "id" => $user->getIdentity()->getId(),
                     "username" => $user->getIdentity()->username,

@@ -30,10 +30,10 @@ var ONLINE_WORKERS = 0;
 for(var i = WORKER_NUM; i; i--){
     var worker = cluster.fork();
     worker.on('death', function(w){
-        log.info('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
+        console.log('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
         if(!w.suicide){
             var w1 = cluster.fork();
-            log.debug('Worker ' + w1.uniqueID + ' spawned.');
+            console.log('Worker ' + w1.uniqueID + ' spawned.');
         }
     });
     worker.on('online', function(){

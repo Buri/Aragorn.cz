@@ -164,7 +164,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }
             fclose($fp);
             $sid = Node::userlogin();
-            setCookie('sid', $sid);
+            setCookie('sid', $sid, 0, '/');
             $this->redirect(301, 'this');
         }
         catch(BanAuthenticationException $e){
@@ -187,7 +187,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
 
     public function actionLogout(){
         $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE['sid'].'"}}';
-        setCookie('sid', usock::writeReadClose($data, 4096));
+        setCookie('sid', usock::writeReadClose($data, 4096), 0, '/');
         Permissions::unload();
         Nette\Environment::getUser()->logout(true);
         $this->redirect(301, "dashboard:default");

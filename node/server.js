@@ -47,7 +47,7 @@ var http = require('http'),
         /* Public api */
         register:function(name){
             var path = fs.readlinkSync('./enabled_modules/' + name);
-            log.info('Loading module ' + name + ': ' + path);
+            console.log('Loading module ' + name + ': ' + path);
             var module = require(path);
             module.launchurl = name;
             var namespace = this.app.sockets;
@@ -249,18 +249,21 @@ app.configure(function(){
             SessionManager.broadcastSessionNumber();
         },
         handleNewConnection:function(client){
-             client.on('SESSION_SID', function(sid){
+            client.redis = this.redis;
+            client.isAllowed = this.isAllowed.bind(client);
+            
+            client.on('SESSION_SID', function(sid){
                 SessionManager.exists(sid, function(ex){
-                    //console.log('Sid exists: ' + (ex ? 'yes' : 'no'));
-                    if(!ex){ 
-                        client.emit('SESSION_RESET_SID');
-                    }else {
-                        SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
-                        client.set('session-id', sid);
-                        client.emit('SESSION_CONFIRMED_SID', sid);
-                        client.join('/sessions/' + sid);
-                        SessionManager.broadcastSessionNumber();
-                    }
+                //console.log('Sid exists: ' + (ex ? 'yes' : 'no'));
+                if(!ex){ 
+                    client.emit('SESSION_RESET_SID');
+                }else {
+                    SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
+                    client.set('session-id', sid);
+                    client.emit('SESSION_CONFIRMED_SID', sid);
+                    client.join('/sessions/' + sid);
+                    SessionManager.broadcastSessionNumber();
+                }
                 }.bind(this));
             });
             client.on('SESSION_REQUEST_SID', function(){
@@ -283,6 +286,7 @@ app.configure(function(){
             client.on('PING', function(){ 
                 client.emit('PING');
             });
+            
 
             client.emit('SESSION_REQUEST_IDENTITY');
         },
@@ -304,7 +308,7 @@ app.configure(function(){
             }.bind(this));
         },
         login:function(sid, user, cb){
-            console.log(sid + ' - ', user);
+            //console.log(sid + ' - ', user);
             this.redis.hmset(this.storageKey + sid + '-user',
                 'id', user.id,
                 'name', user.username,
@@ -313,8 +317,9 @@ app.configure(function(){
                 'roles', JSON.stringify(user.roles),
                 function(err){
                     if(err) return;
+                    /*this.redis.hgetall(this.storageKey + sid + '-user'/*, function(e, o){console.log(o);});*/
                     cb(sid);
-                });
+                }.bind(this));
         },
         logout:function(sid){
             this.setEmptyUser(sid);
@@ -332,6 +337,45 @@ app.configure(function(){
         length:function(){return 0;},
         broadcastSessionNumber:function(){
             app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [SessionManager.length(), app.server.connections]);
+        },
+        isAllowed:function(res, op, cb){
+            this.get('session-id', function(err, id){
+                this.redis.hgetall('session-' + id + '-user', function(err, user){
+                    user.permissions = JSON.parse(user.permissions);
+                    user.roles = JSON.parse(user.roles)
+                    var ps = user.permissions || {'_ALL':false}; /* This method doesn't care about real permissions, it simply uses what's pushed from PHP */
+                    /* User is not logged in */
+                    if(!user.id || !user.roles){ 
+                        cb(false);
+                        return false;
+                    }
+
+                    /* If user is root */
+                    if(user.roles.indexOf('0') != -1 || !user.id){
+                        cb(true);
+                        return true; 
+                    }
+
+                    var p = ps[res];
+                    if(typeOf(p) != 'null'){
+                        if(typeOf(p[op]) != 'null'){
+                            cb(p[op]);
+                            return p[op];
+                        }
+                        if(typeOf(p['_ALL']) != 'null'){
+                            cb(p['_ALL']);
+                            return p['_ALL'];
+                        }
+                        cb(false);
+                        return false;
+                    }else if(typeOf(ps['_ALL']) != 'null'){
+                        cb(ps['_ALL']);
+                        return ps['_ALL'];
+                    }
+                    cb(false);
+                    return false; /* Fallback */
+                });
+            }.bind(this));
         }
     };
     SessionManager.init();
@@ -350,12 +394,12 @@ app.sockets.on('connection', function (client) {
 var mods = fs.readdirSync('./enabled_modules');
 Modules.setapp(app);
 if(mods.length && mods[0]){
-    log.info('Modules found: ' + mods.join(', '));
+    console.log('Modules found: ' + mods.join(', '));
     mods.each(function(name){
         //console.log('Registering module ' + name);
         Modules.register(name);
     });
-    log.info(mods.length + ' modules were launched.');
+    console.log(mods.length + ' modules were launched.');
 }else{
-    log.info('Server loaded without modules.');
+    console.log('Server loaded without modules.');
 }

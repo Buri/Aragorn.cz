@@ -21,6 +21,7 @@ exports.ChatServer = new Class({
         timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
         userServer:'static.aragorn.cz' // From where to serve icons?
     },
+    redis:null,
     socket:null,
     storage:{},
     users:{},
@@ -39,7 +40,7 @@ exports.ChatServer = new Class({
         this.sendMessage(channel, message, store);
     },
     sendMessage:function(channel, message, store){
-        console.log('Try send', message);
+        //console.log('Try send', message);
         this.redis.incr('chat:msgid:' + channel, function(err, count){
             if(err){
                 console.log(err);
@@ -47,7 +48,7 @@ exports.ChatServer = new Class({
                 }
             message.id = 'chat:message:' + channel + ':' + count;
             message.data.id = ('msg' + channel.replace(/\//gi, '-') + count);
-            console.log('Sending:',channel, message, store);
+            //console.log('Sending:',channel, message, store);
             app.sockets.in(channel).json.emit('chat', message);
             if(store)
                 this.storeMessage(channel, message);
@@ -120,6 +121,11 @@ exports.ChatServer = new Class({
         var pos = this.getUserPosition(room, user);
         return users[pos];
     },
+    getUserProperty:function(client, property, cb){
+        client.get('session-id', function(err, id){
+            this.redis.hget('session-' + id + '-user', property, cb.bind(this));
+        }.bind(this));
+    },
     getUsersO:function(room){
         var a = this.getUsers(room), r = [];
         a = this.users[room] || [];
@@ -151,7 +157,9 @@ exports.ChatServer = new Class({
         switch(message.data.action){
             case "enter":
                 client.join(cname); 
-                client.join(cname + '/' + client.session.user.name); // Whisper
+                this.getUserProperty(client, 'name', function(err, name){
+                        client.join(cname + '/' + name); // Whisper
+                });
                 if(message.data.noqueue)
                     break;
             case "queue":
@@ -182,52 +190,65 @@ exports.ChatServer = new Class({
                 client.leave(cname + '/' + client.session.user.name);
                 break;
             case 'post':
-                console.log('NEW POST', client.get('user'));
-                if(this.getUserNames(cname).indexOf(client.session.user.name) == -1){
-                    console.log('returning: ', this.getUserNames(cname), client.session.user.name);
-                    return;
+                this.getUserProperty(client, 'name', function(err, name){
+                    if(this.getUserNames(cname).indexOf(name) == -1){
+                        //console.log('returning: ', this.getUserNames(cname), name);
+                        return;
                     }
-                if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
-                    message.data.color = client.session.user.preferences.chat.color || '#fff' ;
-                if(message.data.whisper == client.session.user.name){
-                    cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
-                    delete message.data.whisper;
-                }else if(message.data.whisper){
-                    message.data.message = message.data.message.substr(message.data.message.indexOf('#')+1);
-                    var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + client.session.user.name;
-                    this.storeMessage(cname2, message);
-                }
-                console.log('NEW POST 2');
-                this.sendMessage(cname, message, true);
-                var u = this.getUserInfo(client.session.user.name, cname);
-                if(u){
-                    u.time = new Date().getTime();
-                    this.updateUser(cname, client.session.user.name, u);
-                }
+                    this.getUserProperty(client, 'preferences', function(err, prefs){
+                        prefs = JSON.parse(prefs);
+                        message.user = {name: name};
+                        if(!message.data.color && prefs && prefs.chat)
+                            message.data.color = prefs.chat.color || '#fff' ;
+                        if(message.data.whisper == name){
+                            cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
+                            delete message.data.whisper;
+                        }else if(message.data.whisper){
+                            message.data.message = message.data.message.substr(message.data.message.indexOf('#')+1);
+                            var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + name;
+                            this.storeMessage(cname2, message);
+                        }
+                        //console.log('NEW POST 2');
+                        this.sendMessage(cname, message, true);
+                        var u = this.getUserInfo(name, cname);
+                        if(u){
+                            u.time = new Date().getTime();
+                            this.updateUser(cname, name, u);
+                        }
+                    }.bind(this));
+                }.bind(this));
                 break;
             case 'state':
-                var us = this.getUserInfo(client.session.user.name, cname);
-                if(us){
-                    us.state = message.data.state;
-                    us.time = new Date().getTime();
-                    this.updateUser(cname, client.session.user.name, us);
-                }
+                this.getUserProperty(client, 'name', function(err, name){
+                    var us = this.getUserInfo(name, cname);
+                    if(us){
+                        us.state = message.data.state;
+                        us.time = new Date().getTime();
+                        this.updateUser(cname, name, us);
+                    }
+                }.bind(this));
                 break;
             case 'cmd':
                 switch(message.data.command){
                     case 'kick':
-                        if(client.session.isAllowed('chat', 'moderator')){
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
-                            this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                        }else
-                            client.send('notify', {code:403,msg:'Not allowed'});
+                        client.isAllowed('chat', 'moderator', function(a){
+                            if(a){
+                                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
+                                this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                            }else{
+                                client.send('notify', {code:403,msg:'Not allowed'});
+                            }
+                        }.bind(this));
                         break;
                     case 'kickall':
-                        if(client.session.isAllowed('chat', 'moderator')){
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
-                        }else
-                            client.send('notify', {code:403,msg:'Not allowed'});
+                        client.isAllowed('chat', 'moderator', function(a){
+                            if(a){
+                                this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                                this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
+                            }else{
+                                client.send('notify', {code:403,msg:'Not allowed'});
+                            }
+                        }.bind(this));
                         break;
                     case 'sys':
                         this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.params.param}}, true);
@@ -237,11 +258,13 @@ exports.ChatServer = new Class({
                 }
                 break;
             case 'delete':
-                if(client.session.isAllowed('chat', 'moderator')){
-                    var msgid = 'chat:message:' + cname + message.data.messid;
-                    this.redis.del(msgid);
-                    this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
-                }
+                client.isAllowed('chat', 'moderator', function(a){
+                    if(a){
+                        var msgid = 'chat:message:' + cname + message.data.messid;
+                        this.redis.del(msgid);
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
+                    }
+                }.bind(this));
                 break;
         }
     },
