@@ -35,11 +35,7 @@ if(empty($_COOKIE['sid'])){
 }
 
 $router = $application->getRouter();
-$router[] = new R\Route('index.php', 'Homepage:default', R\Route::ONE_WAY);
-/*$router[] = new R\Route('login/', array(
-        'module'=>'frontend',
-        'presenter' => 'dashboard',
-), R\Route::SECURED);*/
+$router[] = new R\Route('index.php', 'frontend:dashboard:default', R\Route::ONE_WAY);
 $router[] = new R\Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
@@ -50,7 +46,6 @@ $router[] = new R\Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', arra
                 'presenter' => 'dashboard',
                 'action' => 'default'
 ));
-
 /* Load routing table from config */
 foreach(array('presenter', 'action') as $type){
     $routing_table = array();
@@ -67,7 +62,7 @@ $router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
 ));
 
 /* Debug panel extensions */
-Extras\Debug\ComponentTreePanel::register();
+//Extras\Debug\ComponentTreePanel::register();
 \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
 
 $application->run();
