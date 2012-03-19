@@ -8,6 +8,7 @@ require('./modules/utility.js').apply(GLOBAL);
 var cluster = require('cluster'),
     os = require('os'),
     Tracer = require('tracer'),
+    fs = require('fs'),
     log = Tracer.colorConsole(),
     Config = require('./modules/config.js').parse(),
     CPU_NUM = os.cpus().length, 
@@ -24,18 +25,23 @@ cluster.setupMaster({
     exec:'server.js',
     silent:false
 });
+try{
+fs.unlinkSync(Config.usock);
+}catch(e){}
 
 console.log(' * Cluster ready, spawning ' + WORKER_NUM + ' workers.');
 var ONLINE_WORKERS = 0;
+var onDeath  = function(w){
+    console.log('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
+    if(!w.suicide){
+        var w1 = cluster.fork();
+        w1.on('death', onDeath);
+        console.log('Worker ' + w1.uniqueID + ' spawned.');
+    }
+};
 for(var i = WORKER_NUM; i; i--){
     var worker = cluster.fork();
-    worker.on('death', function(w){
-        console.log('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
-        if(!w.suicide){
-            var w1 = cluster.fork();
-            console.log('Worker ' + w1.uniqueID + ' spawned.');
-        }
-    });
+    worker.on('death', onDeath);
     worker.on('online', function(){
         ONLINE_WORKERS++;
         if(ONLINE_WORKERS == WORKER_NUM){
