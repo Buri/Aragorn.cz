@@ -5,13 +5,25 @@ class Node {
         if(!$sid) $sid = $_COOKIE["sid"];
         $user = Nette\Environment::getUser();
         $p = \Permissions::getInstance();
+        $idt = $user->getIdentity();
+        if($idt){
+            $id = $idt->getId();
+            $roles = $idt->getRoles ();
+            $username = $idt->username;
+            $preferences = $idt->preferences;
+        }else{
+            $roles = null;
+            $id = null;
+            $username = null;
+            $preferences = null;
+        }
         $data = json_encode(array("command" => "user-login",
                 "data" => array("PHPSESSID" => session_id(),
                     "nodeSession" => $sid,
-                    "roles" => $user->getIdentity()->getRoles(),
-                    "id" => $user->getIdentity()->getId(),
-                    "username" => $user->getIdentity()->username,
-                    "preferences" => $user->getIdentity()->preferences,
+                    "roles" => $roles,
+                    "id" => $id,
+                    "username" => $username,
+                    "preferences" => $preferences,
                     "permissions" => $p->getRaw()
                 )));
         return usock::writeReadClose($data, 4096);

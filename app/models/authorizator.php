@@ -1,15 +1,18 @@
 <?php
 
 use Nette\Environment;
+
 class Permissions extends Nette\Object{
     private $storage;
     private $uniq_key;
     private $tags;
+    private $cache;
     private static $instance;
     private function __construct(){
         $user = Environment::getUser();
         $roles = $user->getRoles();
         $this->uniq_key = 'permission_' . $user->getId() . '_' . $roles[0];
+        $this->cache = new Nette\Caching\Cache(MC::getInstance(), 'permissions');
         $this->tags = array('permission_user_' . $user->getId(), 'permission_group_' . $roles[0], 'permission_all');
         $this->load();
     }
@@ -36,7 +39,10 @@ class Permissions extends Nette\Object{
     private function updateCache(){
         #echo "Updating cache";
         #dump(MC::getInstance());
-        MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
+        //MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
+        $this->cache->save($this->uniq_key, $this->storage, array(
+            Nette\Caching\Cache::TAGS => $this->tags)
+        );
     }
     public function getId(){
         return $this->uniq_key;
@@ -48,19 +54,21 @@ class Permissions extends Nette\Object{
     
     /* Loads permissions for session */
     private function load(){
-        $r = MC::read($this->uniq_key);
-        if($r){                                     /* Get permissions from cache if posible, else reload it form db */
-            $this->storage = unserialize ($r);
+        //$r = MC::read($this->uniq_key);
+        $r = $this->cache->load($this->uniq_key);
+        if($r === null){                                     /* Get permissions from cache if posible, else reload it form db */
+            $this->forceReload();    
         }else{
-            $this->forceReload();
+            $this->storage = $r;
         }
     }
     
     /* Removes all permisions from memory/storage */
     public static function unload(){
         $t = empty($this) ? new Permissions() : $this;
+        $t->cache->clean();
         $t->storage = NULL;
-        MC::remove($t->getId());
+        //MC::remove($t->getId());
     }
     
     public function forceReload(){
@@ -109,7 +117,6 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
 {
     private static $instance;
     public static function getInstance(){
-        #dump('UserAuthorizator::getInstance()');
         if(!self::$instance){
             self::$instance = Permissions::getInstance();
         }
@@ -120,9 +127,9 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
         /* Role must be defined */
         if($role == null || !Environment::getUser()->isLoggedIn()) return false;
         /* root is allowed to do anything */
-        #dump($role == 0);
+        
         if($role == 0 || Environment::getUser()->getId() == 0 || (is_array($role) && in_array(0, $role))) return true; 
-        #dump('Nonadmin');
+        
         /* Return final priviledge */
         return self::getInstance()->get($resource, $privilege);
     }

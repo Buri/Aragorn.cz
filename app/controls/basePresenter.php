@@ -1,14 +1,15 @@
 <?php
 
 class BasePresenter extends Nette\Application\UI\Presenter{
-
+    
+    var $cache = null;
     public function startup(){
         parent::startup();
         
         /* Panely */
         \Extras\Debug\RequestsPanel::register();
         \Panel\User::register();
-        
+        $this->getCache();
         
         $t = $this->getTemplate();
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
@@ -23,7 +24,22 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         }
     }
     
+    protected function getCache($ns = true){
+        if($ns)
+            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\FileStorage(TEMP_DIR), $this->name);
+        else
+            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\FileStorage(TEMP_DIR));
+        return $this->cache;
+    }
+    
     public function userLink($id = null, $html = true){
+        $c = $this->getCache(false);        // Set global cache
+        $cname = 'user-link' . $id . ($html ? '-html' : '');
+        $link = $c->load($cname);
+        if($link !== null){
+            $this->getCache();
+            return $link;    
+        }
         if($id == null) $id = \Nette\Environment::getUser()->getId();
         if($id == null) return false;
         $u = DB::users('id', $id)->fetch();
@@ -47,6 +63,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }
             return "<a href=\"".$link."\" class=\"$role ajax\">".$u['username']."</a>\n";
         }
+        $c->save($cname, $link);
+        $this->getCache(true);      // Reset back to local cache
         return $link;
     }
     
@@ -79,6 +97,13 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }
             $user['id'] = $u['id'];
         }
+        $c = $this->getCache(false); // Global cache
+        $uid = "user-profile-" . $user['id'] . '-' . $format . '-' . implode('-', $other);
+        $profile = $c->load($uid);
+        if($profile !== null){
+            $this->getCache();
+            return $profile;
+        }
         $profile = "<div class=\"userprofile";
         if($other["class"])
             $profile .= " ".$other["class"];
@@ -99,6 +124,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         }
         
         $profile .= "</div>\n";
+        $c->save($uid, $profile);
+        $this->getCache();
         return $profile;
     }
 

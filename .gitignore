@@ -7,3 +7,6 @@
 /node/node_modules/*
 /db/user_ip_addresses/*
 !/db/user_ip_addresses/.gitignore
+/userspace/u/*
+!/userspace/u/.gitignore
+/node/enabled_modules/*
