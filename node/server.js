@@ -67,8 +67,8 @@ var http = require('http'),
         isSet:function(name){return this.list[name] ? true : false;},        
         
         /* Private api */
-        unixHook:function(message){
-            return this.list[message.command].unixHook(message);
+        unixHook:function(message, socket){
+            return this.list[message.command].unixHook(message, socket);
         },
         sessionHook:function(message, client){
             if(this.list[message.cmd])
@@ -145,7 +145,7 @@ var http = require('http'),
                         break;
                     default:
                         if(Modules.isSet(json.command))
-                            this.write(Modules.unixHook(json));
+                            this.write(Modules.unixHook(json, this));
                         else
                             this.write('UNKNOWN_CMD');
                 }
@@ -339,10 +339,8 @@ app.configure(function(){
             app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [SessionManager.length(), app.server.connections]);
         },
         isAllowed:function(res, op, cb){
-            this.get('session-id', function(err, id){
-                this.redis.hgetall('session-' + id + '-user', function(err, user){
-                    user.permissions = JSON.parse(user.permissions);
-                    user.roles = JSON.parse(user.roles)
+            var parseUser = function(err, user){
+                    //console.log(user);
                     var ps = user.permissions || {'_ALL':false}; /* This method doesn't care about real permissions, it simply uses what's pushed from PHP */
                     /* User is not logged in */
                     if(!user.id || !user.roles){ 
@@ -374,8 +372,34 @@ app.configure(function(){
                     }
                     cb(false);
                     return false; /* Fallback */
-                });
-            }.bind(this));
+                }
+            if(this.userData){
+                var fetch = false;
+                if(this.userData.cacheTime + 30*1000 > new Date().getTime()){ // Use 30s cache if aviable
+                    //console.log('Using cached perms');
+                    parseUser(null, this.userData);
+                }else{
+                    fetch = true;
+                }
+            }else{
+                fetch = true;
+            }
+            if(fetch){
+                this.get('session-id', function(err, id){
+                    delete this.userData;
+                    if(!this.redis.connected) this.redis = redis.createClient();
+                    this.redis.hgetall('session-' + id + '-user', function(err, user){
+                        if(err) return;
+                        console.log(user);
+                        user.permissions = JSON.parse(user.permissions);
+                        user.roles = JSON.parse(user.roles);
+                        this.userData = user;
+                        this.userData.cacheTime = new Date().getTime();
+                        //console.log('Using fetched perms');
+                        parseUser(err, user);
+                    }.bind(this));
+                }.bind(this));
+            }
         }
     };
     SessionManager.init();
