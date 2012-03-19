@@ -119,15 +119,17 @@
                     t:null, // Timeout
                     state:'idle',
                     fn:function(){
-                        //console.log(this._typing);
                         this._typing.state = $(this.options.input).value.length ? 'textready' : 'idle';
+                        //console.log(this._typing.state);
                         this.transport.send('chat',{action:'state', state:this._typing.state, rid:rid});
                     }
                 },
                 _typingInfo:function(e){
+                    
                     if(this._typing.t) clearTimeout(this._typing.t);
                     if(this._typing.state != 'typing'){
                         this._typing.state = 'typing';
+                        //console.log(this._typing.state);
                         this.transport.send('chat',{action:'state', state:this._typing.state, rid:rid});
                     }
                     this._typing.t = setTimeout(this._typing.fn.bind(this), this.options.typeDelay);
@@ -146,7 +148,7 @@
                     }
                 },
                 _handle:function(msg){
-                    console.log(msg)
+                    //console.log(msg)
                     var whole = msg;
                     msg = msg.data;
                     switch(msg.action){

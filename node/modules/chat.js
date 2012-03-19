@@ -117,9 +117,26 @@ exports.ChatServer = new Class({
         });
     },
     getUserProperty:function(client, property, cb){
-        client.get('session-id', function(err, id){
-            this.redis.hget('session-' + id + '-user', property, cb.bind(this));
-        }.bind(this));
+        var fetch = false;
+        if(client.userData){
+            if(client.userData.cacheTime + 30 * 1000 < new Date().getTime())
+                cb(null, client.userData[property]);
+            else
+                fetch = true;
+        }else{
+            fetch = true;
+        }
+        if(fetch){
+            client.get('session-id', function(err, id){
+                this.redis.hgetall('session-' + id + '-user', function(err, usr){
+                    usr.permissions = JSON.parse(usr.permissions);
+                    usr.roles = JSON.parse(usr.roles);                        
+                    usr.cacheTime = new Date().getTime();
+                    client.userData = usr;
+                    cb(err, usr[property]);
+                }.bind(this));
+            }.bind(this));
+        }
     },
     broadcastUserUpdate:function(cname){
         this.getUsers(cname, function(err, res){
@@ -190,7 +207,9 @@ exports.ChatServer = new Class({
                 break;
             case 'state':
                 this.getUserProperty(client, 'name', function(err, name){
+                    //console.log(err, name);
                     this.redis.hmset(this.uRoomName(cname) + ':' + name, {'time':new Date().getTime(), state : message.data.state});
+                    this.broadcastUserUpdate(cname);
                 }.bind(this));
                 break;
             case 'cmd':
@@ -199,8 +218,10 @@ exports.ChatServer = new Class({
                         client.isAllowed('chat', 'moderator', function(a){
                             if(a){
                                 this.getUserProperty(client, 'name', function(err, name){
+                                    this.redis.del(this.uRoomName(cname) + ':' + message.data.params.param);
                                     this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
                                     this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                                    this.broadcastUserUpdate(cname);
                                 }.bind(this));
                             }else{
                                 client.send('notify', {code:403,msg:'Not allowed'});
@@ -213,6 +234,13 @@ exports.ChatServer = new Class({
                                 this.getUserProperty(client, 'name', function(err, name){
                                     this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
                                     this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:name + ' vyhodil všechny z místnosti.'}}, true);
+                                    this.redis.keys(this.uRoomName(cname) + ':*', function(err, keys){
+                                        var m = this.redis.multi();
+                                        for(var i = 0; i < keys.length; i++)
+                                            m.del(keys[i]);
+                                        m.exec();
+                                        this.broadcastUserUpdate(cname);
+                                    }.bind(this));
                                 }.bind(this));
                             }else{
                                 client.send('notify', {code:403,msg:'Not allowed'});
@@ -237,7 +265,7 @@ exports.ChatServer = new Class({
                 break;
         }
     },
-    unixHook:function(message){
+    unixHook:function(message, socket){
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.room || 'null');
         switch(message.data.action){
             case "enter":
@@ -259,6 +287,14 @@ exports.ChatServer = new Class({
                     cname += '/' + message.data.name;
                     this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', silent:true}});
                 }.bind(this));
+                break;
+            case "user-name-list":
+                //console.log('TRACE 1', cname);
+                this.getUserNames(cname, function(n){
+                    //console.log('TRACE 2', n);
+                    socket.write(JSON.stringify(n));
+                });
+                return '';
                 break;
             default:
                 return ('BAD_PARAM');
