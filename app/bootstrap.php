@@ -20,7 +20,7 @@ $configurator->addParameters(array("libsDir"=>LIBS_DIR));
 $container = $configurator->createContainer();
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
-//Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
+if(Environment::isProduction()) Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 Environment::setProductionMode(false);
 $application = Environment::getApplication();
 $container->session->setExpiration('+ 365 days');
@@ -63,5 +63,9 @@ $router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
 /* Debug panel extensions */
 //Extras\Debug\ComponentTreePanel::register();
 \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
+if(Environment::getVariable('lockdown', false) == 'true'){
+    require_once APP_DIR . "/templates/lockdown.html";
+    exit;
+}
 
 $application->run();

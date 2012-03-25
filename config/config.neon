@@ -10,6 +10,7 @@ production:
       class: \UserAuthorizator
     
   parameters:
+    lockdown: false
     logdir: /var/www/logs
     presenterRoutingTable: "uzivatele:users,registrace:registration,napoveda:help,posta:mail,nastaveni:settings,chat:chat,neplatne-prihlaseni:badlogin,diskuze:forum,herna:den,galerie:gallery,clanky:articles,databaze:database"
     actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile"
