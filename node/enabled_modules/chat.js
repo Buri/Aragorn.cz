@@ -21,6 +21,7 @@ exports.ChatServer = new Class({
         timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
         userServer:'static.aragorn.cz' // From where to serve icons?
     },
+    redis:null,
     socket:null,
     storage:{},
     users:{},
@@ -39,15 +40,15 @@ exports.ChatServer = new Class({
         this.sendMessage(channel, message, store);
     },
     sendMessage:function(channel, message, store){
-        console.log('Try send', message);
+        //console.log('Try send', message);
         this.redis.incr('chat:msgid:' + channel, function(err, count){
             if(err){
                 console.log(err);
                 throw new Error(err);
                 }
             message.id = 'chat:message:' + channel + ':' + count;
-            message.data.id = ('msg' + channel.replace(/\//gi, '-') + count);
-            console.log('Sending:',channel, message, store);
+            message.data.id = ('msg' + channel.replace(/\//gi, '-') + '-' + count);
+            //console.log('Sending:',channel, message, store);
             app.sockets.in(channel).json.emit('chat', message);
             if(store)
                 this.storeMessage(channel, message);
@@ -67,91 +68,89 @@ exports.ChatServer = new Class({
     getQueue:function(cname, cb){
         this.redis.keys('chat:message:' + cname + ':*', cb);
     },
-    clearChannel:function(channel){
-        delete this.storage[channel];
-    },
     
     /* 
      * States: idle, writing, deleting, textready, disconnected
      * Roles:  guest, user, moderator, admin or fetched from db?
      *
      */
-    removeRoom:function(cname){
-        delete this.users[cname];
+    uRoomName:function(cname){
+        return 'chat:room-occupants:' + cname;
     },
-    sortUsers:function(a,b){
-        /* Case insensitive sorting */
+    /*sortUsers:function(a,b){
         a = String(a.name).toUpperCase();
         b = String(b.name).toUpperCase();
         if(a > b) return 1;
         else if(a == b) return 0;
         return -1;
-    },
+    },*/
     addUser:function(room, user, info){
+        delete info.permissions;
         info.name = user;
         info.state = 'idle';
         info.time = new Date().getTime();
-        var newusers = this.getUsers(room).include(info).sort(this.sortUsers);
-        this.setUsers(room, newusers);
+        var rname = this.uRoomName(room);
+        this.redis.hmset(rname + ':' + user, info);
         this.broadcastUserUpdate(room);
     },
     removeUser:function(room, user){
-        var pos = this.getUserPosition(room, user);
-        this.users[room].splice(pos, 1);
+        this.redis.del(this.uRoomName(room) + ':' + user);
         this.broadcastUserUpdate(room);
     },
-    getUsers:function(room){
-        return this.users[room] || [];
+    getUsers:function(room, cb){
+        this.redis.keys(this.uRoomName(room) + ':*', function(err, names){
+            var m = this.redis.multi();
+            for(var i = 0; i < names.length; i++)
+                m.hgetall(names[i]);
+            m.exec(cb);
+        }.bind(this));
     },
     updateUser:function(room, user, data){
-        var old = this.getUserInfo(user, room);
-        var pos = this.getUserPosition(room, user);
-        this.users[room][pos] = Object.merge(old, data);
-        this.broadcastUserUpdate(room);
+        this.redis.hmset(this.uRoomName(room) + ':' + user, data);
     },
-    getUserNames:function(cname){
-        var usr = this.getUsers(cname), r = [];
-        for(var i = 0; i < usr.length; i++)
-            r.push(usr[i].name);
-        return r;
+    getUserNames:function(cname, cb){
+        this.getUsers(cname, function(err, usr){
+            var r = [];
+            for(var i = 0; i < usr.length; i++)
+                r.push(usr[i].name);
+            cb(r);
+        });
     },
-    getUserInfo:function(user, room){
-        var users = this.getUsers(room);
-        var pos = this.getUserPosition(room, user);
-        return users[pos];
-    },
-    getUsersO:function(room){
-        var a = this.getUsers(room), r = [];
-        a = this.users[room] || [];
-        for(var i = 0; i < a.length; i++){
-            var clone = Object.clone(a[i]);
-            delete clone.permissions;
-            delete clone.id;
-            r.push(clone);
+    getUserProperty:function(client, property, cb){
+        var fetch = false;
+        if(client.userData){
+            if(client.userData.cacheTime + 30 * 1000 < new Date().getTime())
+                cb(null, client.userData[property]);
+            else
+                fetch = true;
+        }else{
+            fetch = true;
         }
-        return r;
-    },
-    getUserPosition:function(room, user){
-        var users = this.getUsers(room);
-        return users.binarySearch({name:user}, this.sortUsers);
+        if(fetch){
+            client.get('session-id', function(err, id){
+                this.redis.hgetall('session-' + id + '-user', function(err, usr){
+                    usr.permissions = JSON.parse(usr.permissions);
+                    usr.roles = JSON.parse(usr.roles);                        
+                    usr.cacheTime = new Date().getTime();
+                    client.userData = usr;
+                    cb(err, usr[property]);
+                }.bind(this));
+            }.bind(this));
+        }
     },
     broadcastUserUpdate:function(cname){
-        this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}}, false);
+        this.getUsers(cname, function(err, res){
+            this.sysMsg(cname, {cmd:'chat', data:{action:'userlist', list:res}}, false);
+        }.bind(this));
     },
-    setUsers:function(room, users, broadcastUpdate){
-        this.users[room] = users || [];
-        if(broadcastUpdate)
-            this.broadcastUserUpdate(room);
-        return this.users[room];
-    },
-    
     sessionHook:function(client, message){
-        //console.log(message);
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
         switch(message.data.action){
             case "enter":
                 client.join(cname); 
-                client.join(cname + '/' + client.session.user.name); // Whisper
+                this.getUserProperty(client, 'name', function(err, name){
+                        client.join(cname + '/' + name); // Whisper
+                });
                 if(message.data.noqueue)
                     break;
             case "queue":
@@ -166,7 +165,6 @@ exports.ChatServer = new Class({
                         obj.sort(function(a,b){var c = a.time - b.time;return (c < 0 ? -1 : (c ? 1 : 0));});
                         //console.log(obj);
                         for(var i = 0; i < obj.length; i++){
-                            //console.log(obj[i]);
                            if(obj[i].data) obj[i].data = JSON.parse(obj[i].data);
                            if(obj[i].user) obj[i].user = JSON.parse(obj[i].user);
                         }
@@ -175,59 +173,79 @@ exports.ChatServer = new Class({
                 }.bind(this));
                 break;
             case 'userlist':
-                client.json.emit('chat', {cmd:'chat', data:{action:'userlist', list:this.getUsersO(cname)}});
+                this.getUsers(cname, function(err, obj){
+                    client.json.emit('chat', {cmd:'chat', data:{action:'userlist', list:obj}});
+                });
                 break;
             case 'leave':
                 client.leave(cname);
                 client.leave(cname + '/' + client.session.user.name);
                 break;
             case 'post':
-                console.log('NEW POST', client.get('user'));
-                if(this.getUserNames(cname).indexOf(client.session.user.name) == -1){
-                    console.log('returning: ', this.getUserNames(cname), client.session.user.name);
-                    return;
-                    }
-                if(!message.data.color && client.session.user.preferences && client.session.user.preferences.chat)
-                    message.data.color = client.session.user.preferences.chat.color || '#fff' ;
-                if(message.data.whisper == client.session.user.name){
-                    cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
-                    delete message.data.whisper;
-                }else if(message.data.whisper){
-                    message.data.message = message.data.message.substr(message.data.message.indexOf('#')+1);
-                    var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + client.session.user.name;
-                    this.storeMessage(cname2, message);
-                }
-                console.log('NEW POST 2');
-                this.sendMessage(cname, message, true);
-                var u = this.getUserInfo(client.session.user.name, cname);
-                if(u){
-                    u.time = new Date().getTime();
-                    this.updateUser(cname, client.session.user.name, u);
-                }
+                this.getUserProperty(client, 'name', function(err, name){
+                    this.getUserNames(cname, function(usrs){
+                        if(usrs.indexOf(name) != -1){
+                            this.getUserProperty(client, 'preferences', function(err, prefs){
+                                prefs = JSON.parse(prefs);
+                                message.user = {name: name};
+                                if(!message.data.color && prefs && prefs.chat)
+                                    message.data.color = prefs.chat.color || '#fff' ;
+                                if(message.data.whisper == name){
+                                    cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null');
+                                    delete message.data.whisper;
+                                }else if(message.data.whisper){
+                                    message.data.message = message.data.message.substr(message.data.message.indexOf('#')+1);
+                                    var cname2 = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + '/' + name;
+                                    this.storeMessage(cname2, message);
+                                }
+                                this.sendMessage(cname, message, true);
+                                this.redis.hmset(this.uRoomName(cname) + ':' + name, {'time':new Date().getTime()});
+                            }.bind(this));
+                        }
+                    }.bind(this));
+                }.bind(this));
                 break;
             case 'state':
-                var us = this.getUserInfo(client.session.user.name, cname);
-                if(us){
-                    us.state = message.data.state;
-                    us.time = new Date().getTime();
-                    this.updateUser(cname, client.session.user.name, us);
-                }
+                this.getUserProperty(client, 'name', function(err, name){
+                    //console.log(err, name);
+                    this.redis.hmset(this.uRoomName(cname) + ':' + name, {'time':new Date().getTime(), state : message.data.state});
+                    this.broadcastUserUpdate(cname);
+                }.bind(this));
                 break;
             case 'cmd':
                 switch(message.data.command){
                     case 'kick':
-                        if(client.session.isAllowed('chat', 'moderator')){
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
-                            this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                        }else
-                            client.send('notify', {code:403,msg:'Not allowed'});
+                        client.isAllowed('chat', 'moderator', function(a){
+                            if(a){
+                                this.getUserProperty(client, 'name', function(err, name){
+                                    this.redis.del(this.uRoomName(cname) + ':' + message.data.params.param);
+                                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:name + ' vyhodil uživatele ' + message.data.params.param + ' z místnosti.'}}, true);
+                                    this.sysMsg(cname + '/' + message.data.params.param, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                                    this.broadcastUserUpdate(cname);
+                                }.bind(this));
+                            }else{
+                                client.send('notify', {code:403,msg:'Not allowed'});
+                            }
+                        }.bind(this));
                         break;
                     case 'kickall':
-                        if(client.session.isAllowed('chat', 'moderator')){
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
-                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:client.session.user.name + ' vyhodil všechny z místnosti.'}}, true);
-                        }else
-                            client.send('notify', {code:403,msg:'Not allowed'});
+                        client.isAllowed('chat', 'moderator', function(a){
+                            if(a){
+                                this.getUserProperty(client, 'name', function(err, name){
+                                    this.sysMsg(cname, {cmd:'chat', data:{action:'force-leave', silent:true}});
+                                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:name + ' vyhodil všechny z místnosti.'}}, true);
+                                    this.redis.keys(this.uRoomName(cname) + ':*', function(err, keys){
+                                        var m = this.redis.multi();
+                                        for(var i = 0; i < keys.length; i++)
+                                            m.del(keys[i]);
+                                        m.exec();
+                                        this.broadcastUserUpdate(cname);
+                                    }.bind(this));
+                                }.bind(this));
+                            }else{
+                                client.send('notify', {code:403,msg:'Not allowed'});
+                            }
+                        }.bind(this));
                         break;
                     case 'sys':
                         this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.params.param}}, true);
@@ -237,32 +255,46 @@ exports.ChatServer = new Class({
                 }
                 break;
             case 'delete':
-                if(client.session.isAllowed('chat', 'moderator')){
-                    var msgid = 'chat:message:' + cname + message.data.messid;
-                    this.redis.del(msgid);
-                    this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
-                }
+                client.isAllowed('chat', 'moderator', function(a){
+                    if(a){
+                        var msgid = 'chat:message:' + cname + ':' + message.data.messid.substr(message.data.messid.lastIndexOf('-') + 1);
+                        this.redis.del(msgid);
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'delete', message:message.data.messid}});
+                    }
+                }.bind(this));
                 break;
         }
     },
-    unixHook:function(message){
+    unixHook:function(message, socket){
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.room || 'null');
         switch(message.data.action){
             case "enter":
-                if(this.getUsers(cname).binarySearch(message.data.name) == -1){
-                    this.addUser(cname, message.data.name, message.data.info);
-                    this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
-                }
+                this.getUsers(cname, function(names){
+                    if(!names || names.indexOf(message.data.name) == -1){
+                        this.addUser(cname, message.data.name, message.data.info);
+                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' přichází do místnosti.'}}, true);
+                    }  
+                }.bind(this))
                 break;
             case "leave":
-                if(this.getUserNames(cname).binarySearch(message.data.name) != -1){
-                    this.removeUser(cname, message.data.name);
-                    if(!message.data.silent){
-                        this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                this.getUserNames(cname, function(names){
+                    if(names && names.indexOf(message.data.name) != -1){
+                        this.removeUser(cname, message.data.name);
+                        if(!message.data.silent){
+                            this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:message.data.name + ' odchází z místnosti.'}}, true);
+                        }
                     }
-                }
-                cname += '/' + message.data.name;
-                this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', silent:true}});
+                    cname += '/' + message.data.name;
+                    this.sysMsg(cname, {cmd:'chat', data:{'action':'force-leave', silent:true}});
+                }.bind(this));
+                break;
+            case "user-name-list":
+                //console.log('TRACE 1', cname);
+                this.getUserNames(cname, function(n){
+                    //console.log('TRACE 2', n);
+                    socket.write(JSON.stringify(n));
+                });
+                return '';
                 break;
             default:
                 return ('BAD_PARAM');

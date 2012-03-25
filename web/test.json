@@ -1,0 +1,31 @@
+[
+	{
+		"property": {
+			"name": "B",
+			"hasCheckbox": true
+		},
+		"type": "folder",
+		"children":[
+			{
+				"property": {
+					"name": "B1",
+					"hasCheckbox": false
+				},
+				"type": "folder"
+			},
+			{
+				"property": {
+					"name": "B2",
+					"hasCheckbox": false
+				},
+				"type": "folder"
+			}
+		]
+	},
+    {
+		"property": {
+			"name": "<b>A</b>"
+		},
+		"type": "folder"
+	}
+    ]

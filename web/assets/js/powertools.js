@@ -1768,16 +1768,19 @@ this.Tree = new Class({
 		}).delay(300, this);
 	},
 
-	serialize: function(fn, base){
+	serialize: function(fn, base, val){
 		if (!base) base = this.element;
 		if (!fn) fn = function(el){
 			return el.get('id');
 		};
+                if(!val) val = function(el){
+                    return true;
+                }
 
 		var result = {};
 		base.getChildren('li').each(function(el){
 			var child = el.getElement('ul');
-			result[fn(el)] = child ? this.serialize(fn, child) : true;
+			result[fn(el)] = child ? this.serialize(fn, child, val) : val(el);
 		}, this);
 		return result;
 	}

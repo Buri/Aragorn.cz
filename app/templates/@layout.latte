@@ -28,7 +28,7 @@
         </script>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
-    <body class='{$_COOKIE['skin']}{$isLogedIn ? " runac" : ""}'>
+    <body class="{$_COOKIE['skin']}{$isLogedIn ? ' runac' : ''}">
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         {include 'topmenu.latte'}
         <div class="holder">
@@ -38,12 +38,35 @@
             <div class="content" id="content">
                 {include #content}
             </div>
-        </div>    
-        <menu id="sidebar-right" style="border-left: 1px solid white; width: 150px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px;">
-            Záložky
+        </div>
+        <menu id="sidebar-right" style="border-left: 1px solid white; width: 150px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px; text-align: left;">
+            <div id="bookmarks"></div>
+            <script type="text/javascript">
+                var bookmarks = null, Bookmarks, tree;
+                window.addEvent('load', function(){
+                    tree = new Mif.Tree({
+                    container: $('bookmarks'),
+                    forest: true,
+                    initialize: function(){
+                            new Mif.Tree.Drag(this, {
+                            });
+                    },
+                    types: {
+                            folder: {
+                                    openIcon: 'mif-tree-open-icon',
+                                    closeIcon: 'mif-tree-close-icon'
+                            }
+                    },
+                    dfltType: 'folder'
+            });
+
+            tree.load({ url:'/test.json'});
+
+                });
+            </script>
         </menu>    
         <menu id="sidebar-left" style="border-right: 1px solid white; width: 150px; float:left; display:inline-block;min-height: 500px; padding: 5px 3px;">
-            Contactlist
+            Contactlists
         </menu>    
         <footer>
             Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů. 

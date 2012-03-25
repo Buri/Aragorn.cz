@@ -1,15 +1,5 @@
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/mootools-more.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/socket.io.min.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/floatingtips.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/lazyload.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/moorainbow.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/notimoo.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/tinytab.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/powertools.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/moochoose-1.0.2-yc.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/overlay.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/moodialog.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/moodialogrequest.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/moodialogprompt.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/moodialogfx.js"></script>
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/aragorn-yc.js"></script>
+    {foreach array('mootools-more', 'socket.io.min', 'floatingtips', 'lazyload', 'moorainbow', 'notimoo', 'tinytab', 'powertools',
+    'moochoose-1.0.2-yc', 'overlay', 'moodialog', 'moodialogrequest', 'moodialogprompt', 'moodialogfx', 'mif.tree', 'aragorn-yc') as $script}
+    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{$script}.js"></script>
+    {/foreach}
+    
