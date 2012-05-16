@@ -2,6 +2,7 @@
     {if count($discuss)}
     {foreach $discuss as $post}
     <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
+        <a name="msg{$post['id']}" />
         <div class="head">
             {!$control->presenter->userLink($post['author'], true)}
             <img src="{$control->presenter->userIcon($post['author'])}" />
@@ -20,7 +21,7 @@
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
-            <span class="post-text">{$post['post']}</span>
+            <span class="post-text">{!\frontendModule\DiscussionComponent::parseBB($post['post'])}</span>
             <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
         </div>
     </div>

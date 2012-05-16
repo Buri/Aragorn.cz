@@ -80,7 +80,11 @@ namespace frontendModule{
             $bb = bbcode_create(array(
                 ''=>         array('type'=>BBCODE_TYPE_ROOT),
                 'i'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<i>',
-                                'close_tag'=>'</i>', 'childs'=>'b'),
+                                'close_tag'=>'</i>', 'childs'=>'*'),
+                'b'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<b>',
+                                'close_tag'=>'</b>'),
+                'u'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<u>',
+                                'close_tag'=>'</u>'),
                 'url'=>      array('type'=>BBCODE_TYPE_OPTARG,
                                 'open_tag'=>'<a href="{PARAM}" title="Externí odkaz :: {PARAM}">', 'close_tag'=>'</a>',
                                 'default_arg'=>'{CONTENT}',
@@ -88,8 +92,9 @@ namespace frontendModule{
                 'img'=>      array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<img src="', 'close_tag'=>'" />',
                                 'childs'=>''),
-                'b'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<b>',
-                                'close_tag'=>'</b>'),
+                'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,
+                                'open_tag'=>'<cite><a class="anchor" href="#{PARAM}">^</a> ', 'close_tag'=>'</cite>',
+                                'childs'=>''),
                 'list'=>     array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<ul>',
                                 'close_tag'=>'</ul>',
                                 'childs'=>'*'),
@@ -100,7 +105,6 @@ namespace frontendModule{
         }
         private function addPostFinish($url){
             $this->postdata["forum"] = (int)ForumComponent::getIdByPath($url);
-            //echo DiscussionComponent::parseBB($this->postdata);
             DB::forum_posts()->insert($this->postdata);
             DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
         }

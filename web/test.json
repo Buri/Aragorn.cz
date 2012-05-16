@@ -1,4 +1,9 @@
-[
+[{
+		"property": {
+			"name": "<b>A</b>"
+		},
+		"type": "folder"
+	},
 	{
 		"property": {
 			"name": "B",
@@ -22,10 +27,5 @@
 			}
 		]
 	},
-    {
-		"property": {
-			"name": "<b>A</b>"
-		},
-		"type": "folder"
-	}
+    
     ]
