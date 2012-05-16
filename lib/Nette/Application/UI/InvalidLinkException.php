@@ -22,4 +22,4 @@ use Nette;
  */
 class InvalidLinkException extends \Exception
 {
-}
+	}

@@ -23,7 +23,7 @@ use Nette,
  * Basic container builder.
  *
  * @author     David Grudl
- * @property-read array $definitions
+ * @property-read ServiceDefinition[] $definitions
  * @property-read array $dependencies
  */
 class ContainerBuilder extends Nette\Object
@@ -34,7 +34,7 @@ class ContainerBuilder extends Nette\Object
 	/** @var array  %param% will be expanded */
 	public $parameters = array();
 
-	/** @var array of ServiceDefinition */
+	/** @var ServiceDefinition[] */
 	private $definitions = array();
 
 	/** @var array for auto-wiring */
@@ -440,7 +440,7 @@ class ContainerBuilder extends Nette\Object
 				if ($arguments) {
 					throw new ServiceCreationException("Unable to call service '$entity'.");
 				}
-				return $this->formatPhp('$this->?', array($service));
+				return $this->formatPhp('$this->getService(?)', array($service));
 			}
 			$params = array();
 			foreach ($this->definitions[$service]->parameters as $k => $v) {

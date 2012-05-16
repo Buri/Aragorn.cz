@@ -37,6 +37,7 @@ final class Helpers
 		'trim' => 'Nette\Utils\Strings::trim',
 		'padleft' => 'Nette\Utils\Strings::padLeft',
 		'padright' => 'Nette\Utils\Strings::padRight',
+		'reverse' =>  'Nette\Utils\Strings::reverse',
 		'replacere' => 'Nette\Utils\Strings::replace',
 		'url' => 'rawurlencode',
 		'striptags' => 'strip_tags',
@@ -55,7 +56,7 @@ final class Helpers
 	/**
 	 * Try to load the requested helper.
 	 * @param  string  helper name
-	 * @return callback
+	 * @return callable
 	 */
 	public static function loader($helper)
 	{

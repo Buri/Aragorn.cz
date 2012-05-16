@@ -26,7 +26,7 @@ class Compiler extends Nette\Object
 	/** @var string default content type */
 	public $defaultContentType = self::CONTENT_XHTML;
 
-	/** @var array of Token */
+	/** @var Token[] */
 	private $tokens;
 
 	/** @var string pointer to current node content */
@@ -35,16 +35,16 @@ class Compiler extends Nette\Object
 	/** @var int  position on source template */
 	private $position;
 
-	/** @var array of [name => array of IMacro] */
+	/** @var array of [name => IMacro[]] */
 	private $macros;
 
 	/** @var \SplObjectStorage */
 	private $macroHandlers;
 
-	/** @var array of HtmlNode */
+	/** @var HtmlNode[] */
 	private $htmlNodes = array();
 
-	/** @var array of MacroNode */
+	/** @var MacroNode[] */
 	private $macroNodes = array();
 
 	/** @var array of string */
@@ -118,19 +118,19 @@ class Compiler extends Nette\Object
 				if ($token->type === Token::TEXT) {
 					$this->output .= $token->text;
 
-				} elseif ($token->type === Token::MACRO) {
+				} elseif ($token->type === Token::MACRO_TAG) {
 					$isRightmost = !isset($tokens[$this->position + 1])
 						|| substr($tokens[$this->position + 1]->text, 0, 1) === "\n";
 					$this->writeMacro($token->name, $token->value, $token->modifiers, $isRightmost);
 
-				} elseif ($token->type === Token::TAG_BEGIN) {
-					$this->processTagBegin($token);
+				} elseif ($token->type === Token::HTML_TAG_BEGIN) {
+					$this->processHtmlTagBegin($token);
 
-				} elseif ($token->type === Token::TAG_END) {
-					$this->processTagEnd($token);
+				} elseif ($token->type === Token::HTML_TAG_END) {
+					$this->processHtmlTagEnd($token);
 
-				} elseif ($token->type === Token::ATTRIBUTE) {
-					$this->processAttribute($token);
+				} elseif ($token->type === Token::HTML_ATTRIBUTE) {
+					$this->processHtmlAttribute($token);
 				}
 			}
 		} catch (CompileException $e) {
@@ -236,7 +236,7 @@ class Compiler extends Nette\Object
 
 
 
-	private function processTagBegin($token)
+	private function processHtmlTagBegin($token)
 	{
 		if ($token->closing) {
 			do {
@@ -265,7 +265,7 @@ class Compiler extends Nette\Object
 
 
 
-	private function processTagEnd($token)
+	private function processHtmlTagEnd($token)
 	{
 		if ($token->text === '-->') {
 			$this->output .= $token->text;
@@ -308,7 +308,7 @@ class Compiler extends Nette\Object
 
 
 
-	private function processAttribute($token)
+	private function processHtmlAttribute($token)
 	{
 		$htmlNode = end($this->htmlNodes);
 		if (Strings::startsWith($token->name, Parser::N_PREFIX)) {
@@ -491,8 +491,8 @@ class Compiler extends Nette\Object
 	public function expandMacro($name, $args, $modifiers = NULL, HtmlNode $htmlNode = NULL, $prefix = NULL)
 	{
 		if (empty($this->macros[$name])) {
-			$js = $this->htmlNodes && strtolower(end($this->htmlNodes)->name) === 'script';
-			throw new CompileException("Unknown macro {{$name}}" . ($js ? " (in JavaScript, try to put a space after bracket.)" : ''));
+			$cdata = $this->htmlNodes && in_array(strtolower(end($this->htmlNodes)->name), array('script', 'style'));
+			throw new CompileException("Unknown macro {{$name}}" . ($cdata ? " (in JavaScript or CSS, try to put a space after bracket.)" : ''));
 		}
 		foreach (array_reverse($this->macros[$name]) as $macro) {
 			$node = new MacroNode($macro, $name, $args, $modifiers, $this->macroNodes ? end($this->macroNodes) : NULL, $htmlNode, $prefix);

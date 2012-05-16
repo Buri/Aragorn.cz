@@ -25,35 +25,24 @@ use Nette;
  */
 final class Callback extends Object
 {
-	/** @var string|array|\Closure */
+	/** @var callable */
 	private $cb;
 
 
 
 	/**
 	 * Do not call directly, use callback() function.
-	 * @param  mixed   class, object, function, callback
-	 * @param  string  method
+	 * @param  callable
 	 */
-	public function __construct($t, $m = NULL)
+	public function __construct($cb, $m = NULL)
 	{
-		if ($m === NULL) {
-			if (is_string($t)) {
-				$t = explode('::', $t, 2);
-				$this->cb = isset($t[1]) ? $t : $t[0];
-			} elseif (is_object($t)) {
-				$this->cb = $t instanceof \Closure ? $t : array($t, '__invoke');
-			} else {
-				$this->cb = $t;
-			}
-
-		} else {
-			$this->cb = array($t, $m);
+		if ($m !== NULL) {
+			$cb = array($cb, $m); // back-compatibility
 		}
-
-		if (!is_callable($this->cb, TRUE)) {
+		if (!is_callable($cb, TRUE)) {
 			throw new InvalidArgumentException("Invalid callback.");
 		}
+		$this->cb = $cb;
 	}
 
 
@@ -131,8 +120,12 @@ final class Callback extends Object
 	 */
 	public function toReflection()
 	{
-		if (is_array($this->cb)) {
+		if (is_string($this->cb) && strpos($this->cb, '::')) {
+			return new Nette\Reflection\Method($this->cb);
+		} elseif (is_array($this->cb)) {
 			return new Nette\Reflection\Method($this->cb[0], $this->cb[1]);
+		} elseif (is_object($this->cb) && !$this->cb instanceof \Closure) {
+			return new Nette\Reflection\Method($this->cb, '__invoke');
 		} else {
 			return new Nette\Reflection\GlobalFunction($this->cb);
 		}

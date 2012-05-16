@@ -34,7 +34,7 @@ final class Environment
 	/** @var string */
 	private static $createdAt;
 
-	/** @var Nette\DI\IContainer */
+	/** @var Nette\DI\Container */
 	private static $context;
 
 
@@ -71,7 +71,7 @@ final class Environment
 	public static function isProduction()
 	{
 		if (self::$productionMode === NULL) {
-			self::$productionMode = Nette\Config\Configurator::detectProductionMode();
+			self::$productionMode = !Nette\Config\Configurator::detectDebugMode();
 		}
 		return self::$productionMode;
 	}
@@ -163,7 +163,7 @@ final class Environment
 	 * Sets initial instance of context.
 	 * @return void
 	 */
-	public static function setContext(DI\IContainer $context)
+	public static function setContext(DI\Container $context)
 	{
 		if (self::$createdAt) {
 			throw new Nette\InvalidStateException('Configurator & SystemContainer has already been created automatically by Nette\Environment at ' . self::$createdAt);
@@ -175,7 +175,7 @@ final class Environment
 
 	/**
 	 * Get initial instance of context.
-	 * @return Nette\DI\IContainer
+	 * @return Nette\DI\Container
 	 */
 	public static function getContext()
 	{
@@ -322,7 +322,7 @@ final class Environment
 		}
 		$configurator = new Nette\Config\Configurator;
 		$configurator
-			->setProductionMode(self::isProduction())
+			->setDebugMode(!self::isProduction())
 			->setTempDirectory(defined('TEMP_DIR') ? TEMP_DIR : '');
 		if ($file) {
 			$configurator->addConfig($file, $section);
