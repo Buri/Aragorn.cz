@@ -1,7 +1,8 @@
 {block innercontent}{if isset($message)}{$message}{/if}
-<div>
+<table>
     {foreach $chatrooms as $room}
-    <div>
+    <tr>
+        <td>
         {if $user->isLoggedIn() && (!$room["max"] || $room["max"] > count($room["occupants"]) || $user->isAllowed('chat', 'moderator'))}
             <a href="{link chat:enter $room['id']}"{if $room['password']} title="Uzamčená místnost - nutné heslo" {if !$user->isAllowed('chat', 'moderator')}onclick="var p = prompt('Zadejte heslo:'); if(!p) return false; this.href += p + '/';"{/if} class="lock"{/if}>
             {$room["name"]}</a>
@@ -11,10 +12,14 @@
         {else}
             <span{if $room['password']} title="Uzamčená místnost - nutné heslo" class="lock"{/if}>{$room["name"]}</span>
         {/if}
-        - {$room["description"]} - 
+        </td><td> {$room["description"]} </td><td>
         {foreach $room["occupants"] as $occupant}
             {$occupant}{sep}, {/sep}
         {/foreach}
-    </div>
+        {if !count($room["occupants"])}
+        <em>místnost je prázdná</em>
+        {/if}
+        </td>
+    </tr>
     {/foreach}
-</div>
+</table>

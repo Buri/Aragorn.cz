@@ -100,6 +100,8 @@ namespace frontendModule{
                                 'childs'=>'*'),
                 '*'=>       array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<li>', 'close_tag'=>'</li>'),
+                'spoiler'=>       array('type'=>BBCODE_TYPE_NOARG,
+                                'open_tag'=>'<div class="spoiler">', 'close_tag'=>'</div>'),
             ));
             return bbcode_parse($bb, $text);
         }

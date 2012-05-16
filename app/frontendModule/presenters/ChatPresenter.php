@@ -10,12 +10,12 @@ namespace frontendModule{
             $this->getTemplate()->chatrooms = array();
             foreach(DB::chatrooms() as $row){
                 $users = array();
-                $users = json_decode(usock::writeRead(json_encode(array("command" => "chat",
+                $users = array_filter(json_decode(usock::writeRead(json_encode(array("command" => "chat",
                         "data" => array(
                             "room" => $row["id"],
                             "action" => "user-name-list"
                         )
-                    )), 4096));
+                    )), 4096)));
                 $this->getTemplate()->chatrooms[] = array("name"=>$row["name"], "password"=>($row["password"] ? true : false),
                     "id" => $row["id"],
                     "description" => $row["description"],
