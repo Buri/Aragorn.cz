@@ -93,7 +93,7 @@ namespace frontendModule{
                                 'open_tag'=>'<img src="', 'close_tag'=>'" />',
                                 'childs'=>''),
                 'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,
-                                'open_tag'=>'<cite><a class="anchor" href="#{PARAM}">^</a> ', 'close_tag'=>'</cite>',
+                                'open_tag'=>'<a class="anchor" href="#{PARAM}">^</a><cite>', 'close_tag'=>'</cite>',
                                 'childs'=>''),
                 'list'=>     array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<ul>',
                                 'close_tag'=>'</ul>',

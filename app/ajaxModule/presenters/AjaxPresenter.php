@@ -11,7 +11,7 @@ namespace ajaxModule{
         public function startup(){
             header("Content-type: application/xml");
             #header("Content-type: text/plain");
-            #header("Content-type: text/html");
+            header("Content-type: text/html");
             $this->setView('default');
             $this->template->data = "";
             parent::startup();
@@ -105,5 +105,10 @@ namespace ajaxModule{
                 $this->template->data = "ok";
             }
         }
+        
+        public function actionChangeicon(){
+            $this->template->data = \frontendModule\settingsPresenter::changeIcon($_POST);
+        }
+        
     }
 }

@@ -18,12 +18,12 @@ $configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR
 $configurator->addConfig(CFG_DIR . '/config.neon');
 $configurator->addParameters(array("libsDir"=>LIBS_DIR));
 $container = $configurator->createContainer();
+#$container->session->setExpiration('+ 365 days');
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
 if(Environment::isProduction()) Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 Environment::setProductionMode(false);
 $application = Environment::getApplication();
-$container->session->setExpiration('+ 365 days');
 //$application->catchExceptions = TRUE;
 if(empty($_COOKIE['skin'])){
     $skin = Nette\Environment::getVariable('defaultSkin', 'dark');

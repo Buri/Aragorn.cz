@@ -331,7 +331,15 @@ ul {
                         cropdims:null, 
                         onCrop: function(v) {
                             var path = '/convertico.php?x='+ v.x + '&y=' + v.y + '&h=' + v.h + '&w=' + v.w + '&f=' + response.upload_name;
-                            window.open(path, '', '');
+                            v.file = response.upload_name;
+                            AC.ajax('changeicon', v, function(res,tree){
+                                if(tree.get('text') == "OK"){
+                                    location.reload();
+                                }else{
+                                    AC.message('Nepovedlo se aktualizovat ikonku', 'Chyba');
+                                }
+                            });
+                            //window.open(path, '', '');
                         }
                     });
                 });

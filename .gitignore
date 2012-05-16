@@ -9,4 +9,6 @@
 !/db/user_ip_addresses/.gitignore
 /userspace/u/*
 !/userspace/u/.gitignore
+/userspace/i/*
+!/userspace/i/.gitignore
 /node/enabled_modules/*
