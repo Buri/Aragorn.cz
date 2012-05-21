@@ -98,10 +98,7 @@ namespace ajaxModule{
             if($forum->userIsAllowed('forum', 'admin', $id)){
                 $this->template->data = "off";
                 $row = DB::forum_topic('id', $id);
-//                $row['noticeboard'] = $param;
-                //$row->update();
                 $row->update(array("noticeboard"=>$param, "description" => $description));
-                //echo($row);
                 $this->template->data = "ok";
             }
         }

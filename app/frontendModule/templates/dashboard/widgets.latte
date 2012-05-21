@@ -16,32 +16,53 @@
     div.moveable{
         cursor: move;
     }
+    div.widgetTitle{
+        display: inline-block;
+    }
+    .widgetMenuButton{
+        display: inline-block;
+        background: url(http://static.aragorn.cz/images/dark/buttons/wheel-icon.png) center center no-repeat;
+        background-size: contain;
+        width: 24px;
+        height: 20px;
+        float: right;
+        border: 1px solid #999;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 </style>
-Dashboard, dořešit, jakým způsobem bude vypadat a co tu vlastně má být.
 <div class="widgetList{if $userLoggedIn} moveable{/if}" id="dashboardWidgetList">
     {foreach $widgetList as $widget}
             {control widget $widget}
     {/foreach}
 </div>
 {if $userLoggedIn}
+<a href="{plink settings:widgets}" class="ajax">Přidat widgety</a>
 <script>
     window.addEvent('domready', function(){
-        if(!window.widgets)
-            window.widgets = {
-                sorter: new Sortables('#dashboardWidgetList', {
-                    clone: true,
-                    handle: 'div.widgetHead',
-                    opacity:0,
-                    revert: true,
-                    onComplete:function(){
-                        var s = this.serialize().filter(function(a){  return !!a; }).map(function(i){
-                            return i.substring(7);
-                        });
-                        s = JSON.stringify(s);
-                        AC.ajax('frontendupdatewidgetlist', { list:s }, null, 'get');
-                    }
-                })
-            };
+        if(window.widgets)
+            delete window.widgets;
+        window.widgets = {
+            sorter: new Sortables('#dashboardWidgetList', {
+                clone: true,
+                handle: 'div.widgetHead',
+                opacity:0,
+                revert: true,
+                onComplete:function(){
+                    var s = this.serialize().filter(function(a){  return !!a; }).map(function(i){
+                        return i.substring(7);
+                    });
+                    s = JSON.stringify(s);
+                    console.log(s);
+                    //AC.ajax('frontendupdatewidgetlist', { list:s }, null, 'get');
+                }
+            })
+        };
+        $$('.widgetMenuButton').addEvent('click', function(e){
+            if(e) e.stop();
+            $(this).getParent().getParent().dispose();
+            window.widgets.sorter.fireEvent('complete');
+        });
     });
 </script>
 {/if}
