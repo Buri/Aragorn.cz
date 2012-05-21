@@ -14,8 +14,8 @@
             <nick>Buri</nick>
             <uid>0</uid>
         </author>
-        <id>news</id>
-        <title>Úvodníky</title>
+        <id>sample</id>
+        <title>Sample widget</title>
         <created>1684618616486</created>
     </info>
     <system>

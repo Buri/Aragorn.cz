@@ -2,7 +2,8 @@
     -moz-transition: all 1s linear ;
 }
 body.dark{
-    background-color: #000;
+    /*background-color: #000;*/
+    background: url('/images/dark/bg/bg.jpg') no-repeat center 0 fixed transparent;
     text-align: center;
     margin: 0;
     padding: 0;
@@ -35,6 +36,10 @@ body.dark{
     text-align: center;
     font-size: small;
     white-space: pre-line;
+    color: #FFF;
+}
+.dark button{
+    font-family: Tahoma,Arial, Helvetica;
 }
 .dark .holder{
     width: 920px;
@@ -42,8 +47,8 @@ body.dark{
     text-align: left;
 }
 .dark .logo{
-    border: 1px solid white;
-    height:174px;
+    aborder-bottom: 1px solid white;
+    height:185px;
 }
 .dark .slide-left{
     margin-left: -170px;
@@ -60,9 +65,10 @@ body.dark{
     float: left;
     width:100px;
     height: 400px;
+    
 }
 .dark .menu{
-    border-bottom: 1px solid white;
+    /*border-bottom: 1px solid white;*/
     border-top: none;
     text-align: center;
 }
@@ -75,9 +81,10 @@ body.dark{
 .dark .content{
     padding: 6px;
     min-height: 500px;
+    background: url('/images/dark/bg/content.png');
 }
 .dark .menu.logo{
-    border-radius: 0 0 16px 16px; 
+    /*border-radius: 0 0 16px 16px; */
 }
 .dark .menu .left{
     float:left;
@@ -111,6 +118,8 @@ body.dark{
 
 .dark .contentLoading{
     opacity:0.1;
+    background-image: url('/images/dark/bg/content.png');
+    background-color: #000;
     -moz-transition: all .9s linear;
 }
 
@@ -322,13 +331,13 @@ body.dark{
 }
 
 .dark .newPost{
-    position: fixed;
     background: gray;
     width: 895px;
     padding: 6px;
-    /*left: 0;*/
+    /*left: 0;*
+    position: fixed;
     bottom: -205px;
-    height: 220px;
+    height: 220px;*/
     text-align: center;
     transition: bottom .2s linear;
     border-radius: 6px 6px 0 0;

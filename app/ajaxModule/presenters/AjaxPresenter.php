@@ -110,5 +110,9 @@ namespace ajaxModule{
             $this->template->data = \frontendModule\settingsPresenter::changeIcon($_POST);
         }
         
+        public function actionFrontendupdatewidgetlist($list){
+            $this->template->data = \frontendModule\dashboardPresenter::updateWidgetList($list);
+        }
+        
     }
 }

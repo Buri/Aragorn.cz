@@ -1,6 +1,7 @@
-<div class="widget">
-    <h2>Novinky</h2>
-    {foreach $news as $item}
-    <div><b>{$item['title']}</b><hr/>{!$item['data']}</div>
-    {/foreach}
-</div>
+{foreach $news as $item}
+    <div>
+        <b>{utf8_encode($item['title'])}</b>
+        <hr/>
+        {!utf8_encode($item['data'])}
+    </div>
+{/foreach}

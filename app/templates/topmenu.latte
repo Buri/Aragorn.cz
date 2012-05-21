@@ -1,4 +1,4 @@
-        <div class="menu main">
+        <div class="menu main" onclick="$(this).toggleClass('slide-up');">
             <a href="{link chat:}" class="middle ajax">Chat</a> |
             <a href="{link help:}" class="middle ajax">Nápověda</a> |
             <a href="{link users:}" class="middle ajax" title="Celkem připojení: {\Node::getNumberOfConnections()}">Uživatelé (<span id="numUsrOnline">{Node::getNumberOfUsersOnline()}</span>)</a>
@@ -39,3 +39,13 @@
                 {/if}
             </div>
         </div>
+<style>
+div.menu.main{
+    top: 0;
+    transition: top .8s linear;
+    -moz-transition: top .4s linear;
+    /*position: fixed;
+    width: 100%;*/
+    
+}
+</style>

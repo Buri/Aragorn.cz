@@ -1,15 +1,47 @@
 <style>
-    .widget{
+    div.widget{
         border: 1px solid gray;
-        border-radius: 10px;
+        border-radius: 1px;
         padding: 6px;
         float:left;
-        width:100%;
+        max-width:255px;
+        margin: 3px;
+    }
+    div.widgetHead{
+        background: #716969;
+        color: #cfc;
+        margin: -6px -6px 3px -6px;
+        padding: 4px;
+    }
+    div.moveable{
+        cursor: move;
     }
 </style>
-<div class="widgetList">
-    Dashboard, dořešit, jakým způsobem bude vypadat a co tu vlastně má být.
+Dashboard, dořešit, jakým způsobem bude vypadat a co tu vlastně má být.
+<div class="widgetList{if $userLoggedIn} moveable{/if}" id="dashboardWidgetList">
     {foreach $widgetList as $widget}
-        {control widget $widget}
+            {control widget $widget}
     {/foreach}
 </div>
+{if $userLoggedIn}
+<script>
+    window.addEvent('domready', function(){
+        if(!window.widgets)
+            window.widgets = {
+                sorter: new Sortables('#dashboardWidgetList', {
+                    clone: true,
+                    handle: 'div.widgetHead',
+                    opacity:0,
+                    revert: true,
+                    onComplete:function(){
+                        var s = this.serialize().filter(function(a){  return !!a; }).map(function(i){
+                            return i.substring(7);
+                        });
+                        s = JSON.stringify(s);
+                        AC.ajax('frontendupdatewidgetlist', { list:s }, null, 'get');
+                    }
+                })
+            };
+    });
+</script>
+{/if}

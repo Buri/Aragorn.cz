@@ -130,7 +130,7 @@ var AragornClient = new Class({
             t.removeEvents('success');
             if(callback) t.addEvent('success', callback.bind(t));
             var uri = '/ajax/'+ action + '/';
-            if(data.id){
+            if(data && data.id){
                 uri += encodeURI(data.id) + '/';
                 delete data.id;
                 if(data.param || data.param === ""){
@@ -269,51 +269,72 @@ var AragornClient = new Class({
     },
     inactive:null,
     session:false
-}), AC = new AragornClient();
+}), AC = new AragornClient(), spinner = null;
 
 window.addEvents({'domready': function(){
     new LazyLoad({elements:'img.ll'});
-    History.addEvent('change', function(url){
-        if(!this.req)
-            this.req = new Request.HTML({
-                 url: url,
-                 link:'cancel',
-                 evalScripts:true,
-                 evalResponse:true,
-                 update:$('content'),
-                 onComplete:function(){
-                     AC.resetInactivity();
-                     $('content').removeClass('contentLoading');
-                 },
-                 onFailure:function(){
-                     AC.message('Chyba', 'Stránku se nepodařilo načíst.');
-                     location.href = url;
-                 }
-            });
-        this.req.send({'url':url});
-    });
-    //if(!Browser.ie || location.href.indexOf('mistnost') == -1 )
-    //History.handleInitialState();
-    if($$('#content').length){
-        $(document.body).addEvent('click:relay(a.ajax)', function(event) {
-            event.stop();
-            if($(this).get('xhrrunning')){
-                $(this).erase('xhrrunning');
-            }else{
-                $(this).set('xhrrunning',true);
-                return;
-            }
-            $('content').addClass('contentLoading');
-            History.push(this.get('href'));
+    //spinner = new DynSpinner('content');
+    if(window.AUTHENTICATED && false){
+        var iddlebar = new MoogressBar('iddlebar', {
+            bgImage:'http://static.aragorn.cz/images/dark/progressbar/blue.gif', 
+            hide:false, 
+            label:false, 
+            fx:false
         });
+        iddlebar.setPercentage(100)
+        iddlebar.parent.set('title', 'Odpočet neaktivity');
+        iddlebar.addEvent('change', function(p){
+            this.bar.set('text', Math.round(60 * p / 100) + ' minut');
+        });
+        iddlebar.interval = setInterval(function(){
+            this.increasePercentage(-1);
+        }.bind(iddlebar), 1000);
     }
-    var fn = function(e){
-        if(e.type == 'change' || (e.type == 'keyup' && e.key == 'enter') || e.target.id == 'btnStatus'){
-            AC.ajax('statusupdate', {id:$('msgStatus').get('value')});
-            $('msgStatus').blur();
+    if(!Browser.ie){
+        History.addEvent('change', function(url){
+            if(!this.req)
+                this.req = new Request.HTML({
+                    url: url,
+                    link:'cancel',
+                    evalScripts:true,
+                    evalResponse:true,
+                    update:$('content'),
+                    onComplete:function(){
+                        AC.resetInactivity();
+                        $('content').removeClass('contentLoading');
+                        //spinner.stopSpin();
+                    },
+                    onFailure:function(){
+                        AC.message('Chyba', 'Stránku se nepodařilo načíst.');
+                        location.href = url;
+                    }
+                });
+            this.req.send({'url':url});
+        });
+        //if(!Browser.ie || location.href.indexOf('mistnost') == -1 )
+        //History.handleInitialState();
+        if($$('#content').length){
+            $(document.body).addEvent('click:relay(a.ajax)', function(event) {
+                event.stop();
+                if($(this).get('xhrrunning')){
+                    $(this).erase('xhrrunning');
+                }else{
+                    $(this).set('xhrrunning',true);
+                    return;
+                }
+                $('content').addClass('contentLoading');
+                //spinner.startSpin();
+                History.push(this.get('href'));
+            });
         }
-    };
-    $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});
+        var fn = function(e){
+            if(e.type == 'change' || (e.type == 'keyup' && e.key == 'enter') || e.target.id == 'btnStatus'){
+                AC.ajax('statusupdate', {id:$('msgStatus').get('value')});
+                $('msgStatus').blur();
+            }
+        };
+        $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});
+    }
 }/*,
 'resize':function(e){
     console.log(window.innerWidth);
