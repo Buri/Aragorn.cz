@@ -1,41 +1,16 @@
-<div class="discussion">
-    {if count($discuss)}
-    {foreach $discuss as $post}
-    <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
-        <a name="msg{$post['id']}" />
-        <div class="head">
-            {!$control->presenter->userLink($post['author'], true)}
-            <img src="{$control->presenter->userIcon($post['author'])}" />
-        </div>
-        <div class="post-body">
-            <div class="post-info">
-                {if $write}
-                {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
-                <a href="#" class="edit button" title="Upravit příspěvek">&nbsp;</a>
-                <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
-                {/if}
-                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
-                <a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
-                {if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
-                {/if}
-                {/if}
-                <i>{date('d.m.Y H:i', $post['time'])}</i>
-            </div>
-            <span class="post-text">{!\frontendModule\DiscussionComponent::parseBB($post['post'])}</span>
-            <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
-        </div>
-    </div>
-    {/foreach}
-    {else}
-    <i>Tato diskuze nemá žádné příspěvky.</i>
-    {/if}
-</div>
 {if $write}
 <div class="newPost">
     {form forumForm}
-    <a href="#" onclick="$$('.newPost').toggleClass('slideinform'); return false;">{label post /}</a>
+    <a href="#" onclick="/*$$('.newPost').toggleClass('slideinform');*/ return false;">{label post /}</a>
     <br/>
     <button type="button" style="font-weight: bold;" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[b]', 'after':'[/b]', 'defaultMiddle':''});">B</button>
+    <button type="button" style="font-style: italic;" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[i]', 'after':'[/i]', 'defaultMiddle':''});">I</button>
+    <button type="button" style="text-decoration: underline;" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[u]', 'after':'[/u]', 'defaultMiddle':''});">U</button>
+    <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[cite]', 'after':'[/cite]', 'defaultMiddle':''});">" "</button>
+    {*<button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[list]\n*', 'after':'\n[/list]', 'defaultMiddle':''});">Seznam</button>*}
+    <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[spoiler]', 'after':'[/spoiler]', 'defaultMiddle':''});">Spoiler</button>
+    <button type="button" style="" onclick="var p = prompt('Zadejte URL odkazu:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[url]', 'after':'[/url]', 'defaultMiddle':p});">URL</button>
+    <button type="button" style="" onclick="var p = prompt('Zadejte url obrázku:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});">Img</button>
     <br/>
     {input post}
     <br/>
@@ -86,4 +61,38 @@
         });
     </script>
 </div>
+{else}
+<div class="no-new-post">Nemáte právo přispívat do této diskuze.</div>
 {/if}
+<div class="discussion">
+    {if count($discuss)}
+    {foreach $discuss as $post}
+    <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
+        <a name="msg{$post['id']}" />
+        <div class="head">
+            {!$control->presenter->userLink($post['author'], true)}
+            <img src="{$control->presenter->userIcon($post['author'])}" />
+        </div>
+        <div class="post-body">
+            <div class="post-info">
+                {if $write}
+                {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
+                <a href="#" class="edit button" title="Upravit příspěvek">&nbsp;</a>
+                <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
+                {/if}
+                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
+                <a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
+                {if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
+                {/if}
+                {/if}
+                <i>{date('d.m.Y H:i', $post['time'])}</i>
+            </div>
+            <span class="post-text">{!\frontendModule\DiscussionComponent::parseBB($post['post'])}</span>
+            <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
+        </div>
+    </div>
+    {/foreach}
+    {else}
+    <i>Tato diskuze nemá žádné příspěvky.</i>
+    {/if}
+</div>

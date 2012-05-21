@@ -8,7 +8,7 @@ namespace frontendModule{
         
         
         
-        private function isanimated($filename)
+        private static function isanimated($filename)
         {
             $filecontents=file_get_contents($filename);
             $str_loc=0;
@@ -53,7 +53,7 @@ namespace frontendModule{
             $uid = \Nette\Environment::getUser()->getId();
             $file = WWW_DIR . '/../userspace/u/'.$d['file'];
 
-            if($this->isanimated($file)){
+            if(self::isanimated($file)){
                 $fid = uniqid($uid . '_') . '.gif';
                 $outputfile = WWW_DIR . '/../userspace/i/' . $fid;
                 $image = new \Imagick($file);
@@ -61,6 +61,7 @@ namespace frontendModule{
                 $image->resizeImage(120, 120, null, 1, true); // nova velikost
                 file_put_contents($outputfile, $image->getImageBlob());
             }else{
+                
                 $fid = uniqid($uid . '_') . '.png';
                 $outputfile = WWW_DIR . '/../userspace/i/' . $fid;
                 $icon = Image::fromFile($file);

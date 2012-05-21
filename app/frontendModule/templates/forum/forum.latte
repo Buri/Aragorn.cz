@@ -67,7 +67,7 @@
     <div class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</div>
     <div>
         <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> 
-        {if $control->userIsAllowed('forum','delete', $topic['id'])}<a href="" onclick="deleteForum({$topic['id']});return false;">X</a>{/if}
+        {if $control->userIsAllowed('forum','delete', $topic['id'])}[<a href="" onclick="deleteForum({$topic['id']});return false;">x</a>]{/if}
         <br/>
         <em>{$topic['description']}</em> <br/>
         <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
