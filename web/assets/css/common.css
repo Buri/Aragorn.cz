@@ -516,3 +516,325 @@ font-size:11px;
 padding:1px 0;
 border:solid 1px black;
 } 
+
+           
+/*** modal theme: default ***/
+
+.dark .mBox.Core {
+	font-size:12px;
+	line-height:normal;
+}
+.dark .mBox.Core .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+}
+.dark .mBox.Core .mBoxContent,
+.dark .mBox.Core .mBoxTitle,
+.dark .mBox.Core .mBoxFooter {
+	padding:15px;
+	word-break:break-word;
+}
+.dark .mBox.Core.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+/*** modal theme: default ***/
+
+.dark .mBox.Modal {
+	font-size:12px;
+	line-height:normal;
+        color: #000;
+}
+.dark .mBox.Modal .mBoxContainer {
+	background:#fff;
+	border:6px solid #fff;
+	-webkit-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	-moz-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.dark .mBox.Modal .mBoxContent {
+	background:#fff;
+	padding:15px;
+	border:1px solid #b0b0b0;
+	word-break:break-word;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	border-radius:2px;
+}
+.dark .mBox.Modal.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.dark .mBox.Modal.hasFooter .mBoxContent {
+	-webkit-border-bottom-left-radius:0;
+	-moz-border-radius-bottomleft:0;
+	border-bottom-left-radius:0;
+	-webkit-border-bottom-right-radius:0;
+	-moz-border-radius-bottomright:0;
+	border-bottom-right-radius:0;
+}
+.dark .mBox.Modal.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.dark .mBox.Modal .mBoxTitle {
+	position:relative;
+	color:#707070;
+	font-size:14px;
+	text-shadow:0 1px 0 #fff;
+	padding: 7px 15px;
+	border:1px solid #b0b0b0;
+	border-bottom:0;
+	background-color:#f8f8f8;
+	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:2px;
+	-moz-border-radius-topleft:2px;
+	border-top-left-radius:2px;
+	-webkit-border-top-right-radius:2px;
+	-moz-border-radius-topright:2px;
+	border-top-right-radius:2px;
+}
+.dark .mBox.Modal .mBoxTitleContainer.mBoxDraggable {
+	cursor:move;
+}
+.dark .mBox.Modal .mBoxClose {
+	display:block;
+	width:13px;
+	height:13px;
+	padding:0px 0px 0px 0px;
+	position:absolute;
+	top:15px;
+	right:22px;
+	background-color:#fff;
+	border:1px solid #dadada;
+	-webkit-border-radius:10px;
+	-moz-border-radius:10px;
+	border-radius:10px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	-moz-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+}
+.dark .mBox.Modal .mBoxClose div {
+	opacity:0.65;
+	width:7px; 
+	height:7px;
+	position:absolute;
+	top:3px;
+	left:3px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+}
+.dark .mBox.Modal .mBoxClose:hover {
+	border-color:#c0c0c0;
+}
+.dark .mBox.Modal .mBoxClose:hover div {
+	opacity:1;
+}
+.dark .mBox.Modal .mBoxClose:hover {
+	background-position:-17px -52px;
+}
+.dark .mBox.Modal .mBoxFooterContainer {
+	background-color:#f6f6f6;
+	border:1px solid #b0b0b0;
+	border-top:0;
+	padding:7px 15px;
+	-webkit-border-bottom-left-radius:2px;
+	-moz-border-radius-bottomleft:2px;
+	border-bottom-left-radius:2px;
+	-webkit-border-bottom-right-radius:2px;
+	-moz-border-radius-bottomright:2px;
+	border-bottom-right-radius:2px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.dark .mBox.Modal .mBoxFooter {
+	
+}
+.dark .mBox.Modal .mBoxButtonContainer {
+	text-align:right;
+}
+.dark .mBox.Modal .mBoxButton {
+	margin-right:10px;
+}
+.dark .mBox.Modal .mBoxButtonLast {
+	margin-right:0px;
+}
+
+/*** modal: confirm ***/
+
+.dark .mBox.Modal.Confirm .mBoxContent {
+	color:#555555;
+	font-size:16px;
+	padding:30px 30px 30px 75px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+}
+.dark .mBox.Modal.Confirm .mBoxButtonContainer {
+	text-align:center;
+}
+
+/*** notice theme: default ***/
+
+.dark .mBox.Notice {
+	font-size:16px;
+	line-height:normal;
+}
+.dark .mBox.Notice .mBoxContainer {
+	color:#fff;
+	text-shadow:0 -1px 1px #000;
+	padding:20px 30px;
+	cursor:pointer;
+	background-color:#000;
+	background:rgba(0, 0, 0, 0.85);
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+}
+.dark .mBox.Notice .mBoxContent {
+	word-break:break-word;
+}
+
+/*** notice icons ***/
+
+.dark .mBox.Notice .mBoxNoticeOk,
+.dark .mBox.Notice .mBoxNoticeSuccess,
+.dark .mBox.Notice .mBoxNoticeError,
+.dark .mBox.Notice .mBoxNoticeCancel,
+.dark .mBox.Notice .mBoxNoticeInfo,
+.dark .mBox.Notice .mBoxNoticeNotice,
+.dark .mBox.Notice .mBoxNoticeAttention {
+	padding-left:70px;
+	background-image:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png');
+	background-repeat:no-repeat;
+}
+
+/*** notice: ok ***/
+
+.dark .mBox.Notice .mBoxNoticeOk,
+.dark .mBox.Notice .mBoxNoticeSuccess {
+	background-position:20px -187px;
+}
+
+/*** notice: error ***/
+
+.dark .mBox.Notice .mBoxNoticeError,
+.dark .mBox.Notice .mBoxNoticeCancel {
+	background-position:20px -487px;
+}
+
+/*** notice: info ***/
+
+.dark .mBox.Notice .mBoxNoticeInfo {
+	background-position:20px -787px;
+}
+
+/*** notice: notice, attention ***/
+
+.dark .mBox.Notice .mBoxNoticeNotice,
+.dark .mBox.Notice .mBoxNoticeAttention {
+	background-position:20px -1087px;
+}
+
+/*** tooltip theme: default ***/
+
+.dark .mBox.Tooltip {
+	font-size:11px;
+	line-height:normal;
+}
+.dark .mBox.Tooltip .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.dark .mBox.Tooltip .mBoxContent {
+	background:#fff;
+	color:#353535;
+	padding:5px 8px;
+	word-break:break-word;
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.dark .mBox.Tooltip.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+}
+.dark .mBox.Tooltip.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.dark .mBox.Tooltip .mBoxTitle {
+	color:#505050;
+	text-shadow:0 1px 0 #fff;
+	padding:5px 8px;
+	font-weight:bold;
+	border-bottom:1px solid #d6d6d6;
+	background-color:#f8f8f8;
+	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:5px;
+	-moz-border-radius-topleft:5px;
+	border-top-left-radius:5px;
+	-webkit-border-top-right-radius:5px;
+	-moz-border-radius-topright:5px;
+	border-top-right-radius:5px;
+}
+.dark .mBox.Tooltip .mBoxPointer {
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
+}
+.dark .mBox.Tooltip .mBoxPointerTop {
+	width:17px;
+	height:9px;
+	background-position:0px -18px;
+}
+.dark .mBox.Tooltip .mBoxPointerBottom {
+	width:17px;
+	height:9px;
+	background-position:0px -28px;
+}
+.dark .mBox.Tooltip .mBoxPointerRight {
+	width:9px;
+	height:17px;
+	background-position:-10px 0px;
+}
+.dark .mBox.Tooltip .mBoxPointerLeft {
+	width:9px;
+	height:17px;
+	background-position:0px 0px;
+}

@@ -1,5 +1,5 @@
 /*
- * Created by Jakub Buriánek
+ * Created by Jakub BuriĂˇnek
  * &copy; Aragorn.cz 2011
  *
  */
@@ -47,7 +47,7 @@ var AragornClient = new Class({
     initialize:function(options){
         this.setOptions(options);
         this.ajax = this.Ajax.send.bind(this);
-        this.notimoo = new Notimoo();
+        //this.notimoo = new Notimoo();
         if(this.options.notifications.sound)
             this.notificationAudio = $(this.options.notifications.source);
         if(typeof window != 'undefined' && !window.AUTHENTICATED){
@@ -245,7 +245,7 @@ var AragornClient = new Class({
     },
     inactivityOverlay:function(){
         var dialog = new MooDialog.Request('/ajax/loginui/', {
-            title:'Přihlášení vypršelo',
+            title:'PĹ™ihlĂˇĹˇenĂ­ vyprĹˇelo',
             scroll:true,
             useEscKey:false
         });
@@ -273,7 +273,7 @@ var AragornClient = new Class({
                 overlayFadeDuration: 50,
                 content: 'Akce: ' + tree[1].get('text') + '<br/>Cena: ' + tree[2].get('text') + '&yen;<br/>',
                 buttons:[
-                    { title: 'Zrušit' },
+                    { title: 'ZruĹˇit' },
                     { 
                         title: 'Potvrdit platbu',
                         event: function() {
@@ -300,7 +300,7 @@ window.addEvents({'domready': function(){
             fx:false
         });
         iddlebar.setPercentage(100)
-        iddlebar.parent.set('title', 'Odpočet neaktivity');
+        iddlebar.parent.set('title', 'OdpoÄŤet neaktivity');
         iddlebar.addEvent('change', function(p){
             this.bar.set('text', Math.round(60 * p / 100) + ' minut');
         });
@@ -323,7 +323,7 @@ window.addEvents({'domready': function(){
                         //spinner.stopSpin();
                     },
                     onFailure:function(){
-                        AC.message('Chyba', 'Stránku se nepodařilo načíst.');
+                        AC.message('Chyba', 'StrĂˇnku se nepodaĹ™ilo naÄŤĂ­st.');
                         location.href = url;
                     }
                 });
