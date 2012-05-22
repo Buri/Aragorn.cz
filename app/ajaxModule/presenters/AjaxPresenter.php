@@ -115,5 +115,9 @@ namespace ajaxModule{
             $this->template->data = \frontendModule\settingsPresenter::addWidget($id);
         }
         
+        public function actionBank($id, $params = ""){
+            $this->template->data = \Bank::handleAjax($id, $params);
+        }
+        
     }
 }

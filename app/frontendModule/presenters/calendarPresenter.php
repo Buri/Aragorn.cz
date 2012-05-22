@@ -1,6 +1,6 @@
 <?php
 namespace frontendModule{
-    class denPresenter extends \BasePresenter {
+    class calendarPresenter extends \BasePresenter {
 
         public function renderDefault() {
         }

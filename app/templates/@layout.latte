@@ -17,13 +17,345 @@
     <head>
         {include 'head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
+        <style>
+            
+/*** modal theme: default ***/
+
+.mBox.Core {
+	font-size:12px;
+	line-height:normal;
+}
+.mBox.Core .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+}
+.mBox.Core .mBoxContent,
+.mBox.Core .mBoxTitle,
+.mBox.Core .mBoxFooter {
+	padding:15px;
+	word-break:break-word;
+}
+.mBox.Core.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+/*** modal theme: default ***/
+
+.mBox.Modal {
+	font-size:12px;
+	line-height:normal;
+        color: #000;
+}
+.mBox.Modal .mBoxContainer {
+	background:#fff;
+	border:6px solid #fff;
+	-webkit-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	-moz-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.mBox.Modal .mBoxContent {
+	background:#fff;
+	padding:15px;
+	border:1px solid #b0b0b0;
+	word-break:break-word;
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	border-radius:2px;
+}
+.mBox.Modal.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.mBox.Modal.hasFooter .mBoxContent {
+	-webkit-border-bottom-left-radius:0;
+	-moz-border-radius-bottomleft:0;
+	border-bottom-left-radius:0;
+	-webkit-border-bottom-right-radius:0;
+	-moz-border-radius-bottomright:0;
+	border-bottom-right-radius:0;
+}
+.mBox.Modal.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.mBox.Modal .mBoxTitle {
+	position:relative;
+	color:#707070;
+	font-size:14px;
+	text-shadow:0 1px 0 #fff;
+	padding: 7px 15px;
+	border:1px solid #b0b0b0;
+	border-bottom:0;
+	background-color:#f8f8f8;
+	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:2px;
+	-moz-border-radius-topleft:2px;
+	border-top-left-radius:2px;
+	-webkit-border-top-right-radius:2px;
+	-moz-border-radius-topright:2px;
+	border-top-right-radius:2px;
+}
+.mBox.Modal .mBoxTitleContainer.mBoxDraggable {
+	cursor:move;
+}
+.mBox.Modal .mBoxClose {
+	display:block;
+	width:13px;
+	height:13px;
+	padding:0px 0px 0px 0px;
+	position:absolute;
+	top:15px;
+	right:22px;
+	background-color:#fff;
+	border:1px solid #dadada;
+	-webkit-border-radius:10px;
+	-moz-border-radius:10px;
+	border-radius:10px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	-moz-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+}
+.mBox.Modal .mBoxClose div {
+	opacity:0.65;
+	width:7px; 
+	height:7px;
+	position:absolute;
+	top:3px;
+	left:3px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+}
+.mBox.Modal .mBoxClose:hover {
+	border-color:#c0c0c0;
+}
+.mBox.Modal .mBoxClose:hover div {
+	opacity:1;
+}
+.mBox.Modal .mBoxClose:hover {
+	background-position:-17px -52px;
+}
+.mBox.Modal .mBoxFooterContainer {
+	background-color:#f6f6f6;
+	border:1px solid #b0b0b0;
+	border-top:0;
+	padding:7px 15px;
+	-webkit-border-bottom-left-radius:2px;
+	-moz-border-radius-bottomleft:2px;
+	border-bottom-left-radius:2px;
+	-webkit-border-bottom-right-radius:2px;
+	-moz-border-radius-bottomright:2px;
+	border-bottom-right-radius:2px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.mBox.Modal .mBoxFooter {
+	
+}
+.mBox.Modal .mBoxButtonContainer {
+	text-align:right;
+}
+.mBox.Modal .mBoxButton {
+	margin-right:10px;
+}
+.mBox.Modal .mBoxButtonLast {
+	margin-right:0px;
+}
+
+/*** modal: confirm ***/
+
+.mBox.Modal.Confirm .mBoxContent {
+	color:#555555;
+	font-size:16px;
+	padding:30px 30px 30px 75px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+}
+.mBox.Modal.Confirm .mBoxButtonContainer {
+	text-align:center;
+}
+
+/*** notice theme: default ***/
+
+.mBox.Notice {
+	font-size:16px;
+	line-height:normal;
+}
+.mBox.Notice .mBoxContainer {
+	color:#fff;
+	text-shadow:0 -1px 1px #000;
+	padding:20px 30px;
+	cursor:pointer;
+	background-color:#000;
+	background:rgba(0, 0, 0, 0.85);
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+}
+.mBox.Notice .mBoxContent {
+	word-break:break-word;
+}
+
+/*** notice icons ***/
+
+.mBox.Notice .mBoxNoticeOk,
+.mBox.Notice .mBoxNoticeSuccess,
+.mBox.Notice .mBoxNoticeError,
+.mBox.Notice .mBoxNoticeCancel,
+.mBox.Notice .mBoxNoticeInfo,
+.mBox.Notice .mBoxNoticeNotice,
+.mBox.Notice .mBoxNoticeAttention {
+	padding-left:70px;
+	background-image:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png');
+	background-repeat:no-repeat;
+}
+
+/*** notice: ok ***/
+
+.mBox.Notice .mBoxNoticeOk,
+.mBox.Notice .mBoxNoticeSuccess {
+	background-position:20px -187px;
+}
+
+/*** notice: error ***/
+
+.mBox.Notice .mBoxNoticeError,
+.mBox.Notice .mBoxNoticeCancel {
+	background-position:20px -487px;
+}
+
+/*** notice: info ***/
+
+.mBox.Notice .mBoxNoticeInfo {
+	background-position:20px -787px;
+}
+
+/*** notice: notice, attention ***/
+
+.mBox.Notice .mBoxNoticeNotice,
+.mBox.Notice .mBoxNoticeAttention {
+	background-position:20px -1087px;
+}
+
+/*** tooltip theme: default ***/
+
+.mBox.Tooltip {
+	font-size:11px;
+	line-height:normal;
+}
+.mBox.Tooltip .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.mBox.Tooltip .mBoxContent {
+	background:#fff;
+	color:#353535;
+	padding:5px 8px;
+	word-break:break-word;
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.mBox.Tooltip.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+}
+.mBox.Tooltip.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.mBox.Tooltip .mBoxTitle {
+	color:#505050;
+	text-shadow:0 1px 0 #fff;
+	padding:5px 8px;
+	font-weight:bold;
+	border-bottom:1px solid #d6d6d6;
+	background-color:#f8f8f8;
+	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:5px;
+	-moz-border-radius-topleft:5px;
+	border-top-left-radius:5px;
+	-webkit-border-top-right-radius:5px;
+	-moz-border-radius-topright:5px;
+	border-top-right-radius:5px;
+}
+.mBox.Tooltip .mBoxPointer {
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
+}
+.mBox.Tooltip .mBoxPointerTop {
+	width:17px;
+	height:9px;
+	background-position:0px -18px;
+}
+.mBox.Tooltip .mBoxPointerBottom {
+	width:17px;
+	height:9px;
+	background-position:0px -28px;
+}
+.mBox.Tooltip .mBoxPointerRight {
+	width:9px;
+	height:17px;
+	background-position:-10px 0px;
+}
+.mBox.Tooltip .mBoxPointerLeft {
+	width:9px;
+	height:17px;
+	background-position:0px 0px;
+}
+
+        </style>
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.addEvent('domready', function(){
-                new FloatingTips('div#constat',{
+                new mBox.Tooltip({
+                    attach:'div#constat',
+                    setContent:'title',
+                    position:{
+                        x: 'right',
+                        y: 'center'
+                    }
+                });
+                /*new FloatingTips('div#constat',{
                     position:'bottom',
                     center:false
-                });
+                });*/
             });
         </script>
         <style>
@@ -126,7 +458,7 @@
                             {/form logInForm}
                     </div>
                     {/if}
-                </div>    
+                </div>
                 <div class="block">
                     <a href="{link chat:}" class="middle ajax">
                         <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">0</span>)
@@ -137,6 +469,9 @@
                     </a>
                     <a href="{link help:}" class="middle ajax">
                         <img src="{$staticPath}/images/help-icon.png" /> Nápověda
+                    </a>
+                    <a href="{link calendar:}" class="middle ajax">
+                        <img src="{$staticPath}/images/dark/menu/calendar.png" /> Akce
                     </a>
                     <div id="iddlebar"></div>
                 </div>

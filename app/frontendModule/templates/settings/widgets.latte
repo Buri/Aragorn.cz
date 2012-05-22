@@ -2,17 +2,30 @@
 {block content}
 {include 'default.latte'}
 
+<style>
+    #installedWidgets li{
+        width: 33.33333%;
+        float:left;
+    }
+    ul#installedWidgets{
+        display:block;
+        width: 100%;
+    }
+</style>
 <h1>Správa widgetů</h1>
 <h3>Nainstalované widgety</h3>
-<ul>
+<div>
+<ul id="installedWidgets">
 {foreach $widgetsInstalled as $widget}
-<li id="installedWidgets">
+<li>
     <b>{$widget['data']->xpath('/widget/info/title')|r}</b>
     <img src="{$widget['data']->xpath('/widget/info/icon')|r}" />
     {$widget['data']->xpath('/widget/info/description')|r}
 </li>
 {/foreach}    
 </ul>
+</div>
+<br/>
 <h3>Nové widgety</h3>
 <div>
 {foreach $widgetsAvailable as $widget}

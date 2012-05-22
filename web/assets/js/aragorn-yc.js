@@ -52,13 +52,10 @@ var AragornClient = new Class({
             this.notificationAudio = $(this.options.notifications.source);
         if(typeof window != 'undefined' && !window.AUTHENTICATED){
             Cookie.write('sid', Math.random());
-            //alert('return');
-            //return;
         }
         this.transport = io.connect(this.options.client.url + ':8000');
         if(!this.transport){
-            console.log('Unable to create transport.');
-            //return;
+            console.log('Unable to create transport.')            
         }
                
         var t = this.transport;
@@ -66,27 +63,20 @@ var AragornClient = new Class({
         t.on('connecting', function(){$('constat').set('class', 'connecting');$('constat').set('title', 'Connection status: connecting');});
         t.on('PING', function(){$('constat').set('text', new Date().getTime() - this._ping.last.shift());}.bind(this));
         t.on('SESSION_REQUEST_IDENTITY', function(){
-  //          console.log('Server has requested identity');
             if(Cookie.read('sid')){
                 this.emit('SESSION_SID',Cookie.read('sid'));
-//                console.log('Responded with ' + Cookie.read('sid'));
             }else{
-              //  console.log('Requested new identity');
                 this.emit('SESSION_REQUEST_SID');
             }
         });
         t.on('SESSION_REGISTER_SID', function(sid){
-            //console.log('Recieved new identity: ' + sid);
             Cookie.write('sid', sid);
-            //console.log(Cookie.read('sid'));
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_CONFIRMED_SID', function(sid){
-            //console.log('Confirmed identity: ' + sid);
             this.fireEvent('SESSION_HANDSHAKE');
         }.bind(this));
         t.on('SESSION_RESET_SID', function(){
-          //  console.log('Session invalid, reseting');
             Cookie.dispose('sid');
             this.emit('SESSION_REQUEST_SID');
         });
@@ -97,7 +87,6 @@ var AragornClient = new Class({
         t.on('disconnect', this.fn.handleDisconnect.bind(this));
         t.on('message', function(msg){ console.log(msg);});
         this.addEvent('SESSION_HANDSHAKE', this.fn.sessionHandshake.bind(this));
-        //console.log('BOOT');
         if(window.AUTHENTICATED)
             this.resetInactivity();
         document.head || (document.head = document.getElementsByTagName('head')[0]);
@@ -267,13 +256,42 @@ var AragornClient = new Class({
         });
         dialog.open();
     },
+    pay:function(name, params){
+        params = params || {};
+        AC.ajax('bank', {
+            id:'askprice',
+            params:name
+        }, function(res, tree){
+            console.log(res);
+            var win = new mBox.Modal.Confirm({
+                title:'Potvrdit platbu',
+                overlay: true,
+                overlayStyles: {
+                    color: 'white',
+                    opacity: 0.8
+                },
+                overlayFadeDuration: 50,
+                content: 'Akce: ' + tree[1].get('text') + '<br/>Cena: ' + tree[2].get('text') + '&yen;<br/>',
+                buttons:[
+                    { title: 'Zrušit' },
+                    { 
+                        title: 'Potvrdit platbu',
+                        event: function() {
+                            AC.ajax(params.task, params.prm, params.cb, params.method)
+                            win.close();
+                        }
+                    }
+                ]
+            });
+            win.open();
+        });
+    },
     inactive:null,
     session:false
 }), AC = new AragornClient(), spinner = null;
 
 window.addEvents({'domready': function(){
     new LazyLoad({elements:'img.ll'});
-    //spinner = new DynSpinner('content');
     if(window.AUTHENTICATED && false){
         var iddlebar = new MoogressBar('iddlebar', {
             bgImage:'http://static.aragorn.cz/images/dark/progressbar/blue.gif', 

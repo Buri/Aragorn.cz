@@ -24,15 +24,29 @@ namespace frontendModule{
             }
         }
         public function actionRoom($id, $param = null){
-            $room = DB::chatrooms('id', $id);
-            if(!$room->count() || \Nette\Environment::getUser()->getId() == null){
+            /*if(!$room->count() || \Nette\Environment::getUser()->getId() == null){
                 $this->redirect(301, 'chat:');
                 exit;
             }
-            $room = $room->fetch();
+            
+            if(!DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, Environment::getUser()->getId()))->count() && !(Environment::getUser()->isAllowed('chat', 'ninja') || $param == "ninja")){
+                $this->redirect(301, 'chat:enter', $id);
+            }*/
+            /*$users = array_filter(json_decode(usock::writeRead(json_encode(array("command" => "chat",
+                        "data" => array(
+                            "room" => $id,
+                            "action" => "user-name-list"
+                        )
+                    )), 4096)));
+            if(!(Environment::getUser()->isAllowed('chat', 'ninja') || $param == "ninja")){
+                $this->redirect(301, 'chat:enter');
+                exit;
+            }
+            
             if(!DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, Environment::getUser()->getId()))->count() && !(Environment::getUser()->isAllowed('chat', 'ninja') || $param = "ninja")){
                 $this->redirect(301, 'chat:enter', $id);
-            }
+            }*/
+            $room = DB::chatrooms('id', $id)->fetch();
             $t = $this->getTemplate();
             $t->param = $param;
             $t->rid = $id;
@@ -105,19 +119,15 @@ namespace frontendModule{
         }
 
         public function actionLeave($id, $param = null){
-            $u = DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, Environment::getUser()->getId()));
-            if($u->count()){
-                $u->delete();
-                usock::writeReadClose(json_encode(array("command" => "chat",
-                        "data" => array(
-                            "uid" => Environment::getUser()->getId(),
-                            "name" => Environment::getUser()->getIdentity()->username,
-                            "room" => $id,
-                            "action" => "leave",
-                            "silent" => $param == "silent" ? true : false
-                        )
-                    )), 4096);
-            }
+            usock::writeReadClose(json_encode(array("command" => "chat",
+                "data" => array(
+                    "uid" => Environment::getUser()->getId(),
+                    "name" => Environment::getUser()->getIdentity()->username,
+                    "room" => $id,
+                    "action" => "leave",
+                    "silent" => $param == "silent" ? true : false
+                )
+            )), 4096);
             $this->redirect(301, 'default');
         }
     }

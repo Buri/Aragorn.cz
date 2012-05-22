@@ -1,4 +1,5 @@
-{block innercontent}{if isset($message)}{$message}{/if}
+{$title='Chat'}
+{block content}{if isset($message)}{$message}{/if}
 <table>
     {foreach $chatrooms as $room}
     <tr>
@@ -23,3 +24,35 @@
     </tr>
     {/foreach}
 </table>
+{if $user->isAllowed('chat', 'modify')}[<a href="">Administrace</a>]{/if}
+{if \Bank::hasCash('new-chat-room')}[<a href="" id="new-chat-room">Založit novou místnost</a>]{/if}
+<script n:syntax="off">
+    $('new-chat-room').addEvent('click', function(e){
+        new Event(e).stop();
+        new mBox.Modal({
+            content: 'new-chat-room-dialog',
+            title:'Založit novou místnost',
+            buttons:[
+                {title:'Zrušit'},
+                {
+                    title:'Založit',
+                    event:function(){
+                        AC.pay('new-chat-room', {params:{params:'new-chat-room'},method:'get'});
+                    }
+                }
+            ],
+            overlay: true,
+        }).open();
+    });
+</script>
+<div style="display:none;" id="new-chat-room-dialog">
+    <label>Název místnosti: <input type="text" name="new-chat-room-name"/></label><br/>
+    <label>Heslo: <input type="text" name="new-chat-room-pass"/></label><br/>
+    <label>Typ místnosti: <select name="new-chat-room-type">
+            <option>Hospoda</option>
+            <option>Rozcestí</option>
+            <option>Hluboký vesmír</option>
+            <option>Něco jiného</option>
+        </select></label><br/>
+    <label>Dočasná: <input type="checkbox" name="new-chat-room-temporary" checked="checked"/></label>
+</div>

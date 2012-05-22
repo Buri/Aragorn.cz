@@ -13,11 +13,9 @@
         margin: -6px -6px 3px -6px;
         padding: 4px;
     }
-    div.moveable{
-        cursor: move;
-    }
     div.widgetTitle{
         display: inline-block;
+        cursor: move;
     }
     .widgetMenuButton{
         display: inline-block;
@@ -59,9 +57,13 @@
             })
         };
         $$('.widgetMenuButton').addEvent('click', function(e){
-            if(e) e.stop();
+            if(e){
+                e.stop();
+                e.stopPropagation();
+                e.preventDefault();
+            }
             $(this).getParent().getParent().dispose();
-            window.widgets.sorter.fireEvent('complete');
+            window.widgets.sorter.fireEvent('complete', null, 150);
         });
     });
 </script>

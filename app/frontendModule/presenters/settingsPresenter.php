@@ -11,6 +11,7 @@ namespace frontendModule{
             $options = json_decode($options);
             $wl = new \frontendModule\WidgetsControl;
             $installed = $wl->getList();
+            if(!$installed) $installed = array();
             $wi = array();
             foreach($installed as $widget){
                 $wi[] = array("location" => $widget, 
