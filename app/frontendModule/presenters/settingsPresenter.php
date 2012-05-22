@@ -6,9 +6,9 @@ namespace frontendModule{
         public function renderDefault() {
         }
         
-        public function actionWidgets(){
+        /*public function actionWidgets(){
             $this->setView('default');
-        }
+        }*/
         
         private static function isanimated($filename)
         {
