@@ -2,9 +2,38 @@
 {block content}
 {include 'default.latte'}
 
-Správa widgetů
-
- - Výpis widgetů
- - Upload vlastního widgetu
- - Nastavení jednotlivých widgetů?
- 
+<h1>Správa widgetů</h1>
+<h3>Nainstalované widgety</h3>
+<ul>
+{foreach $widgetsInstalled as $widget}
+<li id="installedWidgets">
+    <b>{$widget['data']->xpath('/widget/info/title')|r}</b>
+    <img src="{$widget['data']->xpath('/widget/info/icon')|r}" />
+    {$widget['data']->xpath('/widget/info/description')|r}
+</li>
+{/foreach}    
+</ul>
+<h3>Nové widgety</h3>
+<div>
+{foreach $widgetsAvailable as $widget}
+<div style="float:left; border: 1px solid white; margin: 5px;">
+    <h2>{$widget['data']->xpath('/widget/info/title')|r}</h2>
+    <img src="{$widget['data']->xpath('/widget/info/icon')|r}" />
+    {$widget['data']->xpath('/widget/info/description')|r}
+    <a href="javascript:void(0);" onclick="addWidget(this);" data-id="{$widget['data']->xpath('/widget/info/id')|r:0}">Přidat</a>
+</div>
+{/foreach}{if !count($widgetsAvailable)}<i>Nejsou dostupné žádné dašlí widgety.</i>{/if}
+</div>
+<script>
+    function addWidget(el){
+        AC.ajax('addwidget', { id:el.get('data-id')}, function(){
+            var n = new Element('li').grab(new Element('b', {
+                text:this.getParent().getElement('h2').get('text')
+            }));
+            $('installedWidgets').adopt(n);
+            n.highlight();
+            this.getParent().dispose();
+        }.bind(el));
+        
+    }
+</script>

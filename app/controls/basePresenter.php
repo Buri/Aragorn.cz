@@ -12,6 +12,9 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $this->getCache();
         
         $t = $this->getTemplate();
+        $t->registerHelper('r', function($ar, $i = null){
+            return $i == null ? implode(", ", $ar) : $ar[$i];
+        });
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
         $t->userPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("userServer", "www.aragorn.cz");
         $this->userpath = $t->userPath;

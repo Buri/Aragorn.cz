@@ -2,13 +2,40 @@
 
 namespace frontendModule{
     use \Nette\Image;
+    use \DB;
     class settingsPresenter extends \BasePresenter {
         public function renderDefault() {
         }
         
-        /*public function actionWidgets(){
-            $this->setView('default');
-        }*/
+        public function actionWidgets($options = "{}"){
+            $options = json_decode($options);
+            $wl = new \frontendModule\WidgetsControl;
+            $installed = $wl->getList();
+            $wi = array();
+            foreach($installed as $widget){
+                $wi[] = array("location" => $widget, 
+                    'data' => simplexml_load_file(APP_DIR . '/widgets/' . $widget . '/widget.xml'),
+                    'installed' => true);
+            }
+            $this->template->widgetsInstalled = $wi;
+            $widgets = DB::widgets('state', 2); // States: 0 - dev, 1 - waiting for approval, 2 - approved
+            $wa = array();
+            foreach($widgets as $widget){
+                $in = false;
+                foreach($wi as $wiw){
+                    if($wiw['location'] == $widget['location']){
+                        $in = true;
+                        break;
+                    }
+                }
+                if(!$in)
+                    $wa[] = array("location" => $widget["location"], 
+                    "reviews" => DB::widget_reviews('widget', $widget['id']), 
+                    'data' => simplexml_load_file(APP_DIR . '/widgets/' . $widget['location'] . '/widget.xml'),
+                    'installed' => false);
+            }
+            $this->template->widgetsAvailable = $wa;
+        }
         
         private static function isanimated($filename)
         {
@@ -82,6 +109,14 @@ namespace frontendModule{
             //unlink($d['file']);
             return "OK";
             //$icon->send(Image::PNG);
+        }
+        
+        public static function addWidget($id){
+            $l = DB::users_preferences('id', \Nette\Environment::getUser()->getId())->fetch();
+            $list = json_decode($l['widgets']);
+            $list[] = $id;
+            $l->update(array("widgets" => json_encode($list)));
+            return "OK";
         }
     }
 }

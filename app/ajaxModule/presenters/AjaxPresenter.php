@@ -111,5 +111,9 @@ namespace ajaxModule{
             $this->template->data = \frontendModule\dashboardPresenter::updateWidgetList($list);
         }
         
+        public function actionAddwidget($id){
+            $this->template->data = \frontendModule\settingsPresenter::addWidget($id);
+        }
+        
     }
 }
