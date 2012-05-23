@@ -20,18 +20,18 @@
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.addEvent('domready', function(){
-                new mBox.Tooltip({
+                /*new mBox.Tooltip({
                     attach:'div#constat',
                     setContent:'title',
                     position:{
                         x: 'right',
                         y: 'center'
                     }
-                });
-                /*new FloatingTips('div#constat',{
+                });*/
+                new FloatingTips('div#constat',{
                     position:'bottom',
                     center:false
-                });*/
+                });                
             });
         </script>
         <style>

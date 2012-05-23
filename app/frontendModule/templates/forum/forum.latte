@@ -1,6 +1,22 @@
+<style>
+    #forum-head{
+        border: 3px solid gray;
+    }
+    #forum-head div{
+        padding: 6px;
+    }
+    .forum-moderators-list, .forum-description, .forum-access{
+        border-bottom: 2px solid gray;
+    }
+</style>
+<div class="forum-navigation"> Navigace:
+{for $i = count($n) - 1; $i >= 0; $i--}
+<a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
+{/for}
+</div>
 {if isset($fid) }
-<div>
-    <div style="text-align: center;">
+<div id="forum-head">
+    <div style="text-align: center; display:none;">
         <a href="#" id="forum-bookmark-toggle">Záložka</a>
         <a href="#" id="forum-surveys-toggle">Ankety</a>
         <a href="#" id="forum-stats-toggle">Statistiky</a>
@@ -39,14 +55,14 @@
             </table>
         </div>
     </div>
-    <div>
+    <div class="forum-moderators-list">
         Správci: 
         {!$control->presenter->userlink($info['owner'])}{foreach DB::forum_moderator('forumid', $fid) as $mod}{first},{/first}
             {!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}
         {/foreach}
     </div>
-    <div>Popis: {$info['description']}</div>
-    <div>
+    <div class="forum-description">Popis: {$info['description']}</div>
+    <div class="forum-access">
         Přístupová práva k serveru:
         <br />
         Diskuze je <em>{\frontendModule\ForumComponent::$LOCKED & $info['options'] ? "zamčená" : "odemčená"}</em>
@@ -56,11 +72,6 @@
     </div>
 </div>
 {/if}
-<div class="forum-navigation"> Navigace:
-{for $i = count($n) - 1; $i >= 0; $i--}
-<a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
-{/for}
-</div>
 {foreach $topics as $topic}
 <div class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
     <div class="forum-count">{var $c = \frontendModule\ForumComponent::getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>

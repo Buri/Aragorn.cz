@@ -2,6 +2,7 @@
 namespace frontendModule{
     use \DB;
     use \Nette\Environment;
+    use \Nette\Caching\Cache;
     class forumPresenter extends \BasePresenter {
         public function actionDefault($id = "") {
             $this->template->id = $id;
@@ -15,14 +16,14 @@ namespace frontendModule{
     
     class DiscussionComponent extends \Nette\Application\UI\Control{
         private $postdata = null;
+        private $cache;
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
         }
         
         public function render($url = null){
-            if($this->postdata){
-                $this->addPostFinish ($url);
-            }            
+            $this->cache = new \Nette\Caching\Cache(\MC::getInstance(), 'discussion');
+            $this->template->cache = $this->cache;
             $this->template->staticPath = $this->presenter->template->staticPath;
             $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
@@ -31,6 +32,11 @@ namespace frontendModule{
             $this->template->read = false;
             $this->template->write = false;
             $this->template->administrate = false;
+            
+            if($this->postdata){
+                $this->addPostFinish ($url);
+            }            
+            
             if($opt & ForumComponent::$HAS_CUSTOM_PERMISSIONS){
                 // MUST BE COMPLETED!!!!!
             }else{
@@ -53,6 +59,8 @@ namespace frontendModule{
                     $x = DB::users('id', $r['author'])->select('username')->fetch();
                     $authors[$r['author']] = $x['username'];
                 }
+                $data = DB::forum_posts_data('id', $r['id'])->fetch();
+                $r['post'] = $data['post'];
                 $this->template->discuss[] = $r;
             }
             $this->template->authors = $authors;
@@ -95,11 +103,6 @@ namespace frontendModule{
                 'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,
                                 'open_tag'=>'<a class="anchor" href="#{PARAM}">^</a><cite>', 'close_tag'=>'</cite>',
                                 'childs'=>''),
-               /* 'list'=>     array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<ul>',
-                                'close_tag'=>'</ul>',
-                                'childs'=>'*'),
-                '*'=>       array('type'=>BBCODE_TYPE_NOARG,
-                                'open_tag'=>'<li>', 'close_tag'=>'</li>'),*/
                 'spoiler'=>       array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<div class="spoiler">', 'close_tag'=>'</div>'),
             ));
@@ -107,17 +110,25 @@ namespace frontendModule{
         }
         private function addPostFinish($url){
             $this->postdata["forum"] = (int)ForumComponent::getIdByPath($url);
+            $post = $this->postdata["post"];
+            unset($this->postdata["post"]);
             DB::forum_posts()->insert($this->postdata);
+            DB::forum_posts_data()->insert(array('post'=>$post));
             DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
+            $this->cache->remove('discussion/'.$url);
         }
     }
         
     class ForumComponent extends \Nette\Application\UI\Control{        
         static $SUBTOPIC_ALLOWED = 1, $POSTS_ALLOWED = 2, $HAS_CUSTOM_PERMISSIONS = 4, $LOCKED = 8;
         private $url = null;
+        private $cache;
+        
         function __construct($id = null, $url = null){
             $this->template->id = $id;
             $this->template->url = $url;
+            $this->cache = new \Nette\Caching\Cache(\MC::getInstance(), 'forum');
+            $this->template->cache = $this->cache;
             parent::__construct();
         }
         
@@ -188,11 +199,18 @@ namespace frontendModule{
             $nav[] = array("name"=>"Diskuze", "url"=>"");
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
+            /*$this->cache->save('forum/'.$id.'/'.$url, array(
+                "nav" => $nav,
+                "topics" => $data,
+                "template" => array(
+
+                )
+            ));
+        }*/
         }
         
         private function setLastAccess(){
             $db = DB::forum_topic('urlfragment', $this->url)->fetch();
-            //dump(\Nette\Environment::getUser()->getId());
             if($db['id'] && \Nette\Environment::getUser()->getId() != null){
                 DB::forum_visit()->insert_update(
                         array('iduser'=>\Nette\Environment::getUser()->getId(), 'idforum'=>$db['id']),
@@ -241,7 +259,6 @@ namespace frontendModule{
                         }
                         break;
                     case "forum":
-                        #dump($resource.$target);
                         if($uid == $info['owner']){
                             $p->setOwner($resource.$target);
                         }
@@ -255,8 +272,6 @@ namespace frontendModule{
                     default:
                         return false;
                 }
-                #dump($p);
-                #dump($user->isAllowed($resource.$target, $action));
                 return $user->isAllowed($resource.$target, $action);
             }
             return \Nette\Environment::getUser()->isAllowed($resource, $action);

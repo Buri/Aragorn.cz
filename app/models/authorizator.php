@@ -18,16 +18,6 @@ class Permissions extends Nette\Object{
     }
     
     public function __destruct() {
-        /* Has to be moddified */
-        /*try{
-            #dump($this);
-            if(!is_null($this->storage) || $this->modified){
-                $this->updateCache();
-            }
-        /*}
-        catch(Exception $e){
-            echo $e->getMessage();
-        }*/
     }
     
     public static function getInstance(){
@@ -37,9 +27,6 @@ class Permissions extends Nette\Object{
     }
     
     private function updateCache(){
-        #echo "Updating cache";
-        #dump(MC::getInstance());
-        //MC::write($this->uniq_key, serialize($this->storage), array("tags" => $this->tags));
         $this->cache->save($this->uniq_key, $this->storage, array(
             Nette\Caching\Cache::TAGS => $this->tags)
         );

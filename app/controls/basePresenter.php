@@ -64,7 +64,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 default:
                     $role = 'role-guest';
             }
-            return "<a href=\"".$link."\" class=\"$role ajax\">".$u['username']."</a>\n";
+            return "<a href=\"".$link."\" class=\"$role ajax user-link\" data-profile=\"$n\">".$u['username']."</a>\n";
         }
         $c->save($cname, $link);
         $this->getCache(true);      // Reset back to local cache

@@ -119,5 +119,28 @@ namespace ajaxModule{
             $this->template->data = \Bank::handleAjax($id, $params);
         }
         
+        public function actionProfileinfo($id) {
+            $r = DB::users_profiles('urlfragment', $id)->fetch();
+            $info = DB::users('id', $r['id'])->fetch();
+            $group = DB::groups('id', $info['groupid'])->fetch();
+            $state = Node::isUserOnline($id);
+            $state = $state == "online" ? "lime" : ($state == "away" ? "yellow" : "red");
+            $this->template->data = "<div style=\"width:200px; min-height:90px; text-align:left;\">
+                <div style=\"width:85px;display:inline:block;float:left;border-right:1px solid gray;\">
+                    <img src=\"http://".\Nette\Environment::getVariable("userServer", "www.aragorn.cz")."/i/".$r['icon']."\" style=\"max-height:80px;max-width:80px;\"/>
+                </div>
+                <div style=\"width:100px;display:inline:block;float:left;padding-left:3px;\">
+                    <span style=\"background-color:".
+                    $state.";border-radius:50%;width:12px;display:inline-block;\">&nbsp</span>&nbsp;
+                    <b>".$info['username']."</b>
+                    <hr/>
+                    <i>".$group['name']."</i>
+                    <br/>
+                    <span>".$r['status']."</span>
+                </div>
+            </div>";
+        }
+
+
     }
 }

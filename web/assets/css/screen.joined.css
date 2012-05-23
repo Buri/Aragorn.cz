@@ -123,14 +123,21 @@ body.dark{
     -moz-transition: all .9s linear;
 }
 
+.dark .role-root, .dark .role-moderator, .dark .role-guest{
+    padding-right: 17px;
+}
 .dark .role-root{
-    color: #F00;
+    color: #F6F;
+    background: url('/images/dark/link/admin.png') no-repeat right center;
+    background-size: 14px;
 }
 .dark .role-moderator{
-    color: #00F;
+    color: #F66;
+    background: url('/images/dark/link/moderator.png') no-repeat right center;
+    background-size: 14px;
 }
 .dark .role-user{
-    color: #3F3;
+    color: #99c;
 }
 .dark .role-guest{
     color: #333;
@@ -284,14 +291,14 @@ body.dark{
     font-size: small;
 }
 .dark .post .post-body{
-    width: 780px;
+    width: 710px;
     display: inline-block;
     padding: 5px;
     padding-top: 0px;
 }
 .dark .post .post-info{
     display: inline-block;
-    width: 780px;
+    width: 700px;
     text-align: right;
     font-size: small;
 }
@@ -332,7 +339,7 @@ body.dark{
 
 .dark .newPost{
     background: gray;
-    width: 895px;
+    width: 99%;
     padding: 6px;
     /*left: 0;*
     position: fixed;
@@ -352,10 +359,10 @@ body.dark{
     text-align: left;
 }
 .dark #frm-forum-discussion-forumForm textarea{
-    width: 889px;
+    width: 99%;
 }
 .dark #post{
-    width: 884px;
+    width: 100%;
 }
 .dark .forum-navigation{
     font-size: small;
