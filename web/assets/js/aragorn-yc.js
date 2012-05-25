@@ -81,7 +81,10 @@ var AragornClient = new Class({
             this.emit('SESSION_REQUEST_SID');
         });
         t.on('SYSTEM_UPDATE_USERS_ONLINE', function(num){
-            $$('#numUsrOnline').each(function(e){e.set('text', num[0]);e.set('title', num[1])});
+            $$('#numUsrOnline').each(function(e){
+                e.set('text', num[0]);
+                e.getParent().set('title', 'Celkem připojení: ' + parseInt(num[1]));
+            });
         });
         t.on('connect_failed', this.fn.global);
         t.on('disconnect', this.fn.handleDisconnect.bind(this));
@@ -287,11 +290,29 @@ var AragornClient = new Class({
         });
     },
     inactive:null,
-    session:false
+    session:false,
+    profileLinkTips:null
 }), AC = new AragornClient(), spinner = null;
 
 window.addEvents({'domready': function(){
     new LazyLoad({elements:'img.ll'});
+    AC.profileLinkTips = new FloatingTips($$('a.user-link'), {
+        html:true,
+        content:function(e){
+            var tt = e.get('data-profileinfo');
+            if(tt) return new Element('div', {html:tt});
+            AC.ajax('profileinfo', {
+                id:e.get('data-profile')
+            }, function(res, tree){
+                $$('a[href=' + e.get('href') + ']').set('data-profileinfo', tree[0].get('html'));
+                setTimeout(function(){
+                    $$('a[href=' + e.get('href') + ']').set('data-profileinfo', null);
+                }, 30000);
+                AC.profileLinkTips.hide(e).show(e);
+            }.bind(this), 'get');
+            return "Načítám...";
+        }
+    });
     if(window.AUTHENTICATED && false){
         var iddlebar = new MoogressBar('iddlebar', {
             bgImage:'http://static.aragorn.cz/images/dark/progressbar/blue.gif', 
@@ -320,6 +341,7 @@ window.addEvents({'domready': function(){
                     onComplete:function(){
                         AC.resetInactivity();
                         $('content').removeClass('contentLoading');
+                        AC.profileLinkTips.attach($$('a.user-link'));
                         //spinner.stopSpin();
                     },
                     onFailure:function(){

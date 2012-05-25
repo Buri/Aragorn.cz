@@ -10,7 +10,7 @@ include_once dirname(__FILE__) . "/NotORM.php";
 class ConventionTable extends NotORM_Structure_Convention implements NotORM_Structure{
    
     function getReferencingColumn($target, $source) {
-#        echo "$source=>$target<br>\n";
+        //dump("$source=>$target");
         switch($target){
             case "users_profiles":
                 if($source == "users") return "id";
@@ -23,6 +23,11 @@ class ConventionTable extends NotORM_Structure_Convention implements NotORM_Stru
                 if($source == "chatroom_occupants") return "id";
                 if($source == "users_profiles") return "id";
                 break;
+            case "forum_posts_data":
+                return "id";
+                break;
+            /*default:
+                return "id";*/
         }
         
         return parent::getReferencedColumn($target, $source);
@@ -37,7 +42,7 @@ class DB{
         if(!self::$instance){
             $dbcfg = Nette\Environment::getConfig('database');
             self::$instance = new NotORM(new PDO($dbcfg['driver'] . ":" . $dbcfg['params'], $dbcfg['user'], $dbcfg['password']), 
-                    new ConventionTable($primary = 'id', $foreign = 'id%s',$table = '%s'), 
+                    new ConventionTable($primary = 'id', $foreign = 'id',$table = '%s'), 
                     new NotORM_Cache_Memcache(MC::getMemcachedInstance()));
         }
         return self::$instance;

@@ -289,9 +289,7 @@ exports.ChatServer = new Class({
                 }.bind(this));
                 break;
             case "user-name-list":
-                //console.log('TRACE 1', cname);
                 this.getUserNames(cname, function(n){
-                    //console.log('TRACE 2', n);
                     socket.write(JSON.stringify(n));
                 });
                 return '';

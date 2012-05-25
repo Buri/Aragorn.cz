@@ -8,6 +8,8 @@ production:
       class: Nette\Loaders\RobotLoader
     authorizator:
       class: \UserAuthorizator
+    cacheStorage:
+      class: Nette\Caching\Storages\MemcachedStorage
     
   parameters:
     lockdown: false

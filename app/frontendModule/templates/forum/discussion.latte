@@ -64,9 +64,9 @@
 {else}
 <div class="no-new-post">Nemáte právo přispívat do této diskuze.</div>
 {/if}
+{cache $id, tags => ['discussion/' . $id]}
 <div class="discussion">
-    {if count($discuss)}
-    {foreach $discuss as $post}
+    {foreach DB::forum_posts('forum', $info['id'])->order('time desc')->select('*') as $post}
     <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
         <a name="msg{$post['id']}" />
         <div class="head">
@@ -87,12 +87,11 @@
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
-            <span class="post-text">{!\frontendModule\DiscussionComponent::parseBB($post['post'])}</span>
+            <span class="post-text">{!\frontendModule\DiscussionComponent::parseBB($post->forum_posts_data['post'])}</span>
             <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
         </div>
     </div>
     {/foreach}
-    {else}
     <i>Tato diskuze nemá žádné příspěvky.</i>
-    {/if}
 </div>
+{/cache}

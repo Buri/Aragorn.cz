@@ -22,13 +22,13 @@ namespace frontendModule{
         }
         
         public function render($url = null){
-            $this->cache = new \Nette\Caching\Cache(\MC::getInstance(), 'discussion');
-            $this->template->cache = $this->cache;
             $this->template->staticPath = $this->presenter->template->staticPath;
             $user = \Nette\Environment::getUser();           
             $this->template->setFile(__DIR__ . '/../templates/forum/discussion.latte');
+            
             $info = DB::forum_topic('urlfragment', $url)->fetch();
             $opt = $info['options'];
+            $this->template->info = $info;
             $this->template->read = false;
             $this->template->write = false;
             $this->template->administrate = false;
@@ -51,19 +51,6 @@ namespace frontendModule{
                 $this->template->write = $adm || ($user->isAllowed('discussion', 'write') && !($info['options'] & ForumComponent::$LOCKED));
                 $this->template->administrate = $adm || $user->isAllowed('discussion', 'admin');
             }
-            $d = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*');
-            $this->template->discuss = array();
-            $authors = array();
-            foreach($d as $r){
-                if(empty($authors[$r['author']])){
-                    $x = DB::users('id', $r['author'])->select('username')->fetch();
-                    $authors[$r['author']] = $x['username'];
-                }
-                $data = DB::forum_posts_data('id', $r['id'])->fetch();
-                $r['post'] = $data['post'];
-                $this->template->discuss[] = $r;
-            }
-            $this->template->authors = $authors;
             $this->template->id = $url;
             $this->template->render();
         }   
@@ -83,6 +70,18 @@ namespace frontendModule{
                 "time"=>time(),
                 "post"=> $v["post"]
                 );
+        }
+        public function removePost($postid){
+            /* Todo: Check if user can delete post */
+            if(true){
+                $p = DB::forum_posts('id', $postid)->fetch();
+                $f = DB::forum_topic('id', $p['forum'])->fetch();
+                $url = $f['urlfragment'];
+                $p->delete();
+                DB::forum_posts_data('id', $postid)->delete();
+                $cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage);
+                $cache->remove(array(\Nette\Caching\Cache::TAGS => array('discussion/'.$url)));
+            }
         }
         public static function parseBB($text){
             $bb = bbcode_create(array(
@@ -115,7 +114,14 @@ namespace frontendModule{
             DB::forum_posts()->insert($this->postdata);
             DB::forum_posts_data()->insert(array('post'=>$post));
             DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
-            $this->cache->remove('discussion/'.$url);
+            $this->parent->setLastAccess();
+            /*dump($this);
+            dump('discussion/'.$url);
+            dump($this);
+            $cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage,  'Nette.Templating.Cache');
+            $cache->remove(array(\Nette\Caching\Cache::TAGS => array('discussion/'.$url)));
+            $cache = Environment::getCache('Nette.Templating.Cache');
+            $this->parent->parent->cache->remove(array(\Nette\Caching\Cache::TAGS => array('discussion/'.$url)));*/
         }
     }
         
@@ -199,17 +205,9 @@ namespace frontendModule{
             $nav[] = array("name"=>"Diskuze", "url"=>"");
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
-            /*$this->cache->save('forum/'.$id.'/'.$url, array(
-                "nav" => $nav,
-                "topics" => $data,
-                "template" => array(
-
-                )
-            ));
-        }*/
         }
         
-        private function setLastAccess(){
+        public function setLastAccess(){
             $db = DB::forum_topic('urlfragment', $this->url)->fetch();
             if($db['id'] && \Nette\Environment::getUser()->getId() != null){
                 DB::forum_visit()->insert_update(

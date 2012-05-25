@@ -137,10 +137,14 @@ var http = require('http'),
                         this.write('OK');
                         break;
                     case 'get-number-of-sessions':
-                        this.write(JSON.stringify(SessionManager.length()));
+                        SessionManager.length(function(r){
+                            this.write(JSON.stringify(r));
+                        }.bind(this));
                         break;
                     case 'get-number-of-clients':
-                        this.write(JSON.stringify(app.sockets.clients().length));
+                        SessionManager.redis.get('connection-counter', function(err, res){
+                            this.write(JSON.stringify(parseInt(res)));
+                        }.bind(this));
                         //this.write('0');
                         break;
                     default:
@@ -228,6 +232,8 @@ app.configure(function(){
                 for(var i = 0; i < res.length; i++){
                     m.del(res[i]);
                 }
+                /* Reset connections counter */
+                m.set('connection-counter', 0);
                 m.exec();
             }.bind(this));
         },
@@ -251,6 +257,8 @@ app.configure(function(){
         handleNewConnection:function(client){
             client.redis = this.redis;
             client.isAllowed = this.isAllowed.bind(client);
+            
+            this.redis.incr('connection-counter');
             
             client.on('SESSION_SID', function(sid){
                 SessionManager.exists(sid, function(ex){
@@ -279,6 +287,7 @@ app.configure(function(){
                 }.bind(this));
             });
             client.on('disconnect', function(){
+                this.redis.decr('connection-counter');
                 SessionManager.removeConnection(this);
             });
 
@@ -334,9 +343,19 @@ app.configure(function(){
                 'ips', '[]'
             );
         },
-        length:function(){return 0;},
+        length:function(cb){
+            if(!cb) return; 
+            this.redis.keys('session-*-user', function(err, res){
+                cb(res.length);
+            });
+        },
         broadcastSessionNumber:function(){
-            app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [SessionManager.length(), app.server.connections]);
+            SessionManager.length(function(sess){
+                this.redis.get('connection-counter',function(err, res){
+                    app.sockets.emit('SYSTEM_UPDATE_USERS_ONLINE', [sess, res]); 
+                });
+            }.bind(this));
+            
         },
         isAllowed:function(res, op, cb){
             var parseUser = function(err, user){

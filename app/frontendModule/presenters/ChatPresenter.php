@@ -23,6 +23,19 @@ namespace frontendModule{
                     "occupants" => $users);
             }
         }
+        
+        public static function getChatroomOccupants(){
+            $c = array();
+            foreach(DB::chatrooms() as $row){
+                $c[$row['id']] = array_filter(json_decode(usock::writeRead(json_encode(array("command" => "chat",
+                        "data" => array(
+                            "room" => $row["id"],
+                            "action" => "user-name-list"
+                        )
+                    )), 4096)));
+            }
+            return $c;
+        }
         public function actionRoom($id, $param = null){
             /*if(!$room->count() || \Nette\Environment::getUser()->getId() == null){
                 $this->redirect(301, 'chat:');

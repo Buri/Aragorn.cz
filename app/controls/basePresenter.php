@@ -29,9 +29,9 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     
     protected function getCache($ns = true){
         if($ns)
-            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\FileStorage(TEMP_DIR), $this->name);
+            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage(), $this->name);
         else
-            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\FileStorage(TEMP_DIR));
+            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage());
         return $this->cache;
     }
     

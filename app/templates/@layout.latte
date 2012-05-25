@@ -129,7 +129,7 @@
                 </div>
                 <div class="block">
                     <a href="{link chat:}" class="middle ajax">
-                        <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">0</span>)
+                        <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">{count(\Utilities::array_flatten(\frontendModule\chatPresenter::getChatroomOccupants()))}</span>)
                     </a>
                     <a href="{link users:}" class="middle ajax" title="Celkem připojení: {\Node::getNumberOfConnections()}">
                         <img src="{$staticPath}/images/users-icon.png" />
