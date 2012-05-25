@@ -5,42 +5,49 @@ define('CFG_DIR', WWW_DIR . '/../config'); // path to the config files
 define('TEMP_DIR', WWW_DIR . '/../temp'); // path to the temp
 
 include LIBS_DIR . "/Nette/loader.php";
-include LIBS_DIR . "/memcache.php";
-include LIBS_DIR . "/database.php";
-include LIBS_DIR . "/usock.php";
+/*include LIBS_DIR . "/memcache.php";
+include LIBS_DIR . "/database.php";*/
 
 use Nette\Environment;
-use Nette\Application\Routers as R;
+use Nette\Application\Routers\Route;
 
+/* Create new configurator */
 $configurator = new Nette\Config\Configurator;
 $configurator->setTempDirectory(__DIR__ . '/../temp');
 $configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR)->register();
 $configurator->addConfig(CFG_DIR . '/config.neon');
-$configurator->addParameters(array("libsDir"=>LIBS_DIR));
 $container = $configurator->createContainer();
 #$container->session->setExpiration('+ 365 days');
+
+/* Setup debuging options */
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
 if(Environment::isProduction()) Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 Environment::setProductionMode(false);
-$application = Environment::getApplication();
-//$application->catchExceptions = TRUE;
+
+/* Setup cookies for later use */
 if(empty($_COOKIE['skin'])){
     $skin = Nette\Environment::getVariable('defaultSkin', 'dark');
     setCookie('skin', $skin, time()+3600*24*365, '/');
+    $_COOKIE['skin'] = 'dark';
 }
 if(empty($_COOKIE['sid'])){
     setCookie('sid', 0, 0, '/');
+    $_COOKIE['sid'] = 0;
 }
 
+
+$application = Environment::getApplication();
+$application->catchExceptions = FALSE; //TRUE;
+
 $router = $application->getRouter();
-$router[] = new R\Route('index.php', 'frontend:dashboard:default', R\Route::ONE_WAY);
-$router[] = new R\Route('ajax/[<action>/[<id>/[<param>/]]]', array(
+$router[] = new Route('index.php', 'frontend:dashboard:default', Route::ONE_WAY);
+$router[] = new Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
                 'action' => 'default'
 ));
-$router[] = new R\Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+$router[] = new Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
                 'module' => 'admin',
                 'presenter' => 'dashboard',
                 'action' => 'default'
@@ -52,9 +59,9 @@ foreach(array('presenter', 'action') as $type){
         $item = explode(":", $item);
         $routing_table[$item[0]] = $item[1];
     }
-    R\Route::setStyleProperty($type, R\Route::FILTER_TABLE, $routing_table);
+    Route::setStyleProperty($type, Route::FILTER_TABLE, $routing_table);
 }
-$router[] = new R\Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+$router[] = new Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
                 'action' => 'default'

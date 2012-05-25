@@ -11,7 +11,6 @@ date_default_timezone_set('Europe/Prague');
 include LIBS_DIR . "/Nette/loader.php";
 include LIBS_DIR . "/memcache.php";
 include LIBS_DIR . "/database.php";
-include LIBS_DIR . "/usock.php";
 
 use Nette\Environment;
 $configurator = new Nette\Config\Configurator;

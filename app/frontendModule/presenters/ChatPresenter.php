@@ -3,14 +3,13 @@
 namespace frontendModule{
     use \DB;
     use \Nette\Environment;
-    use \usock;
     class chatPresenter extends \BasePresenter {
 
         public function actionDefault(){
             $this->getTemplate()->chatrooms = array();
             foreach(DB::chatrooms() as $row){
                 $users = array();
-                $users = array_filter(json_decode(usock::writeRead(json_encode(array("command" => "chat",
+                $users = array_filter(json_decode($this->node->getConnection()->writeRead(json_encode(array("command" => "chat",
                         "data" => array(
                             "room" => $row["id"],
                             "action" => "user-name-list"
@@ -24,10 +23,10 @@ namespace frontendModule{
             }
         }
         
-        public static function getChatroomOccupants(){
+        public static function getChatroomOccupants(\NodeConnector $node){
             $c = array();
             foreach(DB::chatrooms() as $row){
-                $c[$row['id']] = array_filter(json_decode(usock::writeRead(json_encode(array("command" => "chat",
+                $c[$row['id']] = array_filter(json_decode($node->writeRead(json_encode(array("command" => "chat",
                         "data" => array(
                             "room" => $row["id"],
                             "action" => "user-name-list"
@@ -45,7 +44,7 @@ namespace frontendModule{
             if(!DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, Environment::getUser()->getId()))->count() && !(Environment::getUser()->isAllowed('chat', 'ninja') || $param == "ninja")){
                 $this->redirect(301, 'chat:enter', $id);
             }*/
-            /*$users = array_filter(json_decode(usock::writeRead(json_encode(array("command" => "chat",
+            /*$users = array_filter(json_decode($this->node->getConnection()->writeRead(json_encode(array("command" => "chat",
                         "data" => array(
                             "room" => $id,
                             "action" => "user-name-list"
@@ -75,7 +74,7 @@ namespace frontendModule{
                     if(!DB::chatroom_occupants()->where('idusers = ?', Environment::getUser()->getId())->count())
                         DB::chatroom_occupants()->insert(array("id"=>0, "idroom"=>$id, "idusers"=>Environment::getUser()->getId(), "activity"=>time()));
                     $usr = DB::users_profiles('id', $user->getId())->fetch();
-                    usock::writeReadClose(json_encode(array("command" => "chat",
+                    $this->node->getConnection()->writeReadClose(json_encode(array("command" => "chat",
                         "data" => array(
                             "uid" => Environment::getUser()->getId(),
                             "name" => Environment::getUser()->getIdentity()->username,
@@ -132,7 +131,7 @@ namespace frontendModule{
         }
 
         public function actionLeave($id, $param = null){
-            usock::writeReadClose(json_encode(array("command" => "chat",
+            $this->node->getConnection()->writeReadClose(json_encode(array("command" => "chat",
                 "data" => array(
                     "uid" => Environment::getUser()->getId(),
                     "name" => Environment::getUser()->getIdentity()->username,

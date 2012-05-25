@@ -41,9 +41,11 @@ class DB{
     public static function getInstance(){
         if(!self::$instance){
             $dbcfg = Nette\Environment::getConfig('database');
+            $m = new Memcache();
+            $m->connect("localhost");
             self::$instance = new NotORM(new PDO($dbcfg['driver'] . ":" . $dbcfg['params'], $dbcfg['user'], $dbcfg['password']), 
                     new ConventionTable($primary = 'id', $foreign = 'id',$table = '%s'), 
-                    new NotORM_Cache_Memcache(MC::getMemcachedInstance()));
+                    new NotORM_Cache_Memcache($m));
         }
         return self::$instance;
     }

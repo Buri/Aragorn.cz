@@ -82,7 +82,7 @@
         </style>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
-    <body class="{$_COOKIE['skin']}{$isLogedIn ? ' runac' : ''}">
+    <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ''}">
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         {* {include 'topmenu.latte'} *}
         <div class="holder" style="width:980px;">
@@ -96,24 +96,24 @@
                     <!--DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
                     <input id="msgStatus" value="{$presenter->userStatus()}" type="text" placeholder="ZprĂˇva stavu" />
                     <input type="button" id="btnStatus" value=">" />-->
-                    <a href="{$presenter->userLink(null, false)}" class="ajax profile" title="{$user->getIdentity()->username}">
+                    <a href="{$presenter->userLink(null, false)}" class="ajax profile" title="{$user->getIdentity()->username}" id="menu-user-profile">
                         <img src="{$presenter->userIcon()}" /> {$user->getIdentity()->username}
                     </a>
-                    <a href="{link settings:}" class="middle" title="Nastavení">
+                    <a href="{link settings:}" class="middle" title="Nastavení" id="menu-settings">
                         <img src="{$staticPath}/images/settings.png" /> Nastavení
                     </a>
-                    <a href="{link mail:}" class="middle ajax" title="Pošta">
+                    <a href="{link mail:}" class="middle ajax" title="Pošta" id="menu-post">
                         <img src="{$staticPath}/images/unread_mail.png" /> Pošta
                     </a>
                     {if $user->isAllowed('admin')}
-                    <a href="{link :admin:dashboard:}" class="middle" title="Redakční systém">
+                    <a href="{link :admin:dashboard:}" class="middle" id="menu-admin" title="Redakční systém">
                         <img src="{$staticPath}/images/rs.png" /> RS
                     </a>
                     {* <button onclick="AC.send('SESS');">Info</button> 
                     <button onclick="window.open('http://' + location.host + ':8000', 'width=800,height=600,menubar=no,status=no,scrollbars=no,resizable=yes,left=0,top=0');">Server status</button> 
                     *}
                     {/if}
-                    <a href="{link logout}" class="middle" title="Odhlásit">
+                    <a href="{link logout}" class="middle" title="Odhlásit" id="menu-logout">
                         <img src="{$staticPath}/images/logout.png" /> Odhlásit
                     </a>
                     {else}
@@ -128,17 +128,20 @@
                     {/if}
                 </div>
                 <div class="block">
-                    <a href="{link chat:}" class="middle ajax">
-                        <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">{count(\Utilities::array_flatten(\frontendModule\chatPresenter::getChatroomOccupants()))}</span>)
+                    <a href="{link chat:}" class="middle ajax" id="menu-chat">
+                        <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">{count(
+                            \Utilities::array_flatten(
+                            \frontendModule\chatPresenter::getChatroomOccupants(
+                            $node->getConnection())))}</span>)
                     </a>
-                    <a href="{link users:}" class="middle ajax" title="Celkem připojení: {\Node::getNumberOfConnections()}">
+                    <a href="{link users:}" class="middle ajax" id="menu-users" title="Celkem připojení: {$node->getNumberOfConnections()}">
                         <img src="{$staticPath}/images/users-icon.png" />
-                        Lidé (<span id="numUsrOnline">{Node::getNumberOfUsersOnline()}</span>)
+                        Lidé (<span id="numUsrOnline">{$node->getNumberOfUsersOnline()}</span>)
                     </a>
-                    <a href="{link help:}" class="middle ajax">
+                    <a href="{link help:}" class="middle ajax" id="menu-help">
                         <img src="{$staticPath}/images/help-icon.png" /> Nápověda
                     </a>
-                    <a href="{link calendar:}" class="middle ajax">
+                    <a href="{link calendar:}" class="middle ajax" id="menu-calendar">
                         <img src="{$staticPath}/images/dark/menu/calendar.png" /> Akce
                     </a>
                     <div id="iddlebar"></div>

@@ -10,6 +10,10 @@ production:
       class: \UserAuthorizator
     cacheStorage:
       class: Nette\Caching\Storages\MemcachedStorage
+    NodeConnector:
+      class: NodeConnector(%usock%)
+    Node:
+      class: Node
     
   parameters:
     lockdown: false
@@ -19,7 +23,7 @@ production:
     staticServer: static.aragorn.cz
     userServer: user.aragorn.cz
     registrationEnabled: true
-    registrationCloseReason: Připravujeme databázi.       
+    registrationCloseReason: Přpravujeme databázi.       
 
     memcache:
       host: 127.0.0.1

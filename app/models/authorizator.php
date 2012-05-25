@@ -12,7 +12,7 @@ class Permissions extends Nette\Object{
         $user = Environment::getUser();
         $roles = $user->getRoles();
         $this->uniq_key = 'permission_' . $user->getId() . '_' . $roles[0];
-        $this->cache = new Nette\Caching\Cache(MC::getInstance(), 'permissions');
+        $this->cache = new Nette\Caching\Cache(new Nette\Caching\Storages\MemcachedStorage, 'permissions');
         $this->tags = array('permission_user_' . $user->getId(), 'permission_group_' . $roles[0], 'permission_all');
         $this->load();
     }
@@ -41,7 +41,6 @@ class Permissions extends Nette\Object{
     
     /* Loads permissions for session */
     private function load(){
-        //$r = MC::read($this->uniq_key);
         $r = $this->cache->load($this->uniq_key);
         if($r === null){                                     /* Get permissions from cache if posible, else reload it form db */
             $this->forceReload();    
@@ -55,7 +54,6 @@ class Permissions extends Nette\Object{
         $t = empty($this) ? new Permissions() : $this;
         $t->cache->clean();
         $t->storage = NULL;
-        //MC::remove($t->getId());
     }
     
     public function forceReload(){

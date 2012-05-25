@@ -3,28 +3,56 @@
 class BasePresenter extends Nette\Application\UI\Presenter{
     
     var $cache = null;
+    
+    /**
+     *
+     * @var Node
+     */
+    protected $node;
+    
+    /**
+     *
+     * @param \Nette\DI\Container $container
+     * @param Node $node 
+     */
+    public function __construct(\Nette\DI\Container $container, Node $node) {
+        parent::__construct($container);
+        $this->node = $node;
+    }
+    
+    /**
+     *
+     * @return void
+     */
     public function startup(){
         parent::startup();
+        
+        /* Template shortcut */
+        $t = $this->getTemplate();
+        
+        /* If user is banished from server, log him out */
+        if($t->user->getIdentity() && DB::bans()
+                ->where('expires > ? AND (user = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")
+                ->count() > 0){
+            $this->actionLogout();
+        }
         
         /* Panely */
         \Extras\Debug\RequestsPanel::register();
         \Panel\User::register();
-        $this->getCache();
         
-        $t = $this->getTemplate();
+        /* Setup template variables */
         $t->registerHelper('r', function($ar, $i = null){
             return $i == null ? implode(", ", $ar) : $ar[$i];
         });
         $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
-        $t->userPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("userServer", "www.aragorn.cz");
-        $this->userpath = $t->userPath;
+        $t->userPath = $this->userpath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("userServer", "www.aragorn.cz");
         $t->title = "";
         $t->forceReload = false;
         $t->ajax = $this->isAjax();
-        $this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
-        if($t->user->getIdentity() && DB::bans()->where('expires > ? AND (user = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")->count() > 0){
-            $this->actionLogout();
-        }
+        $t->node = $this->node;
+        /* Fix invalid links generation */
+        #$this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
     }
     
     protected function getCache($ns = true){
@@ -217,7 +245,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
 
     public function actionLogout(){
         $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE['sid'].'"}}';
-        setCookie('sid', usock::writeReadClose($data, 4096), 0, '/');
+        setCookie('sid', $this->node->getConnection()->writeReadClose($data, 4096), 0, '/');
         Permissions::unload();
         Nette\Environment::getUser()->logout(true);
         $this->redirect(301, "dashboard:default");

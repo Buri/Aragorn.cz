@@ -133,7 +133,7 @@ namespace frontendModule{
         function __construct($id = null, $url = null){
             $this->template->id = $id;
             $this->template->url = $url;
-            $this->cache = new \Nette\Caching\Cache(\MC::getInstance(), 'forum');
+            $this->cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage, 'forum');
             $this->template->cache = $this->cache;
             parent::__construct();
         }
