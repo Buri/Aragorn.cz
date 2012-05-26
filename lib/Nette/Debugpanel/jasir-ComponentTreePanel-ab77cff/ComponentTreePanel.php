@@ -42,7 +42,6 @@ class ComponentTreePanel extends Object implements IBarPanel {
 	 */
 	public static $showSources = TRUE;
 
-
 	/**
 	 * Should be paremeters section open by default?
 	 * @var bool
@@ -55,22 +54,44 @@ class ComponentTreePanel extends Object implements IBarPanel {
 	 */
 	public static $presenterOpen = TRUE;
 
+	/**
+	 * Application dir
+	 * @var sring
+	 */
 	public static $appDir;
 
+	/**
+	 * Templates variables that should be not dumped (performance reasons)
+	 * @var array
+	 */
+
+	public static $omittedTemplateVariables = array('presenter', 'control', 'netteCacheStorage', 'netteHttpResponse', 'template', 'user');
+
+
+
+	/* --- Private --- */
 
 	private $response;
 
 	static private $isRegistered = FALSE;
 
-	/* --- Properties --- */
+
 
 	/* --- Public Methods--- */
 
 	public static function register() {
 		if (!self::$isRegistered) {
-			Debugger::$bar->addPanel(new self);
+			$panel = new self;
+			Debugger::$bar->addPanel($panel);
 			self::$isRegistered = TRUE;
+			$application = Environment::getApplication();
+			$application->onResponse[] = callback(array($panel, 'getResponseCb'));
+
 		}
+	}
+
+	public function getResponseCb($application, $response) {
+		$this->response = $response;
 	}
 
 	/**
@@ -89,9 +110,15 @@ class ComponentTreePanel extends Object implements IBarPanel {
 	 */
 	public function getPanel() {
 
+		if ($this->response instanceOf \Nette\Application\Responses\ForwardResponse
+			 || $this->response instanceOf \Nette\Application\Responses\RedirectResponse) {
+			 return '';
+		}
+
+
 		/** @var Template */
 		$template = new FileTemplate;
-		$template->setCacheStorage(Environment::getContext()->templateCacheStorage);
+		$template->setCacheStorage(Environment::getContext()->nette->templateCacheStorage);
 		$template->setFile(dirname(__FILE__) . "/bar.latte");
 		$template->registerFilter(new Engine());
 		$template->presenter = $template->control = $template->rootComponent = Environment::getApplication()->getPresenter();
@@ -101,15 +128,31 @@ class ComponentTreePanel extends Object implements IBarPanel {
 		$template->parametersOpen = static::$parametersOpen;
 		$template->presenterOpen = static::$presenterOpen;
 		$template->showSources = static::$showSources;
+		$template->omittedVariables = static::$omittedTemplateVariables;
 		$template->registerHelper('parametersInfo', callback($this, 'getParametersInfo'));
 		$template->registerHelper('editlink', callback($this, 'buildEditorLink'));
 		$template->registerHelper('highlight', callback($this, 'highlight'));
 		$template->registerHelper('filterMethods', callback($this, 'filterMethods'));
 		$template->registerHelper('renderedTemplates', callback($this, 'getRenderedTemplates'));
+		$template->registerHelper('isPersistent', callback($this, 'isPersistent'));
 
 		ob_start();
 		$template->render();
 		return ob_get_clean();
+	}
+
+	public function isPersistent(\Nette\ComponentModel\Component $object) {
+		static $persistentParameters = NULL;
+		if ($persistentParameters === NULL) {
+			$presenter = $object instanceOf \Nette\Application\IPresenter ? $object :$object->lookupPath('Nette\Application\IPresenter', FALSE);
+			if ($presenter) {
+				$persistentParameters = $presenter::getPersistentComponents();
+			}
+		}
+		if (is_array($persistentParameters)) {
+			return in_array($object->getName(), $persistentParameters);
+		}
+		return FALSE;
 	}
 
 	/**
@@ -324,7 +367,5 @@ class ComponentTreePanel extends Object implements IBarPanel {
 		}
 			return implode('/', $relative);
 	}
-
-
 
 }

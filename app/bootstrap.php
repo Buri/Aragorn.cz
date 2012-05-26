@@ -14,7 +14,7 @@ use Nette\Application\Routers\Route;
 /* Create new configurator */
 $configurator = new Nette\Config\Configurator;
 $configurator->setTempDirectory(__DIR__ . '/../temp');
-$configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR)->register();
+$loader = $configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR)->register();
 $configurator->addConfig(CFG_DIR . '/config.neon');
 $container = $configurator->createContainer();
 #$container->session->setExpiration('+ 365 days');
@@ -35,7 +35,6 @@ if(empty($_COOKIE['sid'])){
     setCookie('sid', 0, 0, '/');
     $_COOKIE['sid'] = 0;
 }
-
 
 $application = Environment::getApplication();
 $application->catchExceptions = FALSE; //TRUE;
@@ -68,8 +67,10 @@ $router[] = new Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
 ));
 
 /* Debug panel extensions */
-//Extras\Debug\ComponentTreePanel::register();
+\Extras\Debug\ComponentTreePanel::register();
 \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
+\Panel\ServicePanel::register($container, $loader);
+\Panel\Todo::register($container->params['appDir']);
 if(Environment::getVariable('lockdown', false) == 'true'){
     require_once APP_DIR . "/templates/lockdown.html";
     exit;

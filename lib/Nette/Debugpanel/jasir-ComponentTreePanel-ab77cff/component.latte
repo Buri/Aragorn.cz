@@ -4,6 +4,7 @@
 	@param cache \Nette\Caching\Cache
 	@param dumps
 *}
+
 {includeblock 'blocks.latte'}
 {block #componentRender}
 
@@ -19,8 +20,9 @@
 	{var objectIsContainer = $object instanceOf \Nette\ComponentModel\Container}
 	{var components = $objectIsContainer ? $object->getComponents() : []}
 	{var objectHasComponents = $objectIsContainer && count($components) > 0}
+	{var objectIsPersistent = $template->isPersistent($object)}
 
-	<a class="nette-toggler" href="#" rel="#{!$id}">{if $objectIsForm}{include #icon type=>'F', title=>"Form"} {/if}<strong>{$object->name}</strong> [{=get_class($object)}]</a>
+	<a class="nette-toggler" href="#" rel="#{!$id}"><strong>{$object->name}</strong>{if $objectIsPersistent}{include #icon type=>'P', title=>"persistent component"}{/if}{if $objectIsForm}{include #icon type=>'F', title=>"Form"}{/if} [{=get_class($object)}]</a>
 
 	<ul>
 		<div {if !$opened}class="nette-hidden"{/if} id = "{!$id}"style="padding:0.5em;">
@@ -43,12 +45,12 @@
 				{var params = $template->parametersInfo($object)}
 				{if count($params) > 0}
 
-					<li><span title="persistent parameters are marked with @">Parameters ({=count($params)})</span> {include #toggler open=>$parametersOpen}
+					<li><span title="persistent parameters are marked with P icon">Parameters ({=count($params)})</span> {include #toggler open=>$parametersOpen}
 					<ul {if !$parametersOpen}class="nette-hidden"{/if}>
 						{foreach $params as $name =>$param}
 						<li>
 							{if $param['persistent']}
-								<strong>{include #icon type=>'P', title=>"persistent"}{$name}</strong> = <code>{?var_dump($param['value'])}</code>
+								<strong>{$name}</strong> {include #icon type=>'P', title=>"persistent"} = <code>{?var_dump($param['value'])}</code>
 								{if $param['value'] === $param['meta']['def']}
 									<strong>(default value)</strong>
 								{/if}
@@ -149,18 +151,19 @@
 		{* Form Values *}
 
 		{if $object instanceOf \Nette\Forms\Form}
-			<li>{include #values title=>"Values", values=>$object->getValues()}
-
 		{* Form components *}
 
 			{if $objectHasComponents}
-				<li>Controls {include #toggler}
+				<li>Form Controls ({count($components)}){include #toggler}
 				<ul>
 					{foreach $components as $c}
 						<li>{include #componentRender object=>$c, opened=>false}
 					{/foreach}
 				</ul>
 			{/if}
+
+			<li>{include #values title=>"Values", values=>$object->getValues()}
+
 
 		{/if}
 

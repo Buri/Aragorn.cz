@@ -1,0 +1,84 @@
+<style type="text/css">
+	#servicePanel td {
+		line-height: 2em;
+	}
+	
+	#servicePanel table {
+		width: 100%;
+	}
+	
+	#servicePanel .nette-ServicePanel-namespace {
+		display: block;
+		text-align: center;
+		font-size: 30px;
+		margin: 10px 0px 0px 0px;
+	}
+	
+	#servicePanel p {
+		text-align: center;
+	}
+</style>
+
+<h1>Available services</h1>
+
+<div id="servicePanel" class="nette-inner">
+	<table>
+	<?php foreach ($list as $namespace => $services): ?>
+		<?php if ($namespace != NULL): ?>
+		<tr>
+			<td colspan="2">
+				<span class="nette-ServicePanel-namespace"><?php echo htmlspecialchars($namespace) ?></span>
+				<p>Accessible via: $container-><?php echo htmlspecialchars($namespace) ?>->service</p>
+			</td>
+		</tr>
+		<?php endif ?>
+		<tr>
+			<th>Service</th>
+			<th>Return</th>
+		</tr>
+		<?php foreach ($services as $service): ?>
+		<tr>
+			<td><?php if (isset($service['meta']) || (isset($service['interfaces']))): ?><a href='#' class='nette-toggler' rel='#nette-ServicePanel-row-<?php echo htmlspecialchars($service['name']) ?>'>&nbsp;&#x25ba;</a><?php endif; ?>&nbsp;<?php echo htmlspecialchars($service['name']) ?></td>
+			<td>
+				<?php
+					if (isset($service['file'])) {
+						echo Nette\Diagnostics\Helpers::editorLink($service['file'], 1)->setText($service['class']);
+					} else {
+						echo htmlspecialchars($service['class']);
+					}
+				?>
+			</td>
+		</tr>
+		<?php if (isset($service['meta']) || (isset($service['interfaces']))): ?>
+		<tr id="nette-ServicePanel-row-<?php echo htmlspecialchars($service['name']) ?>" class='nette-collapsed'>
+			<td colspan="2">
+				<?php if (isset($service['meta'])): ?>
+				Tags:
+				<table>
+					<?php if (isset($service['meta']['tags']['run'])): echo '<tr><th>Run:</th><td>' . ($service['meta']['tags']['run'] ? 'yes' : 'no') . '</td></tr>'; unset ($service['meta']['tags']['run']); endif; ?>
+					<?php if (isset($service['meta']['tags']) && count($service['meta']['tags'])): ?>
+						<?php foreach ($service['meta']['tags'] as $tag => $attrs): ?>
+							<tr><th><?php echo htmlspecialchars($tag) ?></th><td><?php echo Nette\Diagnostics\Helpers::clickableDump($attrs) ?></td></tr>
+						<?php endforeach ?>
+					<?php endif ?>
+				</table>
+				<?php endif ?>
+				<?php if (isset($service['interfaces'])): ?>
+				Implements following interfaces:
+				<table>
+					<?php foreach ($service['interfaces'] as $interface): ?>
+					<tr>
+						<th>
+							<?php echo htmlspecialchars($interface) ?>
+						</th>
+					</tr>
+					<?php endforeach ?>
+				</table>
+				<?php endif ?>
+			</td>
+		</tr>
+		<?php endif; ?>
+		<?php endforeach ?>
+	<?php endforeach ?>
+	</table>
+</div>

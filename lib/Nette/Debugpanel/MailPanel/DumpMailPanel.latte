@@ -1,0 +1,64 @@
+<style n:syntax="off">
+	#nette-debug-panel-MailPanel {
+		text-align: left;
+		overflow: auto;
+		max-height: 920px;
+	}
+
+	.dumpmail {
+		strong, b {font-weight:bold;font-weight: bold !important;}
+	}
+</style>
+
+<h1>Sent mails</h1>
+{if count($data) > 0}
+	<div class="nette-inner dumpmail" style="min-width:500px">
+	{foreach $data as $mail}
+		<table width="100%;" {sep}style="margin-bottom:6px"{/sep}>
+			<tr>
+				<th width="30%">Subject</th>
+				<td>{$mail["subject"]}</td>
+			</tr>
+			<tr>
+				<th>From</th>
+				<td>
+					{foreach $mail["from"] as $key => $value}
+						<a href="mailto:{$key}">{if isset($value)}{$value}{else}{$key}{/if}</a>{sep}, {/sep}
+					{/foreach}
+				</td>
+			</tr>
+			<tr>
+				<th>To</th>
+				<td>
+					{foreach $mail["to"] as $key => $value}
+						<a href="mailto:{$key}">{if isset($value)}{$value}{else}{$key}{/if}</a>{sep}, {/sep}
+					{/foreach}
+				</td>
+			</tr>
+			{if count($mail["bcc"])}
+				<tr>
+					<th>Bcc</th>
+					<td>
+						{foreach $mail["bcc"] as $key => $value}
+							<a href="mailto:{$key}">{if isset($value)}{$value}{else}{$key}{/if}</a>{sep}, {/sep}
+						{/foreach}
+					</td>
+				</tr>
+			{/if}
+
+			{if $mail["bodyHtml"]}
+				<tr><th colspan="2">Html version</th></tr>
+				<tr><td colspan="2">
+					{!$mail["bodyHtml"]}
+				</td></tr>
+			{else}
+				<tr><th colspan="2">Text version</th></tr>
+				<tr><td colspan="2">
+					{$mail["body"]}
+				</td></tr>
+			{/if}
+
+		</table>
+	{/foreach}
+	</div>
+{/if}

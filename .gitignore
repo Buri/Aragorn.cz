@@ -11,4 +11,6 @@
 !/userspace/u/.gitignore
 /userspace/i/*
 !/userspace/i/.gitignore
+/documentation/*
+!/documentation/.gitignore
 /node/enabled_modules/*

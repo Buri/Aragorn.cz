@@ -37,7 +37,19 @@ class BasePresenter extends Nette\Application\UI\Presenter{
      */
     public function startup(){
         parent::startup();
+
+        /* Panely */
+        if(!false) { // dev only
+            // service conflict with @nette.mail
+            Nette\Mail\Message::$defaultMailer = new \Schmutzka\Diagnostics\DumpMail($this->getContext()->session);
+            // or with 2nd parameter, which sets email expiration in seconds
+            //Message::$defaultMailer = new Schmutzka\Diagnostics\DumpMail($this->getContext()->session, 30);
+            \Extras\Debug\RequestsPanel::register();
+            \Panel\User::register();
+            \Panel\Navigation::register();
+        }
         
+
         /* Template shortcut */
         $t = $this->getTemplate();
         
@@ -47,10 +59,6 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 ->count() > 0){
             $this->actionLogout();
         }
-        
-        /* Panely */
-        \Extras\Debug\RequestsPanel::register();
-        \Panel\User::register();
         
         /* Setup template variables */
         $t->registerHelper('r', function($ar, $i = null){

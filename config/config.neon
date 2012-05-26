@@ -2,6 +2,10 @@ development < production:
 production:
   php:
     date.timezone: Europe/Prague
+  nette:
+    debugger:
+      bar:
+        - Schmutzka\Panels\DumpMail(@session)
   services:
     robotLoader:
       run: true
