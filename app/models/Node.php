@@ -29,10 +29,8 @@ class Node extends Nette\Object{
      * @param int $sid
      * @return string
      */
-    public function userlogin($sid){
+    public function userlogin($sid, Permissions $permissions, Nette\Security\User $user){
         if(!$sid) $sid = $_COOKIE["sid"];
-        $user = Nette\Environment::getUser();
-        $p = \Permissions::getInstance();
         $idt = $user->getIdentity();
         if($idt){
             $id = $idt->getId();
@@ -52,7 +50,7 @@ class Node extends Nette\Object{
                     "id" => $id,
                     "username" => $username,
                     "preferences" => $preferences,
-                    "permissions" => $p->getRaw()
+                    "permissions" => $permissions->getRaw()
                 )));
         return $this->connection->writeReadClose($data, 4096);
     }

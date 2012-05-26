@@ -9,11 +9,13 @@ production:
     authorizator:
       class: \UserAuthorizator
     cacheStorage:
-      class: Nette\Caching\Storages\MemcachedStorage
+      class: Nette\Caching\Storages\MemcachedStorage(%memcache.host%, %memcache.port%)
     NodeConnector:
       class: NodeConnector(%usock%)
     Node:
       class: Node
+    Permissions:
+       class: Permissions
     
   parameters:
     lockdown: false
@@ -23,8 +25,10 @@ production:
     staticServer: static.aragorn.cz
     userServer: user.aragorn.cz
     registrationEnabled: true
-    registrationCloseReason: Přpravujeme databázi.       
-
+    registrationCloseReason: Přpravujeme databázi.
+    registration:
+      enabled: true
+      closeReason: Přpravujeme databázi.
     memcache:
       host: 127.0.0.1
       port: "11211"    
@@ -34,6 +38,12 @@ production:
       params: "host=127.0.0.1;port=3306;dbname=aragorn_cz;"
       user: root
       password: a
+    node:
+      port: 8000
+      jobs: 0
+      phpbridge:
+        socket: unix:///var/run/nodejs.soc
+        port: null
 
     port: 8000
     usock: /var/run/nodejs.sock

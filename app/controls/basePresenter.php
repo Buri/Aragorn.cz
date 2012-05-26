@@ -1,7 +1,11 @@
 <?php
 
 class BasePresenter extends Nette\Application\UI\Presenter{
-    
+
+    /**
+     *
+     * @var Nette\Caching\Cache
+     */
     var $cache = null;
     
     /**
@@ -9,15 +13,22 @@ class BasePresenter extends Nette\Application\UI\Presenter{
      * @var Node
      */
     protected $node;
+
+    /**
+     *
+     * @var Permissions
+     */
+    protected $permissions;
     
     /**
      *
      * @param \Nette\DI\Container $container
      * @param Node $node 
      */
-    public function __construct(\Nette\DI\Container $container, Node $node) {
-        parent::__construct($container);
-        $this->node = $node;
+    public function __construct(\Nette\DI\Container $context) {
+        parent::__construct($context);
+        $this->node = $context->Node;
+        $this->permissions = $context->Permissions;
     }
     
     /**
@@ -161,23 +172,19 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     }
 
     public function createComponentLogInForm(){
-        $form = new Nette\Application\UI\Form;
-        /*$this['logInForm'] = $form;
-        $form->setAction($this->link(':frontend:dashboard:'));*/
-        $form->getElementPrototype()->class = "logInForm";
-        $form->addText("username", "Nick:");
-        $form->addPassword("password", "Heslo:");
-        $form->addCheckbox('forever', "Trvalé přihlášení");
-        $form->addSubmit("login", "Přihlásit");       
+        $form = new Components\LoginForm();
+        $form->build();
         $form->onSuccess[] = callback($this, "userLogin");
         return $form;
     }
     
     public function createComponentForum($id){
-        return new frontendModule\ForumComponent();
+        $c = new Components\ForumComponent();
+        return $c->setContext($this->context);
     }
     public function createComponentDiscussion($id){
-        return new frontendModule\DiscussionComponent();
+        $c = new Components\DiscussionComponent();
+        return $c->setCache($this->context->cacheStorage);
     }
     
     public function actionLogin(){
@@ -190,7 +197,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     }
     
     public function handleLogin($v, $btn = 'login'){
-        $user = Nette\Environment::getUser();
+        $user = $this->context->user;
         $user->setAuthenticator(new UserAuthenticator);
         try{
             $user->login($v["username"], $v["password"]);
@@ -221,7 +228,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 fwrite($fp, implode(';', $ips));
             }
             fclose($fp);
-            $sid = Node::userlogin();
+            $sid = $this->node->userlogin($user->getId(), $this->context->Permissions, $user);
             setCookie('sid', $sid, 0, '/');
             $this->redirect(301, 'this');
         }
@@ -246,8 +253,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     public function actionLogout(){
         $data = '{"command":"user-logout","data":{"nodeSession":"'.$_COOKIE['sid'].'"}}';
         setCookie('sid', $this->node->getConnection()->writeReadClose($data, 4096), 0, '/');
-        Permissions::unload();
-        Nette\Environment::getUser()->logout(true);
+        $this->permissions->unload();
+        $this->context->user->logout(true);
         $this->redirect(301, "dashboard:default");
     }
 

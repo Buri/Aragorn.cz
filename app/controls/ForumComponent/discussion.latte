@@ -87,7 +87,7 @@
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
-            <span class="post-text">{!\frontendModule\DiscussionComponent::parseBB($post->forum_posts_data['post'])}</span>
+            <span class="post-text">{!\Components\DiscussionComponent::parseBB($post->forum_posts_data['post'])}</span>
             <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
         </div>
     </div>

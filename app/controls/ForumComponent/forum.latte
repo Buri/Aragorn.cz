@@ -65,7 +65,7 @@
     <div class="forum-access">
         Přístupová práva k serveru:
         <br />
-        Diskuze je <em>{\frontendModule\ForumComponent::$LOCKED & $info['options'] ? "zamčená" : "odemčená"}</em>
+        Diskuze je <em>{\Components\ForumComponent::LOCKED & $info['options'] ? "zamčená" : "odemčená"}</em>
     </div>
     <div class="forum-noticeboard">
     {!$noticeboard}
@@ -74,7 +74,7 @@
 {/if}
 {foreach $topics as $topic}
 <div class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
-    <div class="forum-count">{var $c = \frontendModule\ForumComponent::getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
+    <div class="forum-count">{var $c = \Components\ForumComponent::getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
     <div class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</div>
     <div>
         <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> 
@@ -82,7 +82,7 @@
         <br/>
         <em>{$topic['description']}</em> <br/>
         <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
-        {var $subtopics = frontendModule\forumPresenter::getSubtopics($topic['id'])}
+        {var $subtopics = \frontendModule\forumPresenter::getSubtopics($topic['id'])}
         <div n:if="$subtopics->count()">Podtémata:
             {foreach $subtopics as $subtopic}
                 <a href="{link $forum, $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>{sep}, {/sep}

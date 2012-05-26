@@ -65,7 +65,7 @@ namespace ajaxModule{
         }
         
         public function actionDeleteforum($id = null, $param = null){
-            $forum = new \frontendModule\ForumComponent();
+            $forum = new \Components\ForumComponent();
             if($forum->userIsAllowed('forum', 'delete', $id)){
                 $forum->deleteForum($id);
                 $this->template->data = "Forum smazáno.";
@@ -76,7 +76,7 @@ namespace ajaxModule{
         
         public function actionForumdeletepost($id){
             $this->template->data = "fail";
-            $forum = new \frontendModule\ForumComponent();
+            $forum = new \Components\ForumComponent();
             if($forum->userIsAllowed('post', 'delete', $id)){
                 $forum = DB::forum_posts('id', $id);
                 $fid = $forum['id'];
@@ -93,7 +93,7 @@ namespace ajaxModule{
         }
         public function actionUpdateforumnoticeboard($id,$param,$description){
             $this->template->data = "fail";
-            $forum = new \frontendModule\ForumComponent();
+            $forum = new \Components\ForumComponent();
             if($forum->userIsAllowed('forum', 'admin', $id)){
                 $this->template->data = "off";
                 $row = DB::forum_topic('id', $id);
