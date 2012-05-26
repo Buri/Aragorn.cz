@@ -14,19 +14,10 @@ namespace Components{
     use \DB;
     class ForumComponent extends \Nette\Application\UI\Control{
         const SUBTOPIC_ALLOWED = 1, POSTS_ALLOWED = 2, HAS_CUSTOM_PERMISSIONS = 4, LOCKED = 8;
-        private $url = null;
+        protected $url = null;
+        protected $forumId = null;
         private $context;
         private $cache;
-
-        /**
-         * @param integer $id
-         * @param string $url
-         */
-        function __construct($id = null, $url = null){
-            parent::__construct();
-            $this->template->id = $id;
-            $this->template->url = $url;
-        }
 
         /**
          *
@@ -39,6 +30,61 @@ namespace Components{
             $this->template->cache = $this->cache;
             return $this;
         }
+        
+        public function render($url){
+            $this->url = $url;
+            $this->prepare($url);
+            $p = $this->getPresenter();
+            $this->template->forum = substr($p->name, strrpos($p->name, ':')+1).':';
+            $this->template->url = $url;
+            $this->template->setFile(__DIR__ . '/forum.latte');
+            $this->template->render();
+        }
+
+        protected function prepare($url){
+            $this->template->discussion = false;
+            $this->template->newforum = false;
+            $this->template->noticeboard = "";
+            $this->template->parent = $this;
+            if(isset($url) && $url != ""){
+                $p = DB::forum_topic('urlfragment', $url)->fetch();
+                $fid = $p['id'];
+                $this->forumId = $fid;
+                $this->template->noticeboard = $p['noticeboard'];
+                $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
+                $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
+                $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
+                do{
+                    $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
+                    $p = DB::forum_topic('id', $p['parent'])->fetch();
+                }while($p["parent"]);
+                $info = DB::forum_topic('id', $fid)->fetch();
+                $this->template->info = $info;
+                $this->template->fid = $fid;
+            }else{
+                $data = DB::forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
+                $this->template->newforum = $this->context->user->isAllowed('forum','create');
+            }
+            $nav[] = array("name"=>"Diskuze", "url"=>"");
+            $this->getTemplate()->topics = $data;
+            $this->getTemplate()->n = $nav;
+            $this->setLastAccess();
+        }
+
+        /**
+         *
+         * @param int $id
+         * @return \Components\ForumComponent
+         */
+        public function setForumId($id){
+            $this->forumId = $id;
+            return $this;
+        }
+
+        /**
+         *
+         * @todo: Dodělat poslední příspěvek a počet nepřečtených příspěvků
+         */
 
         /**
          *
@@ -57,9 +103,9 @@ namespace Components{
          * @param integer $forum
          * @return array
          */
-        public static function getPostCount($forum){
+        public function getPostCount($forum){
             $c = DB::forum_posts('forum', $forum)->select('count(id) as count')->fetch();
-            $u = DB::forum_visit('idforum = ? AND iduser = ?', array($forum, \Nette\Environment::getUser()->getId()))->fetch();
+            $u = DB::forum_visit('idforum = ? AND iduser = ?', array($forum, $this->context->user->getId()))->fetch();
             return array('total' => $c['count'], 'unread' => $u == null ? (int)$c['count'] : (int)$u['unread']);
         }
 
@@ -71,6 +117,23 @@ namespace Components{
          */
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
+        }
+
+        /**
+         *
+         * @param int $forumId
+         */
+        public function invalidateForumCache($forumId){
+            $this->cache->clean(array(
+                \Nette\Caching\Cache::TAGS => array('discussion/'.$forumId),
+            ));
+            do{
+                $f = DB::forum_topics('id', $forumId)->fetch();
+                $parent = $f['parent'];
+                $this->cache->clean(array(
+                    \Nette\Caching\Cache::TAGS => array('forum/'.$parent),
+                ));
+            }while($parent);
         }
 
         public static function deleteForum($id){
@@ -90,65 +153,21 @@ namespace Components{
             return true;
         }
 
-        private function prepare($id, $url){
-            $nav = array();
-            $this->template->discussion = false;
-            $this->template->newforum = false;
-            $this->template->noticeboard = "";
-            if(is_null($id) || !is_numeric($id)){
-                if(isset($url) && $url != ""){
-                    $p = DB::forum_topic('urlfragment', $url)->fetch();
-                    $fid = $p['id'];
-                    $this->template->noticeboard = $p['noticeboard'];
-                    $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
-                    $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
-                    $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
-                    do{
-                        $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
-                        $p = DB::forum_topic('id', $p['parent'])->fetch();
-                    }while($p["parent"]);
-                }else{
-                    $data = DB::forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
-                    $this->template->newforum = \Nette\Environment::getUser()->isAllowed('forum','create');
-                }
-            }else{
-                $data = DB::forum_topic('id', $id)->order('sticky DESC', 'name ASC');
-                $fid = $data['id'];
-            }
-            if(isset($fid)){
-                $info = DB::forum_topic('id', $fid)->fetch();
-                $this->template->info = $info;
-                $this->template->fid = $fid;
-            }
-            $nav[] = array("name"=>"Diskuze", "url"=>"");
-            $this->getTemplate()->topics = $data;
-            $this->getTemplate()->n = $nav;
-        }
-
         public function setLastAccess(){
+            $user = $this->context->user;
             $db = DB::forum_topic('urlfragment', $this->url)->fetch();
-            if($db['id'] && \Nette\Environment::getUser()->getId() != null){
+            if($db['id'] && $user->getId() != null){
                 DB::forum_visit()->insert_update(
-                        array('iduser'=>\Nette\Environment::getUser()->getId(), 'idforum'=>$db['id']),
+                        array('iduser'=>$user->getId(), 'idforum'=>$db['id']),
                         array('time'=>time(), 'unread'=>0),
                         array('time'=>time(), 'unread'=>0)
                     );
             }
         }
 
-        public function render($id = null, $url = null){
-            $p = $this->getPresenter();
-            $this->url = $url;
-            $this->template->forum = substr($p->name, strrpos($p->name, ':')+1).':';
-            $this->template->id = $url;
-            $this->template->setFile(__DIR__ . '/forum.latte');
-            $this->prepare($id, $url);
-            $this->setLastAccess();
-            $this->template->render();
-        }
-
-        public function createComponentDiscussion($name){
-            return $this->presenter->createComponentDiscussion($name);
+        public function createComponentDiscussion(){
+            $c = new \Components\DiscussionComponent; //($this, $name, "hola");
+            return $c->setCache($this->context->cacheStorage);
         }
 
         public static function getIdByPath($path){
@@ -190,7 +209,7 @@ namespace Components{
                 }
                 return $user->isAllowed($resource.$target, $action);
             }
-            return \Nette\Environment::getUser()->isAllowed($resource, $action);
+            return $user->isAllowed($resource, $action);
         }
 
     }

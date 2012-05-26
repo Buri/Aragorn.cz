@@ -39,7 +39,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         parent::startup();
 
         /* Panely */
-        if(!false) { // dev only
+        if(true) { // dev only
             // service conflict with @nette.mail
             Nette\Mail\Message::$defaultMailer = new \Schmutzka\Diagnostics\DumpMail($this->getContext()->session);
             // or with 2nd parameter, which sets email expiration in seconds
@@ -90,7 +90,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             $this->getCache();
             return $link;    
         }
-        if($id == null) $id = \Nette\Environment::getUser()->getId();
+        if($id == null) $id =$this->context->user->getId();
         if($id == null) return false;
         $u = DB::users('id', $id)->fetch();
         $v = $u->users_profiles()->fetch();
@@ -186,13 +186,9 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         return $form;
     }
     
-    public function createComponentForum($id){
-        $c = new Components\ForumComponent();
+    public function createComponentForum($name){
+        $c = new Components\ForumComponent;
         return $c->setContext($this->context);
-    }
-    public function createComponentDiscussion($id){
-        $c = new Components\DiscussionComponent();
-        return $c->setCache($this->context->cacheStorage);
     }
     
     public function actionLogin(){

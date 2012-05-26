@@ -32,7 +32,7 @@ td { padding: 2px;}
     <td><a href="{$control->presenter->userLink($user,false)}"><img src="{$control->presenter->userIcon($user)}" class="proflile-list-icon" /></a></td>
     <td>{!$control->presenter->userLink($user)}</td>
     <td>{!$profile['login']}</td>
-    <td><img src="{$staticPath}/images/{\Node::isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></td>
+    <td><img src="{$staticPath}/images/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></td>
 </tr>
 {/foreach}
     </tbody>

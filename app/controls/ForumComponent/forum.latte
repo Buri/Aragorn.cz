@@ -74,7 +74,7 @@
 {/if}
 {foreach $topics as $topic}
 <div class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
-    <div class="forum-count">{var $c = \Components\ForumComponent::getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
+    <div class="forum-count">{var $c = $control->getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
     <div class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</div>
     <div>
         <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> 
@@ -102,10 +102,10 @@
         AC.Ajax.reloadLocation();
     }
     function newForum(name){
-        var ajax = new AC.ajax('newforum', {id:name,'param':{{$id}}}, newForumCb);
+        var ajax = new AC.ajax('newforum', {id:name,'param':{{$url}}}, newForumCb);
     }    
 </script>
 {if $newforum}<a href="#" onclick="AC.prompt('Název nového fóra?', newForum); return false;">Založit nové forum</a>{/if}
 {if $discussion}
-{control discussion, $id}
+{control discussion,$url}
 {/if}

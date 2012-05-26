@@ -19,11 +19,16 @@ $configurator->addConfig(CFG_DIR . '/config.neon');
 $container = $configurator->createContainer();
 #$container->session->setExpiration('+ 365 days');
 
+if($container->parameters["lockdown"] == 'true'){
+    require_once APP_DIR . "/templates/lockdown.html";
+    exit;
+}
+
 /* Setup debuging options */
 Nette\Diagnostics\Debugger::enable(Nette\Diagnostics\Debugger::DEVELOPMENT, Nette\Environment::getVariable('logdir', WWW_DIR . '/../logs'));
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
-if(Environment::isProduction()) Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 Environment::setProductionMode(false);
+if(Environment::isProduction()) Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
 
 /* Setup cookies for later use */
 if(empty($_COOKIE['skin'])){
@@ -36,7 +41,7 @@ if(empty($_COOKIE['sid'])){
     $_COOKIE['sid'] = 0;
 }
 
-$application = Environment::getApplication();
+$application = $container->application;
 $application->catchExceptions = FALSE; //TRUE;
 
 $router = $application->getRouter();
@@ -58,22 +63,37 @@ foreach(array('presenter', 'action') as $type){
         $item = explode(":", $item);
         $routing_table[$item[0]] = $item[1];
     }
-    Route::setStyleProperty($type, Route::FILTER_TABLE, $routing_table);
+    Route::setStyleProperty($type, 
+            Route::FILTER_TABLE,
+            $routing_table);
 }
-$router[] = new Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
+
+/*$router[] = new SmartRoute('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+                'module' => 'frontend',
+                'presenter' => 'dashboard',
+                'action' => 'default',
+               /* Route::FILTER_IN => function($action) use ($container){
+                    return $action;
+                }*/
+#));
+
+$fr = new SmartRoute('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
                 'action' => 'default'
 ));
+$router[] = $fr;
+/*$router[] = new Route('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+                'module' => 'frontend',
+                'presenter' => 'dashboard',
+                'action' => 'default'
+));*/
 
 /* Debug panel extensions */
+\Nette\Application\Diagnostics\RoutingPanel::initializePanel($application);
 \Extras\Debug\ComponentTreePanel::register();
 \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
 \Panel\ServicePanel::register($container, $loader);
 \Panel\Todo::register($container->params['appDir']);
-if(Environment::getVariable('lockdown', false) == 'true'){
-    require_once APP_DIR . "/templates/lockdown.html";
-    exit;
-}
 
 $application->run();

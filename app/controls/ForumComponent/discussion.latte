@@ -17,12 +17,12 @@
     {input send id=>'post'}
     {/form}
     <script type="text/javascript">
-        $('frm-forum-discussion-forumForm').addEvent('submit', function(e){
+        /*$('frm-forum-discussion-forumForm').addEvent('submit', function(e){
             new Event(e).stop()
             var f = new Form.Request(this, $('content'));
             f.addEvent('success', function(){ console.log('done'); $('frmforumForm-post').set('value', '');}.bind(this));
             f.send();
-        });
+        });*/
         var showNMD = function(){
             $$('.newPost')[0].addClass('slideinform'); 
             //$('frmforumForm-post').focus();
@@ -64,6 +64,9 @@
 {else}
 <div class="no-new-post">Nemáte právo přispívat do této diskuze.</div>
 {/if}
+{*
+  * @todo: vyřešit kešování pro různé uživatele
+  *}
 {cache $id, tags => ['discussion/' . $id]}
 <div class="discussion">
     {foreach DB::forum_posts('forum', $info['id'])->order('time desc')->select('*') as $post}

@@ -3,6 +3,8 @@ production:
   php:
     date.timezone: Europe/Prague
   nette:
+    session:
+      expiration: '+ 1 year'
     debugger:
       bar:
         - Schmutzka\Panels\DumpMail(@session)
@@ -28,8 +30,6 @@ production:
     actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile"
     staticServer: static.aragorn.cz
     userServer: user.aragorn.cz
-    registrationEnabled: true
-    registrationCloseReason: Přpravujeme databázi.
     registration:
       enabled: true
       closeReason: Přpravujeme databázi.
