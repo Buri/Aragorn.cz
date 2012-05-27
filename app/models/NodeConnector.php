@@ -34,7 +34,7 @@ class NodeConnector extends Nette\Object{
      */
     public function connect($dns){
         if(!$dns) $dns = $this->dns;
-        $this->connection = fsockopen("unix://".$dns, NULL);
+        $this->connection = fsockopen($dns, NULL);
         return $this->connection;
     }
     

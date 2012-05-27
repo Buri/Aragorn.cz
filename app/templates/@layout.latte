@@ -67,8 +67,10 @@
                             {form logInForm}
                             {label username /}: {input username}
                             {label password /}: {input password}
-                            {label forever /}:  {input forever}
-                            {input login} <a href="{link registration:}" class="middle ajax">Registrace</a>
+                            {input forever}
+                            {input login} 
+                            <a href="{link registration:}" class="middle ajax">Registrace</a>
+                            <a href="{link registration:recoverpassword}" class="middle ajax">Zapomenuté heslo</a>
                             {/form logInForm}
                     </div>
                     {/if}

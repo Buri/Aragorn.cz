@@ -116,7 +116,7 @@ var http = require('http'),
             '<tr><td class="b">Sessions:</td><td>' + SessionManager.length() + '</tr></td>\n' +
             '<tr><td class="b">Clients:</td><td>' + JSON.stringify(io) + '</tr></td>\n' +
             '</table>\n'
-        )
+        ); 
         /*res.write('<pre>\n');
         res.write(JSON.stringify(SessionManager.list()));
         res.write('</pre>\n');*/

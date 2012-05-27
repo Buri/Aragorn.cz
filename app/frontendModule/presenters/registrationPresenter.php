@@ -88,25 +88,26 @@ namespace frontendModule{
             return true;
         }
 
+        /**
+         *
+         * @param string $data
+         */
         public function actionMail($data){
             $data = unserialize($data);
-            dump($data);
+            $l = $this->link("finish", $data["token"]);            
+
+            $template = new \Nette\Templating\FileTemplate(__DIR__. '/../templates/registration/sendmail.latte');
+            $template->registerFilter(new \Nette\Latte\Engine);
+            $template->link =$l;
+
             $mail = new \Nette\Mail\Message;
-            $mail->setFrom($this->config['mailing']['registration'] . '@' . $_SERVER["SERVER_NAME"] );
+            $mail->setFrom($this->config['registration']['mail']);
             $mail->addTo($data['mail']);
+            $mail->setHtmlBody($template);
             $mail->send();
 
-            /*$this->getTemplate()->mail = $data["mail"];
-            $headers  = 'MIME-Version: 1.0' . "\r\n";
-            $headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
-            $headers .= "From: registrace@" . $_SERVER["SERVER_NAME"] . "\r\nX-Mailer: PHP/" . phpversion();
-
-            $l = $this->link("finish", $data["token"]);
-            $bdy = 'Blablabla <a href="' . $l . '">' . $l . '</a>';
-
-            $this->getTemplate()->p = $bdy;*/
-            #mail($data["mail"], "Registrace na serveru " . $_SERVER["SERVER_NAME"], $bdy, $headers);
-        }
+            $this->template->mail = $data['mail'];            
+      }
 
         public function actionFinish( $id ){
             if($this->template->banned) return false;
@@ -132,5 +133,8 @@ namespace frontendModule{
             }
         }
 
+        public function actionRecoverpassword(){
+
+        }
     }
 }
