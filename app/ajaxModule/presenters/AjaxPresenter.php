@@ -10,7 +10,7 @@ namespace ajaxModule{
         public function startup(){
             parent::startup();
             header("Content-type: application/xml");
-            #header("Content-type: text/plain");
+            header("Content-type: text/plain");
             #header("Content-type: text/html");
             $this->setView('default');
             $this->template->data = "";
@@ -29,7 +29,7 @@ namespace ajaxModule{
         }
         public function actionTestidentity($sid = 0){
             /* Sync with node.js */
-            $this->getTemplate()->data = $this->node->userlogin($sid);
+            $this->getTemplate()->data = $this->node->userlogin($sid, $this->permissions, $this->context->user);
         }
         public function actionStatusupdate($id){
             $ok = DB::users_profiles('id', \Nette\Environment::getUser()->getId())->update(array('status' => $id)) ? true : false;
