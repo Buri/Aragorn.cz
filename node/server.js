@@ -326,6 +326,9 @@ app.configure(function(){
         },
         login:function(sid, user, cb){
             //console.log(sid + ' - ', user);
+            this.redis.exists('user-' + user.id, function(err, r){
+                if(!r) this.redis.incr('onlineusers-counter');
+            }.bind(this));
             var m = this.redis.multi();
             m.hmset(this.storageKey + sid + '-user',
                 'id', user.id,
@@ -335,7 +338,6 @@ app.configure(function(){
                 'roles', JSON.stringify(user.roles)
             );
             m.set('user-' + user.id, sid);
-            m.incr('onlineusers-counter');
             m.exec(function(err){
                     if(err) return;
                     /*this.redis.hgetall(this.storageKey + sid + '-user'/*, function(e, o){console.log(o);});*/
@@ -364,7 +366,7 @@ app.configure(function(){
         length:function(cb){
             if(!cb) return; 
             this.redis.get('onlineusers-counter', function(err, res){
-                cb(res);
+                cb(res == 'null' ? 0 : parseInt(res) - 1);
             });
         },
         broadcastSessionNumber:function(){

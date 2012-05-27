@@ -84,6 +84,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     }
     
     public function userLink($id = null, $html = true){
+        if($id == null) $id =$this->context->user->getId();
+        if($id == null) return false;
         $c = $this->getCache(false);        // Set global cache
         $cname = 'user-link' . $id . ($html ? '-html' : '');
         $link = $c->load($cname);
@@ -91,12 +93,10 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             $this->getCache();
             return $link;    
         }
-        if($id == null) $id =$this->context->user->getId();
-        if($id == null) return false;
         $u = DB::users('id', $id)->fetch();
         $v = $u->users_profiles()->fetch();
         $n = $v['urlfragment'];
-        $link = $this->link(':frontend:users:view', $n);
+        $link = $this->link('users:view', $n);
         if($html){
             $role = $u['groupid'];
             switch($role){

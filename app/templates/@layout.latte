@@ -18,7 +18,7 @@
         {include 'head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
         <script type="text/javascript" charset="utf-8" n:syntax="double">
-            window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
+            window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
             window.addEvent('domready', function(){
                 new FloatingTips('div#constat',{
                     position:'bottom',
@@ -42,7 +42,7 @@
                     <!--DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
                     <input id="msgStatus" value="{$presenter->userStatus()}" type="text" placeholder="ZprĂˇva stavu" />
                     <input type="button" id="btnStatus" value=">" />-->
-                    <a href="{$presenter->userLink(null, false)}" class="ajax profile" title="{$user->getIdentity()->username}" id="menu-user-profile">
+                    <a href="{$presenter->userLink($user->getId(), false)}" class="ajax profile" title="{$user->getIdentity()->username}" id="menu-user-profile">
                         <img src="{$presenter->userIcon()}" /> {$user->getIdentity()->username}
                     </a>
                     <a href="{link settings:}" class="middle" title="Nastavení" id="menu-settings">
