@@ -5,10 +5,7 @@ production:
   nette:
     session:
       expiration: '+ 1 year'
-    debugger:
-      bar:
-        - Schmutzka\Panels\DumpMail(@session)
-  services:
+    services:
     robotLoader:
       run: true
       class: Nette\Loaders\RobotLoader
@@ -16,23 +13,28 @@ production:
       class: \UserAuthorizator
     cacheStorage:
       class: Nette\Caching\Storages\MemcachedStorage(%memcache.host%, %memcache.port%)
-    NodeConnector:
-      class: NodeConnector(%usock%)
-    Node:
-      class: Node
-    Permissions:
+    nodeConnector:
+      class: NodeConnector(%node.phpbridge.protocol%%node.phpbridge.socket%)
+    node:
+      class: Node (@nodeConnector)
+    permissions:
        class: Permissions
     
   parameters:
     lockdown: false
     logdir: /var/www/logs
     presenterRoutingTable: "uzivatele:users,registrace:registration,napoveda:help,posta:mail,nastaveni:settings,chat:chat,neplatne-prihlaseni:badlogin,diskuze:forum,herna:den,galerie:gallery,clanky:articles,databaze:database,akce:calendar"
-    actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile"
+    actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile,logout:logout"
     staticServer: static.aragorn.cz
     userServer: user.aragorn.cz
+    servers:
+      domain: aragorn.cz
+      staticContent: static.aragorn.cz
+      userContent: user.aragorn.cz
     registration:
       enabled: true
       closeReason: Přpravujeme databázi.
+      mail: 'registration@%servers.domain%'
     memcache:
       host: 127.0.0.1
       port: "11211"    
@@ -46,7 +48,8 @@ production:
       port: 8000
       jobs: 0
       phpbridge:
-        socket: unix:///var/run/nodejs.soc
+        protocol: unix://
+        socket: /var/run/nodejs.socket
         port: null
 
     port: 8000

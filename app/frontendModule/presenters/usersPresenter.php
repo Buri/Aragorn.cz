@@ -27,5 +27,9 @@ namespace frontendModule{
         public function actionProfile($id){
             $this->template->id = $id;
         }
+
+        public function actionView($id) {
+            $this->template->id = $id;
+        }
     }
 }

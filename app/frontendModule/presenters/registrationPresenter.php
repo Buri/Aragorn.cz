@@ -12,10 +12,18 @@ namespace frontendModule{
     use \DB;
     
     class registrationPresenter extends \BasePresenter {
-        
+
+        /**
+         *
+         * @var array
+         */
+        protected $config;
+
         public function startup(){
             $bans = DB::bans('ip', $_SERVER['REMOTE_ADDR'])->where('expires > ?', time());
             $this->template->banned = false;
+            $this->template->reg = $this->getContext()->parameters['registration'];
+            $this->config = $this->getContext()->parameters;
             foreach($bans as $ban){
                 $this->template->banned = true;
             }
@@ -82,7 +90,13 @@ namespace frontendModule{
 
         public function actionMail($data){
             $data = unserialize($data);
-            $this->getTemplate()->mail = $data["mail"];
+            dump($data);
+            $mail = new \Nette\Mail\Message;
+            $mail->setFrom($this->config['mailing']['registration'] . '@' . $_SERVER["SERVER_NAME"] );
+            $mail->addTo($data['mail']);
+            $mail->send();
+
+            /*$this->getTemplate()->mail = $data["mail"];
             $headers  = 'MIME-Version: 1.0' . "\r\n";
             $headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
             $headers .= "From: registrace@" . $_SERVER["SERVER_NAME"] . "\r\nX-Mailer: PHP/" . phpversion();
@@ -90,7 +104,7 @@ namespace frontendModule{
             $l = $this->link("finish", $data["token"]);
             $bdy = 'Blablabla <a href="' . $l . '">' . $l . '</a>';
 
-            $this->getTemplate()->p = $bdy;
+            $this->getTemplate()->p = $bdy;*/
             #mail($data["mail"], "Registrace na serveru " . $_SERVER["SERVER_NAME"], $bdy, $headers);
         }
 

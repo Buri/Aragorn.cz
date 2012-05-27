@@ -46,6 +46,7 @@ $application->catchExceptions = FALSE; //TRUE;
 
 $router = $application->getRouter();
 $router[] = new Route('index.php', 'frontend:dashboard:default', Route::ONE_WAY);
+$router[] = new Route('index.php', 'frontend:dashboard:default', Route::ONE_WAY);
 $router[] = new Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
@@ -56,41 +57,47 @@ $router[] = new Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
                 'presenter' => 'dashboard',
                 'action' => 'default'
 ));
-/* Load routing table from config */
+$router[] = new Route('logout/', array(
+                'module' => 'frontend',
+                'presenter' => 'dashboard',
+                'action' => 'logout',
+));
+
+
+/* Load routing table from config.neon */
+$knownActions = array();
 foreach(array('presenter', 'action') as $type){
     $routing_table = array();
     foreach(explode(",", $container->params[$type . "RoutingTable"]) as $item){
         $item = explode(":", $item);
         $routing_table[$item[0]] = $item[1];
+        if($type == 'action') $knownActions[] = $item[0];
     }
-    Route::setStyleProperty($type, 
+    Route::setStyleProperty($type,
             Route::FILTER_TABLE,
             $routing_table);
 }
 
-/*$router[] = new SmartRoute('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
-                'module' => 'frontend',
-                'presenter' => 'dashboard',
-                'action' => 'default',
-               /* Route::FILTER_IN => function($action) use ($container){
-                    return $action;
-                }*/
-#));
-
-$fr = new SmartRoute('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
-                'module' => 'frontend',
-                'presenter' => 'dashboard',
-                'action' => 'default'
+$router[] = new Route('[<presenter>/[<action '.implode('|', $knownActions).'>/[<id>/[<param>/]]]]', array(
+'module' => 'frontend',
+'presenter' => 'dashboard',
+'action' => 'default'
 ));
-$router[] = $fr;
-/*$router[] = new Route('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
-                'module' => 'frontend',
-                'presenter' => 'dashboard',
-                'action' => 'default'
-));*/
+
+$router[] = new Route('<presenter>/<id>/[<param>/]', array(
+'module' => 'frontend',
+'presenter' => 'dashboard',
+'action' => 'view'
+));
+
+$router[] = new Route('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+'module' => 'frontend',
+'presenter' => 'dashboard',
+'action' => 'default'
+));
 
 /* Debug panel extensions */
-\Nette\Application\Diagnostics\RoutingPanel::initializePanel($application);
+\Nette\Diagnostics\Debugger::addPanel(new \Nette\Application\Diagnostics\RoutingPanel($router, $container->httpRequest));
 \Extras\Debug\ComponentTreePanel::register();
 \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
 \Panel\ServicePanel::register($container, $loader);

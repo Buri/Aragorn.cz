@@ -2,7 +2,7 @@
 {$title='Registrace'}
 {block content}
     <h1>Registrace</h1>
-{if Nette\Environment::getVariable('registrationEnabled')}
+{if $reg['enabled']}
 {if !$banned}
 {include #innercontent}
 {else}
@@ -10,5 +10,5 @@
 {/if}
 {else}
 <div>Registrace je uzavřena.</div>
-<div>{$closeReason = Nette\Environment::getVariable('registrationCloseReason')}</div>
+<div>{$reg['closeReason']}</div>
 {/if}

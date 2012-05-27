@@ -44,6 +44,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             Nette\Mail\Message::$defaultMailer = new \Schmutzka\Diagnostics\DumpMail($this->getContext()->session);
             // or with 2nd parameter, which sets email expiration in seconds
             //Message::$defaultMailer = new Schmutzka\Diagnostics\DumpMail($this->getContext()->session, 30);
+            \Nette\Diagnostics\Debugger::addPanel(new \Schmutzka\Panels\DumpMail($this->getContext()->session));
             \Extras\Debug\RequestsPanel::register();
             \Panel\User::register();
             \Panel\Navigation::register();
@@ -95,7 +96,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $u = DB::users('id', $id)->fetch();
         $v = $u->users_profiles()->fetch();
         $n = $v['urlfragment'];
-        $link = $this->link(':frontend:users:profile', $n);
+        $link = $this->link(':frontend:users:view', $n);
         if($html){
             $role = $u['groupid'];
             switch($role){

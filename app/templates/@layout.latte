@@ -20,66 +20,12 @@
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.addEvent('domready', function(){
-                /*new mBox.Tooltip({
-                    attach:'div#constat',
-                    setContent:'title',
-                    position:{
-                        x: 'right',
-                        y: 'center'
-                    }
-                });*/
                 new FloatingTips('div#constat',{
                     position:'bottom',
                     center:false
                 });                
             });
         </script>
-        <style>
-            menu#sidebar-left{
-                color: #000;
-            }
-            menu#sidebar-left a{
-                display:block;
-                color: #5a90fc;
-                padding: 5px;
-            }
-            menu#sidebar-left a:hover{
-                background-color: #C6C6C6;
-            }
-            
-            menu#sidebar-left a img{
-                max-width: 32px;
-                vertical-align: middle;
-            }
-            menu div.block{
-                margin: 5px;
-                background-color: #fff;
-                border-radius: 3px;
-                margin-bottom: 10px;
-                padding-bottom: 5px;
-            }
-            menu#sidebar-left div.block a.profile{
-                background: #ccc;
-                /*margin: -5px;*/
-                margin-bottom: 5px;
-                /*padding: 10px;*/
-                border-radius: 5px 5px 0 0;
-                color: #196bb7;
-                font-weight: bold;
-                text-align: center;
-            }
-            menu#sidebar-left div.block a.profile img{
-                max-width: 42px;
-                max-height: 54px;
-                border: 1px solid #C6C6C6;
-            }
-            menu#sidebar-left div.block input[type=text],menu#sidebar-left div.block input[type=password]{
-                width: 94%;
-            }
-            #frmLogin{
-                margin: 5px;
-            }
-        </style>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ''}">
@@ -113,7 +59,7 @@
                     <button onclick="window.open('http://' + location.host + ':8000', 'width=800,height=600,menubar=no,status=no,scrollbars=no,resizable=yes,left=0,top=0');">Server status</button> 
                     *}
                     {/if}
-                    <a href="{link logout}" class="middle" title="Odhlásit" id="menu-logout">
+                    <a href="{plink dashboard:logout}" class="middle" title="Odhlásit" id="menu-logout">
                         <img src="{$staticPath}/images/logout.png" /> Odhlásit
                     </a>
                     {else}

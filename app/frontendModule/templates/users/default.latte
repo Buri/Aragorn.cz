@@ -19,7 +19,7 @@
     }
     th {
         background-color:grey; padding: 2px; cursor: pointer; }
-td { padding: 2px;}
+    td { padding: 2px;}
 </style>
 <h>Uživatelé</h>
 <table id="mytable" cellspacing="0">
@@ -29,7 +29,10 @@ td { padding: 2px;}
     <tbody>
 {foreach $users as $user}
 <tr class="proflie-list-item{if $iterator->odd} table-tr-odd{/if}">{var $profile=$presenter->getUserProfile($user['id'])}
-    <td><a href="{$control->presenter->userLink($user,false)}"><img src="{$control->presenter->userIcon($user)}" class="proflile-list-icon" /></a></td>
+    <td><a href="{$control->presenter->userLink($user,false)}">
+            <img src="{$control->presenter->userIcon($user)}" class="proflile-list-icon" />
+        </a>
+    </td>
     <td>{!$control->presenter->userLink($user)}</td>
     <td>{!$profile['login']}</td>
     <td><img src="{$staticPath}/images/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></td>

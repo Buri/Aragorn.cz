@@ -386,3 +386,47 @@ body.dark{
 .dark .forum-last-message{
     float:right;display:inline-block;width: 130px;height: 100%;border-right: 1px solid white;text-align: center;
 }
+ .dark menu#sidebar-left{
+    color: #000;
+}
+.dark menu#sidebar-left a{
+    display:block;
+    color: #5a90fc;
+    padding: 5px;
+}
+.dark menu#sidebar-left a:hover{
+    background-color: #C6C6C6;
+}
+
+.dark menu#sidebar-left a img{
+    max-width: 32px;
+    vertical-align: middle;
+}
+.dark menu div.block{
+    margin: 5px;
+    background-color: #fff;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+.dark menu#sidebar-left div.block a.profile{
+    background: #ccc;
+    /*margin: -5px;*/
+    margin-bottom: 5px;
+    /*padding: 10px;*/
+    border-radius: 5px 5px 0 0;
+    color: #196bb7;
+    font-weight: bold;
+    text-align: center;
+}
+.dark menu#sidebar-left div.block a.profile img{
+    max-width: 42px;
+    max-height: 54px;
+    border: 1px solid #C6C6C6;
+}
+.dark menu#sidebar-left div.block input[type=text],.dark menu#sidebar-left div.block input[type=password]{
+    width: 94%;
+}
+.dark #frmLogin{
+    margin: 5px;
+}
