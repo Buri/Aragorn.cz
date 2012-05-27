@@ -12,6 +12,7 @@ namespace ajaxModule{
             header("Content-type: application/xml");
             header("Content-type: text/plain");
             #header("Content-type: text/html");
+            $this->node->setUser($this->context->user);
             $this->setView('default');
             $this->template->data = "";
         }

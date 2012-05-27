@@ -127,10 +127,13 @@ var http = require('http'),
         s.setEncoding('utf-8');
         s.on('data', function(data){
             var json = JSON.parse(data);
+            //console.log(json);
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
-                        SessionManager.login(json.data.nodeSession, json.data, function(sid){this.write(sid + '');}.bind(this));
+                        SessionManager.login(json.data.nodeSession, json.data, function(sid){
+                            this.write(sid + '');
+                        }.bind(this));
                         break;
                     case "user-logout":
                         SessionManager.logout(json.data.nodeSession);
@@ -145,7 +148,12 @@ var http = require('http'),
                         SessionManager.redis.get('connection-counter', function(err, res){
                             this.write(JSON.stringify(parseInt(res)));
                         }.bind(this));
-                        //this.write('0');
+                        break;
+                    case 'user-is-online':
+                        SessionManager.redis.exists('user-' + json.data.uid, function(err, res){
+                            this.write(JSON.stringify(parseInt(res)));
+                        }.bind(this));
+
                         break;
                     default:
                         if(Modules.isSet(json.command))
@@ -318,22 +326,32 @@ app.configure(function(){
         },
         login:function(sid, user, cb){
             //console.log(sid + ' - ', user);
-            this.redis.hmset(this.storageKey + sid + '-user',
+            var m = this.redis.multi();
+            m.hmset(this.storageKey + sid + '-user',
                 'id', user.id,
                 'name', user.username,
                 'preferences', JSON.stringify(user.preferences),
                 'permissions', JSON.stringify(user.permissions),
-                'roles', JSON.stringify(user.roles),
-                function(err){
+                'roles', JSON.stringify(user.roles)
+            );
+            m.set('user-' + user.id, sid);
+            m.incr('onlineusers-counter');
+            m.exec(function(err){
                     if(err) return;
                     /*this.redis.hgetall(this.storageKey + sid + '-user'/*, function(e, o){console.log(o);});*/
                     cb(sid);
                 }.bind(this));
         },
         logout:function(sid){
+            this.redis.decr('onlineusers-counter');
             this.setEmptyUser(sid);
         },
         setEmptyUser:function(sid){
+            SessionManager.redis.hgetall(SessionManager.storageKey + sid + '-user', function(err, usr){
+//                console.log(usr);
+                if(usr)
+                    SessionManager.redis.del('user-' + usr.id);
+            });
             SessionManager.redis.HMSET(SessionManager.storageKey + sid + '-user', 
                 'id', 0,
                 'roles', '[]',
@@ -345,8 +363,8 @@ app.configure(function(){
         },
         length:function(cb){
             if(!cb) return; 
-            this.redis.keys('session-*-user', function(err, res){
-                cb(res.length);
+            this.redis.get('onlineusers-counter', function(err, res){
+                cb(res);
             });
         },
         broadcastSessionNumber:function(){

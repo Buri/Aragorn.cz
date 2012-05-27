@@ -7,6 +7,12 @@ class Node extends Nette\Object{
      * @var NodeConnector
      */
     protected $connection;
+
+    /**
+     *
+     * @var Nette\Security\User
+     */
+    protected $user;
     
     /**
      *
@@ -15,7 +21,13 @@ class Node extends Nette\Object{
     function __construct(NodeConnector $connection) {
         $this->connection = $connection;
     }
-    
+
+    public function setUser(\Nette\Security\User $user) {
+        $this->user = $user;
+        return $this;
+    }
+
+
     /**
      *
      * @return NodeConnector
@@ -56,7 +68,7 @@ class Node extends Nette\Object{
     }
     
     static function changeStatus($status){
-        $user = Nette\Environment::getUser();
+        $user = $this->user;
         $data = json_encode(array("command" => "user-status-set",
                 "data" => array("PHPSESSID" => session_id(),
                     "nodeSession" => $_COOKIE["sid"],
@@ -73,7 +85,11 @@ class Node extends Nette\Object{
      * @return boolean 
      */
     public function isUserOnline($id = 0){
-        return false;
+        $data = json_encode(array("command" => "user-is-online",
+                "data" => array(
+                    "uid" => $id
+                )));
+        return $this->connection->writeRead($data, 4096);
     }
     
     /**
