@@ -71,7 +71,7 @@ foreach(array('presenter', 'action') as $type){
     foreach(explode(",", $container->params[$type . "RoutingTable"]) as $item){
         $item = explode(":", $item);
         $routing_table[$item[0]] = $item[1];
-        if($type == 'action') $knownActions[] = $item[0];
+        if($type == 'action') $knownActions[] = implode('|', $item);
     }
     Route::setStyleProperty($type,
             Route::FILTER_TABLE,
