@@ -29,6 +29,6 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
         if($role == 0 || Environment::getUser()->getId() == 0 || (is_array($role) && in_array(0, $role))) return true; 
         
         /* Return final priviledge */
-        return self::getInstance()->get($resource, $privilege);
+        return $this->permissions->get($resource, $privilege);
     }
 }
