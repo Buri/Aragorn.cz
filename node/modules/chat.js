@@ -112,7 +112,8 @@ exports.ChatServer = new Class({
         this.getUsers(cname, function(err, usr){
             var r = [];
             for(var i = 0; i < usr.length; i++)
-                r.push(usr[i].name);
+                if(usr[i].name)
+                    r.push(usr[i].name);
             cb(r);
         });
     },
@@ -129,6 +130,10 @@ exports.ChatServer = new Class({
         if(fetch){
             client.get('session-id', function(err, id){
                 this.redis.hgetall('session-' + id + '-user', function(err, usr){
+                    if(err){
+                        cb(err, null);
+                        return;
+                    }
                     usr.permissions = JSON.parse(usr.permissions);
                     usr.roles = JSON.parse(usr.roles);                        
                     usr.cacheTime = new Date().getTime();
@@ -147,10 +152,30 @@ exports.ChatServer = new Class({
         var cname = '/chat/' + (message.data.type || 'public') + '/' + (message.data.rid || 'null') + (message.data.whisper ? '/' + message.data.whisper : '');
         switch(message.data.action){
             case "enter":
-                client.join(cname); 
+                client.join(cname);
                 this.getUserProperty(client, 'name', function(err, name){
-                        client.join(cname + '/' + name); // Whisper
-                });
+                    this.redis.hmset(this.uRoomName(cname) + ':' + name, {'time':new Date().getTime()});
+                    client.join(cname + '/' + name); // Whisper
+                    client.on('disconnect', function(){
+                        var dc = new Date().getTime();
+                        setTimeout(function(){
+                            this.getUsers(cname, function(err, arr){
+                                var time = null;
+                                for(var i = 0; i < arr.length; i++){
+                                    console.log(arr[i].name == name,arr[i].name, name);
+                                    if(arr[i].name == name){
+                                        time = arr[i].time;
+                                        break;
+                                    }
+                                }
+                                if(dc > time){
+                                    this.removeUser(cname, name);
+                                    //this.sysMsg(cname, {cmd:'chat', data:{action:'post', message:name + ' zavřel(a) okno.'}}, true);
+                                }
+                            }.bind(this));                        
+                        }.bind(this), 10000);
+                    }.bind(this));
+                }.bind(this));
                 if(message.data.noqueue)
                     break;
             case "queue":
