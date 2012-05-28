@@ -235,6 +235,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             fclose($fp);
             $sid = $this->node->userlogin($user->getId(), $this->context->Permissions, $user);
             setCookie('sid', $sid, 0, '/');
+            $this->flashMessage("Přihlášení bylo úspěšné");
             $this->redirect(301, 'this');
         }
         catch(BanAuthenticationException $e){
@@ -251,6 +252,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             $this->redirect(301, 'ban:');
         }
         catch(\Nette\Security\AuthenticationException $e){
+            $this->flashMessage("Špatné uživatelské jméno nebo heslo");
             $this->redirect(301, 'badlogin:');
         }
     }
@@ -260,6 +262,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         setCookie('sid', $this->node->getConnection()->writeReadClose($data, 4096), 0, '/');
         $this->permissions->unload();
         $this->context->user->logout(true);
+        $this->flashMessage("Odhlášení proběhlo úspěšně");
         $this->redirect(301, "dashboard:default");
     }
 

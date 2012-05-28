@@ -47,7 +47,6 @@ body.dark{
     text-align: left;
 }
 .dark .logo{
-    aborder-bottom: 1px solid white;
     height:185px;
 }
 .dark .slide-left{
@@ -346,11 +345,11 @@ body.dark{
     bottom: -205px;
     height: 220px;*/
     text-align: center;
-    transition: bottom .2s linear;
+    -moz-transition: all .2s linear;
     border-radius: 6px 6px 0 0;
-    -moz-transition: bottom .2s linear;        
+    /*-moz-transition: bottom .2s linear;
     -o-transition: bottom .2s linear;
-    -webkit-transition: bottom .2s linear;
+    -webkit-transition: bottom .2s linear;*/
 }
 .dark .slideinform{
     bottom: 0;
@@ -386,19 +385,19 @@ body.dark{
 .dark .forum-last-message{
     float:right;display:inline-block;width: 130px;height: 100%;border-right: 1px solid white;text-align: center;
 }
- .dark menu#sidebar-left{
+ .dark menu{
     color: #000;
 }
-.dark menu#sidebar-left a{
+.dark menu a{
     display:block;
     color: #5a90fc;
     padding: 5px;
 }
-.dark menu#sidebar-left a:hover{
+.dark menu a:hover{
     background-color: #C6C6C6;
 }
 
-.dark menu#sidebar-left a img{
+.dark menu a img{
     max-width: 32px;
     vertical-align: middle;
 }
@@ -409,7 +408,7 @@ body.dark{
     margin-bottom: 10px;
     padding-bottom: 5px;
 }
-.dark menu#sidebar-left div.block a.profile{
+.dark menu div.block a.profile{
     background: #ccc;
     /*margin: -5px;*/
     margin-bottom: 5px;
@@ -419,12 +418,12 @@ body.dark{
     font-weight: bold;
     text-align: center;
 }
-.dark menu#sidebar-left div.block a.profile img{
+.dark menu div.block a.profile img{
     max-width: 42px;
     max-height: 54px;
     border: 1px solid #C6C6C6;
 }
-.dark menu#sidebar-left div.block input[type=text],.dark menu#sidebar-left div.block input[type=password]{
+.dark menu div.block input[type=text],.dark menu div.block input[type=password]{
     width: 94%;
 }
 .dark #frmLogin{

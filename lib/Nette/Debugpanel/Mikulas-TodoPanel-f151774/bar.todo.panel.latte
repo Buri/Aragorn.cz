@@ -5,10 +5,10 @@
 ?>
 
 <style n:syntax="double">
-td a {color: black !important;}
-td.todo a {color: inherit !important;}
-td.fixme a{color: rgb(255, 20, 20) !important;}
-td.pending a {color: rgb(200, 0, 200) !important;}
+#nette-debug-bar td a {color: black !important;}
+#nette-debug-bar td.todo a {color: inherit !important;}
+#nette-debug-bar td.fixme a{color: rgb(255, 20, 20) !important;}
+#nette-debug-bar td.pending a {color: rgb(200, 0, 200) !important;}
 </style>
 
 <h1>{$todoCount}&times;TODO (in {=count($todos)} file{if count($todos) != 0}s{/if})</h1>

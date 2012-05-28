@@ -1,4 +1,93 @@
 {$title='Úvodníky'}
 {block content}
-<div>Něco, co se bude zobrazovat absolutně všem vždy. Úvodníky, maybe?</div>
+<style>
+    .dark #editorial p{
+        white-space: pre-line;
+    }
+    .dark #top-picks{
+        display: inline-block;
+        width: 300px;
+        float: right;
+        border:0px solid #333;
+        background: #333;
+        min-height: 200px;
+        padding: 1px;
+        margin: 10px;
+    }
+    .dark #top-picks .pick{
+        display: inline-block;
+        width: 99%;
+        background: #222;
+        border: 1px solid #333;
+        padding: 3px;
+    }
+    .dark #top-picks .pick a.title{
+        display: block;
+        margin: 0px;
+        padding: 5px;
+        background-image: -moz-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+    }
+    .dark #top-picks .pick div.detail{
+        width: 240px;
+        display: inline-block;
+        padding: 5px;
+        font-size: small;
+        overflow: hidden;
+        height: 60px;
+        line-height: 20px;
+    }
+    .dark #top-picks .pick div.detail div{
+        white-space: pre-line;
+        -moz-transition: all .3s linear ;
+    }
+    .dark #top-picks .pick div.detail div:hover{
+        margin-top: -62px;
+    }
+</style>
+{if $user->isLoggedIn()}
+<div id="editorial">
+    <div id="top-picks">
+        {for $i = 0; $i < 3; $i++}
+        <div class="pick">
+            <a href="#" class="title">Název díla</a>
+            <img src="{$presenter->userIcon(2)}" style="float:left;max-height: 60px; max-width:47px; margin-top:5px;" />
+            <div class="detail">
+                <div>Kategorie: Lipsum
+                    Datum: 22.6.2018 16:18
+                    Komentáře: 6
+                    Hodnocení: 4,6*
+                    Zobrazení: 96
+                    Autor: {!$presenter->userlink(2, true)|trim}
+                </div>
+            </div>
+        </div>
+        {/for}
+    </div>
+    <h2>Editorial</h2>
+    <p>
+        je to tady!
+Ve spolupráci se servery Abarin, Andor, Aragorn, DarkAge, Dračí Doupě a Immortal Fighters jsme pro vás připravili soutěž Miss – Girls of Might and Magic 2012.
+O co půjde?
+V prvé řadě – jak jinak – o krásu. Nenechte se však zmást! Krása může mít mnoho podob a každému se líbí něco jiného. Tudíž neoprávněnou sebekritičnost stranou, stejně tak ostych a obavy, protože jak se říká: když nejde o život…
+
+Soutěžit se bude ve dvou kategoriích, a to: Krása a Sympatie. O druhé z kategorií se dozvíte bližší informace v pravý čas. Vězte však, že obdivu může dosáhnout skutečně každá z vás! A pokud ani toto není pro vás dostatečným lákadlem, co třeba ukázat, že slečny právě z vašeho serveru jsou ty NEJ?
+
+Jak se přihlásit?
+Velice snadno. Nezabere vám to více než pár okamžiků: na stránkách soutěže v sekci Soutěžící vyplníte formulář, kde napíšete něco málo o sobě a přiložíte vhodnou fotografii (dbejte na vizuální i technickou kvalitu – konec konců, dobrá fotografie je plusem pro vás); po schválení přihlášky administrátorem se oficiálně stáváte účastnicí klání.
+
+Sledujte dění na http://www.gomam.cz/ (oficiální stránky soutěže), popřípadě se ptejte v diskusi (tamtéž) či se obraťte na organizátory/porotu, jež jsou administrátoři delegovaní z vašich řad.
+
+To nejlepší nakonec – hlasování a odměny.
+V každé kategorii se vyberou tři favoritky (nebude-li to jedna a tatáž osoba), a to na základě hodnocení uživatelů. Konečné výsledky a výběr dvou královen Girls of Might and Magic bude mít na starost odborná porota z řad vašich oblíbených serverů. (Bližší informace o způsobu hodnocení se včas dozvíte.)
+
+Kromě skvělého pocitu z vítězství samozřejmě čekají na vítězky lákavé odměny! Ať už se jedná třeba o vstupenku na největší festival fantastiky a her Festival fantazie a dárkový balíček v hodnotě 2000 Kč od pořadatelů Festivalu Fantazie; profesionální focení v hodnotě 1500 Kč od nadané fotografky Jarky Hrnčárkové; anebo roční předplatné fantasy časopisu Pevnost. (Pro bližší informace sledujte kolonku Sponzoři.)
+
+Slavnostní vyhlášení a předání cen pak proběhne ve vskutku velkém stylu na Festivalu fantazie – tak jak se na pravé Miss sluší!
+
+FESTIVAL FANTAZIE 2012 29. 6. – 8. 7. 2012 Chotěboř Největší festival fantastiky a her v ČR – sci-fi, fantasy, horor, ale i další témata ve filmech, seriálech, anime, knihách, comicsech a hrách. Zahraniční a domácí herci, herní turnaje, divadelní a šermířská představení, koncerty, diskotéky, soutěže, besedy, přednášky a mnoho dalšího. Nejbohatší program ze všech obdobných akcí na světě! Hra o trůny, Pán prstenů, Harry Potter, Zeměplocha, Stmívání, Stargate, Star Trek, Star Wars, Červený Trpaslík, Dr. Who: to je pouze zlomek témat ze zábavy, která vás čeká na jednom z největších festivalů v Evropě. DOSLOVA FANTASTICKÁ DOVOLENÁ!
+    </p>
+</div>
 {control widgets}
+{else}
+{include 'unlogged.latte'}
+{/if}

@@ -46,7 +46,6 @@ $application->catchExceptions = FALSE; //TRUE;
 
 $router = $application->getRouter();
 $router[] = new Route('index.php', 'frontend:dashboard:default', Route::ONE_WAY);
-$router[] = new Route('index.php', 'frontend:dashboard:default', Route::ONE_WAY);
 $router[] = new Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'module' => 'ajax',
                 'presenter' => 'ajax',
@@ -57,11 +56,11 @@ $router[] = new Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
                 'presenter' => 'dashboard',
                 'action' => 'default'
 ));
-$router[] = new Route('logout/', array(
+/*$router[] = new Route('logout/', array(
                 'module' => 'frontend',
                 'presenter' => 'dashboard',
                 'action' => 'logout',
-));
+));*/
 
 
 /* Load routing table from config.neon */
@@ -78,7 +77,7 @@ foreach(array('presenter', 'action') as $type){
             $routing_table);
 }
 
-$router[] = new Route('[<presenter>/[<action '.implode('|', $knownActions).'>/[<id>/[<param>/]]]]', array(
+/*$router[] = new Route('[<presenter>/[<action '.implode('|', $knownActions).'>/[<id>/[<param>/]]]]', array(
 'module' => 'frontend',
 'presenter' => 'dashboard',
 'action' => 'default'
@@ -89,8 +88,8 @@ $router[] = new Route('<presenter>/<id>/[<param>/]', array(
 'presenter' => 'dashboard',
 'action' => 'view'
 ));
-
-$router[] = new Route('[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+*/
+$router[] = new Route('[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
 'module' => 'frontend',
 'presenter' => 'dashboard',
 'action' => 'default'

@@ -9,7 +9,14 @@
  * @param string   $title    page title
  *}
 {if $ajax}
-<script type="text/javascript">document.title='{!$title} | Aragorn.cz';{if $forceReload}/*$$('.ajax').removeClass('ajax');*/location.reload();{/if}</script>
+<script type="text/javascript">document.title='{!$title} | Aragorn.cz';
+    {foreach $flashes as $flash}
+    AC.flashMessage({$flash->message}, {$flash->type}});
+    {/foreach}
+    {if $forceReload}/*$$('.ajax').removeClass('ajax');*/
+        location.reload();
+    {/if}
+</script>
 {include #content}
 {else}
 <!DOCTYPE html>
@@ -17,6 +24,12 @@
     <head>
         {include 'head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
+        <style>
+            .dark menu div.block p{
+                color:#000;
+                padding: 5px;
+            }
+        </style>
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
             window.addEvent('domready', function(){
@@ -33,10 +46,7 @@
         {* {include 'topmenu.latte'} *}
         <div class="holder" style="width:980px;">
             {include 'logo.latte'}
-            <div class="content" id="content" style="width:833px; float:left;">
-                {include #content}
-            </div>
-            <menu id="sidebar-left" style="width: 130px; float:left; display:inline-block;min-height: 500px; padding: 12px 3px; background: url(/assets/images/dark/bg/content.png); margin-right: -1px;">
+            <menu id="sidebar-left" style="width: 130px; float:left; display:inline-block;min-height: 500px; padding: 12px 3px; background: url(/assets/images/dark/bg/content.png); margin-right: 0px;">
                 <div class="block">
                     {if $user->isLoggedIn()}
                     <!--DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
@@ -63,6 +73,7 @@
                         <img src="{$staticPath}/images/logout.png" /> Odhlásit
                     </a>
                     {else}
+                    <a href="#" class="profile">Přihlášení</a>
                     <div id="frmLogin">
                             {form logInForm}
                             {label username /}: {input username}
@@ -76,6 +87,7 @@
                     {/if}
                 </div>
                 <div class="block">
+                    <a href="#" class="profile">Komunita</a>
                     <a href="{link chat:}" class="middle ajax" id="menu-chat">
                         <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">{count(
                             \Utilities::array_flatten(
@@ -86,11 +98,11 @@
                         <img src="{$staticPath}/images/users-icon.png" />
                         Lidé (<span id="numUsrOnline">{$node->getNumberOfUsersOnline()}</span>)
                     </a>
-                    <a href="{link help:}" class="middle ajax" id="menu-help">
-                        <img src="{$staticPath}/images/help-icon.png" /> Nápověda
-                    </a>
                     <a href="{link calendar:}" class="middle ajax" id="menu-calendar">
                         <img src="{$staticPath}/images/dark/menu/calendar.png" /> Akce
+                    </a>
+                    <a href="{link help:}" class="middle ajax" id="menu-help">
+                        <img src="{$staticPath}/images/help-icon.png" /> Nápověda
                     </a>
                     <div id="iddlebar"></div>
                 </div>
@@ -101,34 +113,64 @@
                     <a href="">Gold</a>
                     <a href="">Nostalgia</a>
                 </div>
-            </menu>    
-        </div>
-        <!--<menu id="sidebar-right" style="border-left: 1px solid white; width: 150px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px; text-align: left;">
-            <div id="bookmarks"></div>
-            <script type="text/javascript">
-                var bookmarks = null, Bookmarks, tree;
-                window.addEvent('load', function(){
-                    tree = new Mif.Tree({
-                    container: $('bookmarks'),
-                    forest: true,
-                    initialize: function(){
-                            new Mif.Tree.Drag(this, {
-                            });
-                    },
-                    types: {
-                            folder: {
-                                    openIcon: 'mif-tree-open-icon',
-                                    closeIcon: 'mif-tree-close-icon'
-                            }
-                    },
-                    dfltType: 'folder'
-            });
-
-            tree.load({ url:'/test.json'});
-
+            </menu>
+            <div class="content" id="content" style="width:700px; float:left;">
+                <ul n:if="count($flashes)" class="flashes">
+                    {foreach $flashes as $flash}
+                    <li>{$flash->message}</li>
+                    {/foreach}
+                </ul>
+                {include #content}
+            </div>
+            <menu id="sidebar-right" style="border-left: 0px solid white; width: 126px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px; text-align: left;background: url(/assets/images/dark/bg/content.png);">
+                <div class="block">
+                    <a href="#" class="profile">Sloupek</a>
+                    <p>
+                        Nějaké novinky
+                    </p>
+                </div>
+                {if $user->isLoggedIn()}
+                <div class="block">
+                    <a href="#" class="profile">Záložky</a>
+                    <ul id="bookmarks">
+                        <li>Záložka 1</li>
+                        <li>Záložka 2</li>
+                        <li>Záložka 3</li>
+                    </ul>
+                </div>
+                {else}
+                <div class="block">
+                    <a href="#" class="profile">Jak začít?</a>
+                    <p>
+                        Nějaký stručný návod jak začít.
+                    </p>
+                </div>
+                {/if}
+                <script type="text/javascript">
+   /*                 var bookmarks = null, Bookmarks, tree;
+                    window.addEvent('load', function(){
+                        tree = new Mif.Tree({
+                        container: $('bookmarks'),
+                        forest: true,
+                        initialize: function(){
+                                new Mif.Tree.Drag(this, {
+                                });
+                        },
+                        types: {
+                                folder: {
+                                        openIcon: 'mif-tree-open-icon',
+                                        closeIcon: 'mif-tree-close-icon'
+                                }
+                        },
+                        dfltType: 'folder'
                 });
-            </script>
-        </menu>    -->
+
+                tree.load({ url:'/test.json'});
+
+                    });*/
+                </script>
+            </menu>
+        </div>
         <footer>
             Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.
             Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
@@ -143,5 +185,10 @@
         </div>
     </body>
     {include 'scripts.latte'}
+    <script>
+        setTimeout(function(){
+            $('nette-debug').dispose();
+        }, 1000);
+    </script>
 </html>
 {/if}

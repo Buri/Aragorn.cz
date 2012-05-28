@@ -9,7 +9,7 @@ namespace frontendModule{
         
         public function actionWidgets($options = "{}"){
             $options = json_decode($options);
-            $wl = new \frontendModule\WidgetsControl;
+            $wl = new \Components\WidgetListControl;
             $installed = $wl->getList();
             if(!$installed) $installed = array();
             $wi = array();
@@ -91,7 +91,6 @@ namespace frontendModule{
                 $image->resizeImage(120, 120, null, 1, true); // nova velikost
                 file_put_contents($outputfile, $image->getImageBlob());
             }else{
-                
                 $fid = uniqid($uid . '_') . '.png';
                 $outputfile = WWW_DIR . '/../userspace/i/' . $fid;
                 $icon = Image::fromFile($file);
@@ -103,7 +102,8 @@ namespace frontendModule{
                 $icon->save($outputfile);
             }
             $r = \DB::users_profiles('id', $uid)->fetch();
-            unlink(WWW_DIR . '/../userspace/i/' . $r['icon']);
+
+            if($r['icon'] != 'default.png') unlink(WWW_DIR . '/../userspace/i/' . $r['icon']);
             \DB::users_profiles('id', $uid)->update(array('icon' => $fid));
             
             /* Unlink will be done automatically every 24h by cron */
