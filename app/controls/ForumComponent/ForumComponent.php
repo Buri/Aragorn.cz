@@ -46,6 +46,7 @@ namespace Components{
             $this->template->newforum = false;
             $this->template->noticeboard = "";
             $this->template->parent = $this;
+            $nav = array();
             if(isset($url) && $url != ""){
                 $p = DB::forum_topic('urlfragment', $url)->fetch();
                 $fid = $p['id'];
@@ -54,10 +55,12 @@ namespace Components{
                 $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
                 $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
                 $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
-                do{
+                $parent = $fid;
+                while($parent){
+                    $p = DB::forum_topic('id', $parent)->fetch();
                     $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
-                    $p = DB::forum_topic('id', $p['parent'])->fetch();
-                }while($p["parent"]);
+                    $parent = $p['parent'];
+                }
                 $info = DB::forum_topic('id', $fid)->fetch();
                 $this->template->info = $info;
                 $this->template->fid = $fid;
@@ -92,9 +95,12 @@ namespace Components{
          * @return boolean|array
          */
         public function getLastPost($forum){
-            $r = DB::forum_posts('forum', $forum)->order('time DESC')->limit(1);
-            if(!$r->count()) return false;
-            $r = $r->fetch();
+            $p = DB::forum_topic('id', $forum)->fetch();
+            $pid = $p['lastpost'];
+            if(intval($pid) == 0) return false;
+            $r = DB::forum_posts('id', $pid)->fetch();
+            /*if(!$r->count()) return false;
+            $r = $r->fetch();*/
             return array('time' => $r['time'], 'author'=>$this->template->control->presenter->userLink($r['author']));
         }
 
@@ -104,8 +110,12 @@ namespace Components{
          * @return array
          */
         public function getPostCount($forum){
-            $c = DB::forum_posts('forum', $forum)->select('count(id) as count')->fetch();
-            $u = DB::forum_visit('idforum = ? AND iduser = ?', array($forum, $this->context->user->getId()))->fetch();
+            $c = DB::forum_topic('id', $forum)->select('postcount as count')->fetch();
+            //echo $c;
+            if($this->context->user->isLoggedIn())
+                $u = DB::forum_visit('idforum = ? AND iduser = ?', array($forum, $this->context->user->getId()))->fetch();
+            else
+                $u = array('unread' =>0);
             return array('total' => $c['count'], 'unread' => $u == null ? (int)$c['count'] : (int)$u['unread']);
         }
 
@@ -123,17 +133,49 @@ namespace Components{
          *
          * @param int $forumId
          */
-        public function invalidateForumCache($forumId){
+        /*public function invalidateForumCache($forumId){
             $this->cache->clean(array(
                 \Nette\Caching\Cache::TAGS => array('discussion/'.$forumId),
             ));
+            
+        }*/
+
+        /**
+         * Propagate new post all the way up to root forum and clear cache
+         * @param int $forumId
+         * @param int $postId
+         */
+        public function propagateNewPost($forumId, $postId){
+            /*$this->cache->clean(array(
+                \Nette\Caching\Cache::TAGS => array('discussion/'.$forumId),
+            ));*/
+            $parent = $forumId;
+            $ids = array();
             do{
-                $f = DB::forum_topics('id', $forumId)->fetch();
-                $parent = $f['parent'];
+                $ids[] = $parent;
+                $f = DB::forum_topic('id', $parent);
+                $f->update(array(
+                    "postcount" => new \NotORM_Literal('postcount + 1'),
+                    "lastpost" => $postId
+                    ));
+                $f = $f->fetch();
                 $this->cache->clean(array(
                     \Nette\Caching\Cache::TAGS => array('forum/'.$parent),
                 ));
-            }while($parent);
+                $parent = intval($f['parent']);
+            }while($parent != 0 && $parent != -1 );
+            /* And clear top level forum cache */
+            DB::forum_visit('idforum',  $ids)->update(array(
+                "time" => new \NotORM_Literal('unix_timestamp()'),
+                "unread" => new \NotORM_Literal('unread + 1')
+            ));
+            $this->cache->clean(array(
+                    \Nette\Caching\Cache::TAGS => array('forum-root'),
+                ));
+        }
+
+        public function propagatePostDeletion($forumId){
+            
         }
 
         public static function deleteForum($id){
@@ -167,7 +209,7 @@ namespace Components{
 
         public function createComponentDiscussion(){
             $c = new \Components\DiscussionComponent; //($this, $name, "hola");
-            return $c->setCache($this->context->cacheStorage);
+            return $c->setCache($this->context->cacheStorage)->setUser($this->context->user);
         }
 
         public static function getIdByPath($path){

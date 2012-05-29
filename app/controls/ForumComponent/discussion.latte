@@ -67,9 +67,12 @@
 {*
   * @todo: vyřešit kešování pro různé uživatele
   *}
-{cache $id, tags => ['discussion/' . $id]}
+{cache $id.'//'.$vp->getPaginator()->getPage(), tags => ['discussion/' . $id], expire=>'+ 20 minutes', sliding=>true }
+{control vp}
 <div class="discussion">
-    {foreach DB::forum_posts('forum', $info['id'])->order('time desc')->select('*') as $post}
+    {var $posts = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($vp->getPaginator()->getLength(), $vp->getPaginator()->getOffset())}
+    {if count($posts)}
+    {foreach $posts as $post}
     <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
         <a name="msg{$post['id']}" />
         <div class="head">
@@ -90,11 +93,14 @@
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
-            <span class="post-text">{!\Components\DiscussionComponent::parseBB($post->forum_posts_data['post'])}</span>
+            <span class="post-text">{\Components\DiscussionComponent::parseBB($post->forum_posts_data['post'])}</span>
             <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
         </div>
     </div>
     {/foreach}
+    {else}
     <i>Tato diskuze nemá žádné příspěvky.</i>
+    {/if}
 </div>
+{control vp}
 {/cache}

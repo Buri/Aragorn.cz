@@ -5,6 +5,8 @@ production:
   nette:
     session:
       expiration: '+ 1 year'
+    templateCacheStorage:
+      class: Nette\Caching\Storages\MemcachedStorage(%memcache.host%, %memcache.port%)
   services:
     robotLoader:
       run: true

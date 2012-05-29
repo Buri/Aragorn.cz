@@ -8,6 +8,8 @@ body.dark{
     margin: 0;
     padding: 0;
     color: #fff;
+    font-family: Verdana, Arial, Helvetica;
+    font-size: 14px;
 }
 .dark cite{
     font-style: italic;

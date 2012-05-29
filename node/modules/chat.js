@@ -162,7 +162,6 @@ exports.ChatServer = new Class({
                             this.getUsers(cname, function(err, arr){
                                 var time = null;
                                 for(var i = 0; i < arr.length; i++){
-                                    console.log(arr[i].name == name,arr[i].name, name);
                                     if(arr[i].name == name){
                                         time = arr[i].time;
                                         break;
