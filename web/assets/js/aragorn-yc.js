@@ -298,6 +298,7 @@ window.addEvents({'domready': function(){
     new LazyLoad({elements:'img.ll'});
     AC.profileLinkTips = new FloatingTips($$('a.user-link'), {
         html:true,
+        position:'right',
         content:function(e){
             var tt = e.get('data-profileinfo');
             if(tt) return new Element('div', {html:tt});
@@ -308,7 +309,7 @@ window.addEvents({'domready': function(){
                 setTimeout(function(){
                     $$('a[href=' + e.get('href') + ']').set('data-profileinfo', null);
                 }, 30000);
-                AC.profileLinkTips.hide(e).show(e);
+                AC.profileLinkTips.toggle(e).toggle(e);
             }.bind(this), 'get');
             return "Načítám...";
         }

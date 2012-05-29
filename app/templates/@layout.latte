@@ -72,6 +72,23 @@
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
             window.addEvent('domready', function(){
+                /* Skin swap animation */
+                document.body.addEvent('click:relay(a.change-skin)', function(e){
+                    new Event(e).stop();
+                    if(this.get('data-relay')){
+                        this.set('data-relay', null);
+                        return;
+                    }
+                    this.set('data-relay', true);
+                    var b = document.body;
+                    b.addClass('transition');
+                    b.removeClass(Cookie.read('skin'));
+                    Cookie.write('skin', this.get('data-skin'));
+                    b.addClass(this.get('data-skin'));
+                    setTimeout(function(){
+                        document.body.removeClass('transition');
+                    }, 3000);
+                });
                 new FloatingTips('div#constat',{
                     position:'bottom',
                     center:false
@@ -126,6 +143,12 @@
                     {/if}
                 </div>
                 <div class="block">
+                    <a href="#" class="profile">Sloupek</a>
+                    <p>
+                        Nějaké novinky
+                    </p>
+                </div>
+                <div class="block">
                     <a href="#" class="profile">Komunita</a>
                     <a href="{link chat:}" class="middle ajax" id="menu-chat">
                         <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">{count(
@@ -147,26 +170,10 @@
                 </div>
                 <div class="block">
                     <a href="" class="profile">Skiny</a>
-                    <a href="">Dark</a>
-                    <a href="">Light</a>
-                    <a href="">Gold</a>
-                    <a href="">Nostalgia</a>
-                </div>
-            </menu>
-            <div class="content" id="content" style="width:700px; float:left;">
-                <ul n:if="count($flashes)" class="flashes">
-                    {foreach $flashes as $flash}
-                    <li>{$flash->message}</li>
-                    {/foreach}
-                </ul>
-                {include #content}
-            </div>
-            <menu id="sidebar-right" style="border-left: 0px solid white; width: 126px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px; text-align: left;background: url(/assets/images/dark/bg/content.png);">
-                <div class="block">
-                    <a href="#" class="profile">Sloupek</a>
-                    <p>
-                        Nějaké novinky
-                    </p>
+                    <a href="" class="change-skin" data-skin="dark">Dark</a>
+                    <a href="" class="change-skin" data-skin="light">Light</a>
+                    <a href="" class="change-skin" data-skin="gold">Gold</a>
+                    <a href="" class="change-skin" data-skin="nostalgia">Nostalgia</a>
                 </div>
                 {if $user->isLoggedIn()}
                 <div class="block">
@@ -185,6 +192,17 @@
                     </p>
                 </div>
                 {/if}
+            </menu>
+            <div class="content" id="content" style="width:832px; float:left;">
+                <ul n:if="count($flashes)" class="flashes">
+                    {foreach $flashes as $flash}
+                    <li>{$flash->message}</li>
+                    {/foreach}
+                </ul>
+                {include #content}
+            </div>
+            {* <menu id="sidebar-right" style="border-left: 0px solid white; width: 126px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px; text-align: left;background: url(/assets/images/dark/bg/content.png);">
+                
                 <script type="text/javascript">
    /*                 var bookmarks = null, Bookmarks, tree;
                     window.addEvent('load', function(){
@@ -208,7 +226,7 @@
 
                     });*/
                 </script>
-            </menu>
+            </menu> *}
         </div>
         <footer>
             Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.

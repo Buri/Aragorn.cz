@@ -16,7 +16,7 @@
     }
     .dark #top-picks .pick{
         display: inline-block;
-        width: 99%;
+        width: 292px;
         background: #222;
         border: 1px solid #333;
         padding: 3px;
@@ -26,9 +26,12 @@
         margin: 0px;
         padding: 5px;
         background-image: -moz-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -webkit-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -o-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -ms-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
     }
     .dark #top-picks .pick div.detail{
-        width: 240px;
+        width: 232px;
         display: inline-block;
         padding: 5px;
         font-size: small;
@@ -38,7 +41,11 @@
     }
     .dark #top-picks .pick div.detail div{
         white-space: pre-line;
-        -moz-transition: all .3s linear ;
+        -moz-transition: all .3s linear;
+        -webkit-transition: all .3s linear;
+        -o-transition: all .3s linear;
+        -ms-transition: all .3s linear;
+        transition: all .3s linear;
     }
     .dark #top-picks .pick div.detail div:hover{
         margin-top: -62px;
