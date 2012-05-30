@@ -1,39 +1,62 @@
 <?php
 
 namespace frontendModule{
-    use Nette\Environment;
+    use Nette\Application\UI\Form;
     
     class galleryPresenter extends \BasePresenter {
         public function renderDefault() {
-          //$juzr= $user->geIdentity()->username ;
-          
-          $top[1]['nazev']="pokus";
-          $top[1]['adresa']="http://chachatelier.fr/programmation/images/mozodojo-mosaic-image.jpg";
-          $top[1]['autor']="baba jaga";
-          
-          $top[2]['nazev']="pokus2";
-          $top[2]['adresa']="http://coolcosmos.ipac.caltech.edu/cosmic_classroom/multiwavelength_astronomy/multiwavelength_museum/images/sun_euv19.gif";
-          $top[2]['autor']="baba jaga";
-          
-          $galerie[1]['nazev']="pokus";
-          $galerie[1]['adresa']="http://chachatelier.fr/programmation/images/mozodojo-mosaic-image.jpg";
-          $galerie[1]['autor']="baba jaga";
-          
-          $galerie[2]['nazev']="pokus2";
-          $galerie[2]['adresa']="http://coolcosmos.ipac.caltech.edu/cosmic_classroom/multiwavelength_astronomy/multiwavelength_museum/images/sun_euv19.gif";
-          $galerie[2]['autor']="baba jaga";
-          
-          $galerie[3]['nazev']="pokus";
-          $galerie[3]['adresa']="http://chachatelier.fr/programmation/images/mozodojo-mosaic-image.jpg";
-          $galerie[3]['autor']="baba jaga";
-          
-          $galerie[4]['nazev']="pokus2";
-          $galerie[4]['adresa']="http://coolcosmos.ipac.caltech.edu/cosmic_classroom/multiwavelength_astronomy/multiwavelength_museum/images/sun_euv19.gif";
-          $galerie[4]['autor']="baba jaga";
-          
-          //$this->getTemplate()->user = $juzr;
-          $this->getTemplate()->top = $top;
-          $this->getTemplate()->galerie = $galerie;
+            $this->template->db = $this->context->database;
+
+        }
+
+        public function createComponentUploadForm(){
+            $form = new Form;
+            $form->addText('title', 'Název díla')
+                    ->addRule(Form::FILLED, 'Dílo se musí nějak jmenovat.');
+            $form->addTextArea('description', 'Popis díla')
+                    ->addRule(Form::FILLED, 'Zadejte popis')
+                    ->addRule(Form::MIN_LENGTH, 'Popis musí mít alespoň 30 znaků.', 30);
+            $form->addHidden('file')
+                    ->addRule(Form::FILLED, 'Nahrajte váš obrázek tlačítkem vpravo.');
+
+            $form->onSuccess[] = callback($this, 'uploadNewImage');
+
+            $form->addSubmit('send', 'Odeslat dílo');
+            return $form;
+        }
+
+        /**
+         *
+         * @param Form $form
+         */
+        public function uploadNewImage(Form $form){
+            if($this->user->isLoggedIn()){
+                $v = $form->getValues();
+                $v['time'] = time();
+                $v['author'] = $this->user->getId();
+                
+                $src = APP_DIR . '/../userspace/u/' . $v['file'];
+                if(!file_exists($src)){
+                    $this->flashMessage('Při zpracování souboru došlo k chybě.');
+                    $this->redirect($this);
+                }
+
+                /* Process uploaded image */
+                $img =\Nette\Image::fromFile($src, $format);
+                if($img->width > $img->height){
+                    $img->resize(140, null);
+                }else{
+                    $img->resize(null, 140);
+                }
+
+                $img->save(APP_DIR . '/../userspace/g/thumbs/'.$v['file'], null, $format);
+                rename($src, APP_DIR . '/../userspace/g/'.$v['file']);
+                $this->context->database->gallery()->insert($v);
+                $this->flashMessage('Obrázek byl odeslán ke schválení.');
+            }else{
+                $this->flashMessage('Nahrávat smí pouze přihlášení uživatelé.');
+            }
+            $this->redirect('this');
         }
     }
 }

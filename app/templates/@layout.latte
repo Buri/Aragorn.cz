@@ -25,6 +25,76 @@
         {include 'head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
         <style>
+.mooupload_error {
+  color: #FF0000;
+}
+
+.mooupload_noerror {
+  color: #008000;
+}
+
+.mooupload_btncontainer {
+  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
+  padding: 10px;
+}
+
+.mooupload_btncontainer button {
+  /*border: 1px solid #C5C5C5;*/
+  padding: 2px 5px 3px 20px;
+  /*background-color: #F3F3F3;*/
+  font-size: 12px;
+  margin-right: 10px;
+  /*-webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;*/
+  width: 130px;
+  height: 60px;
+}
+
+.mooupload_btncontainer button.addfile {
+  background: url(/assets/images/dark/buttons/dropbox.png) center center no-repeat;
+  border: none;
+  vertical-align: middle;
+  height: 130px;
+}
+
+.mooupload_btncontainer button.start {
+  background: #F3F3F3 url(/assets/images/accept.png) 3px center no-repeat;
+}
+
+.mooupload_btncontainer button:active {
+}
+
+.mooupload_btncontainer div.progresscont {
+  display: none;
+  width: 100px;
+  height: 11px;
+  border: 1px solid #000;
+  float: right;
+  margin: 10px 80px 0 0;
+  background-color: #FFFFFF;
+}
+
+.mooupload_progressbar {
+  text-align: center;
+  font-size: 8px;
+  display: block;
+  width: 0px;
+  height: 100%;
+}
+
+.mooupload_off {
+  background: #FFF url(/assets/images/progress_grey.gif) center left repeat-x;
+}
+
+.mooupload_on {
+  background: #FFF url(/assets/images/progress.gif) center left repeat-x;
+}
+
+.dark ul.module-menu li{
+        display: inline-block;
+        margin-left: 15px;
+    }
             .dark menu div.block p{
                 color:#000;
                 padding: 5px;
@@ -116,6 +186,9 @@
                     </a>
                     <a href="{link mail:}" class="middle ajax" title="Pošta" id="menu-post">
                         <img src="{$staticPath}/images/unread_mail.png" /> Pošta
+                    </a>
+                    <a href="{link notes:my}" class="middle" id="menu-notes" title="Osobní poznámky">
+                        <img src="{$staticPath}/images/rs.png" /> Poznámky
                     </a>
                     {if $user->isAllowed('admin')}
                     <a href="{link :admin:dashboard:}" class="middle" id="menu-admin" title="Redakční systém">

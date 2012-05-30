@@ -142,6 +142,12 @@ namespace ajaxModule{
             </div>";
         }
 
+        public function actionChangechatcolor($color = null){
+            $this->context->database->users_preferences('id', $this->user->getId())->update(array("chatcolor"=>$color));
+            $p = $this->context->preferences->get($this->getUser()->getId());
+            $this->getUser()->getIdentity()->preferences = $p['preferences'];
+            $this->template->data = "OK";
+        }
 
     }
 }

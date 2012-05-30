@@ -121,8 +121,8 @@
 <div class="feature">
     <fieldset n:syntax="double">
         <caption>Barva</caption>
-        {{$user->getIdentity()->preferences->chat->color}}
-        Barva: <div id="ccolor" style="cursor: pointer;background-color: {{!$user->getIdentity()->preferences->chat->color}}; display: inline-block; width: 40px;">&nbsp;</div>
+        {{$user->getIdentity()->preferences['chat']['color']}}
+        Barva: <div id="ccolor" style="cursor: pointer;background-color: {{!$user->getIdentity()->preferences['chat']['color']}}; display: inline-block; width: 40px;">&nbsp;</div>
     </fieldset> 
 
 </div> 
@@ -135,7 +135,10 @@
                 $('ccolor').setStyle('background-color', c.hex);
             },
             onComplete:function(c){
-                console.log(c.hex);
+                AC.ajax('changechatcolor', {color:c.hex}, function(){
+                    AC.message('Barva byla změněna');
+                });
+                //console.log(c.hex);
             }
         });
     });

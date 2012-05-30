@@ -1,0 +1,13 @@
+{extends '../../templates/@layout.latte'}
+{$title='Galerka'}
+{block content}
+<h1>Galerka</h1>
+<style></style>
+<ul class="module-menu">
+    <li><a n:href="upload">Nahrát vlastní obrázek</a></li>
+    <li><a n:href="my">Moje obrázky</a></li>
+    <li><a n:href="statistics">Statistika</a></li>
+    <li><a n:href="forum: 'galerie'">Diskuze</a></li>
+</ul>
+{include #innercontent}
+{/block}

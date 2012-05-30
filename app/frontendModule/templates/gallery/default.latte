@@ -1,25 +1,7 @@
 {$title = 'Galerie'}
-{define #image}
-  <div style="border:1px solid gold; width:100px; display:inline-block; margin:10px;">
-    <span>{$obr['nazev']}</span>
-    <img src="{$obr['adresa']}" style="border:0; padding:3px; width:90px">
-    <span>autor : {$obr['autor']}</span>
-  </div>
-{/define}
-
-{block #content}
-<div style="border:1px solid silver;">
-    <h2>Galerie {$user->getIdentity()->username} </h2>
-    <div style="border:1px solid silver;">
-      <h3>Top artwork</h3>
-      {foreach $top as $img}
-        {include #image, obr => $img}           
-      {/foreach}  
-    </div>
-    <div style="border:1px solid silver;">
-      <h3>Prohlížení</h3>
-      {foreach $galerie as $img}
-        {include #image, obr => $img}  
-      {/foreach}  
-    </div>
-</div>
+{block #innercontent}
+{* cache galerka*}
+{foreach $db->gallery('state', 3)->order('time desc')->limit(20) as $image}
+{/foreach}
+{* /cache*}
+{/block}

@@ -1,0 +1,55 @@
+{$title = 'Galerie'}
+{block #innercontent}
+<style>
+    #frm-uploadForm{
+        width: 450px;
+    }
+    #form-right-holder{
+        float: right;
+        display: inline-block;
+        width: 400px;
+        height: 400px;
+        text-align: center;
+    }
+</style>
+<div id="form-right-holder">
+    <img src="" id="dropbox" style="max-width: 350px; max-height:350px;"/>
+    <div id="filecontrol"></div>
+</div>
+{control uploadForm}
+<script type="text/javascript" src="{!$staticPath}/js/mooupload.js"></script>
+<script type="text/javascript" src="{!$staticPath}/js/ysr-crop.js"></script>
+<script n:syntax="double">    
+    window.addEvent('domready', function(){
+        $('dropbox').slide('hide');
+        new MooUpload('filecontrol', {
+            action: '/upload.php',		// Server side upload script
+            method: 'auto',             	// Automatic upload method (Choose the best)
+            multiple:false,
+            autostart:true,
+            listview:false,
+            blocksize: 102400,                // 500kb upload limit
+            flash: {
+                movie: '/assets/flash/Moo.Uploader.swf'
+            },
+            onLoad: function() {
+                    //document.id('filecontrol').grab(new Element('p', { html: '<strong>Best method detected:</strong> '+this.options.method }), 'bottom');
+            },
+            onFileUpload: function(fileindex, response){
+                if(response.error) return;
+                var p = '{{!$userPath}}/u/' + response.upload_name;
+                $('frmuploadForm-file').set('value', response.upload_name);
+                $('dropbox').addEvent('load', function(){
+                    $('filecontrol').slide('out');
+                    $('dropbox').slide('in');
+                });
+                $('dropbox').set('src', p);
+            },
+            texts: {
+                selectfile : ''
+            }
+	});
+    });
+</script>
+
+{/block}

@@ -35,13 +35,20 @@ abstract class BaseAuthenticator extends \Nette\Object implements \Nette\Securit
 
     /**
      *
+     * @var Preferences
+     */
+    protected $preferences;
+
+    /**
+     *
      * @param NotORM |null$db
      */
-    function __construct($db = null){
+    function __construct(Preferences $prefs, $db = null){
         if($db === null)
             $this->db = DB::getInstance();
         else
             $this->db = $db;
+        $this->preferences = $prefs;
     }
 
     /**
@@ -50,10 +57,10 @@ abstract class BaseAuthenticator extends \Nette\Object implements \Nette\Securit
      * @throws BanAuthenticationException
      */
     protected function tryBan(){
-        $bans = DB::bans()->where('user = ? OR ip = ?', array($this->id, $_SERVER["REMOTE_ADDR"]))->where('expires >= ?', time())->order('expires DESC');
+        $bans = $this->db->bans()->where('user = ? OR ip = ?', array($this->id, $_SERVER["REMOTE_ADDR"]))->where('expires >= ?', time())->order('expires DESC');
         foreach($bans as $ban){
-            $x = DB::users('id = ?', $ban["author"])->select("username")->fetch();
-            $y = DB::users('id = ?', $ban["user"])->select("username")->fetch();
+            $x = $this->db->users('id = ?', $ban["author"])->select("username")->fetch();
+            $y = $this->db->users('id = ?', $ban["user"])->select("username")->fetch();
             throw new BanAuthenticationException((string)$x["username"] . ";" . (string)$y["username"], self::BANNED, $ban);
         }        
     }
@@ -64,13 +71,9 @@ abstract class BaseAuthenticator extends \Nette\Object implements \Nette\Securit
      * @return \Nette\Security\Identity
      */
     protected function newId(){
-        $prefs = DB::users_preferences("id", $this->id)->fetch();
-        // vrátíme identitu
+        $p = $this->preferences->get($this->id);
         return new \Nette\Security\Identity($this->id,
                 array($this->gid),
-                array(
-                    "username" => $this->name,
-                    "preferences" => json_decode($prefs["preference"]
-                            )));
+                $p);
     }
 }

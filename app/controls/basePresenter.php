@@ -203,7 +203,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     
     public function handleLogin($v, $btn = 'login'){
         $user = $this->context->user;
-        $user->setAuthenticator(new UserAuthenticator);
+        $user->setAuthenticator($this->context->authenticator);
         try{
             $user->login($v["username"], $v["password"]);
             if($v['forever']){

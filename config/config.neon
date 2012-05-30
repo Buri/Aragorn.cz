@@ -13,6 +13,8 @@ production:
       class: Nette\Loaders\RobotLoader
     authorizator:
       class: \UserAuthorizator
+    authenticator:
+      class: UserAuthenticator
     cacheStorage:
       class: Nette\Caching\Storages\MemcachedStorage(%memcache.host%, %memcache.port%)
     NodeConnector:
@@ -21,6 +23,12 @@ production:
       class: Node
     Permissions:
       class: Permissions
+    database:
+      class: NotORM
+    pdo:
+      class: PDO(%database.driver%:%database.params%, %database.user%, %database.password%)
+    preferences:
+      class: Preferences(@database)
     
   parameters:
     lockdown: false

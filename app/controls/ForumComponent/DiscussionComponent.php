@@ -33,6 +33,12 @@ namespace Components{
         /** @persistent */
         protected $forumId;
 
+        /**
+         *
+         * @var Nette\Security\User
+         */
+        protected $user;
+
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
         }
@@ -47,6 +53,15 @@ namespace Components{
             $this->cache = new \Nette\Caching\Cache($st, 'discussion');
             return $this;
         }
+        /**
+         *
+         * @param \Nette\Security\User $user
+         * @return \Components\DiscussionComponent
+         */
+        public function setUser(\Nette\Security\User $user){
+            $this->user = $user;
+            return $this;
+        }
 
         /**
          *
@@ -55,11 +70,20 @@ namespace Components{
         public function render($url = null){
             #$this->redirect('this');
             $this->template->staticPath = $this->presenter->template->staticPath;
-            $user = \Nette\Environment::getUser();
+            $user = $this->user;
             $this->template->setFile(__DIR__ . '/discussion.latte');
 
             $info = DB::forum_topic('urlfragment', $url)->fetch();
             $opt = $info['options'];
+            
+            $vp = new \VisualPaginator($this, 'vp');
+            $paginator = $vp->getPaginator();
+            $paginator->setItemsPerPage(20);
+            $paginator->setItemCount(DB::forum_posts('forum', $info['id'])->count());
+            $this->template->vp = $vp;
+            //dump($this->getParent()->context->request);
+            if(isset($this->getParent()->getParent()->getRequest()->parameters["forum-discussion-vp-page"]))
+                $paginator->setPage($this->getParent()->getParent()->getRequest()->parameters["forum-discussion-vp-page"]);
 
             $this->forumId = $info['id'];
 
@@ -101,6 +125,7 @@ namespace Components{
             $form->onSuccess[] = callback($this, 'addPost');
             return $form;
         }
+
         /**
          *
          * @param \Nette\Application\UI\Form $form
@@ -115,7 +140,7 @@ namespace Components{
                 );
             $post = $v["post"];
             unset($v["post"]);
-            DB::forum_posts()->insert($postdata);
+            $pst = DB::forum_posts()->insert($postdata);
             DB::forum_posts_data()->insert(array('post'=>$post));
             DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
             $this->parent->setLastAccess();
@@ -125,9 +150,11 @@ namespace Components{
             $cache->clean(array(
                 \Nette\Caching\Cache::TAGS => array('discussion/'.$urlf),
             ));
-            $this->getParent()->invalidateForumCache($url);
+            /* Propagate new post all the way up */
+            $this->getParent()->propagateNewPost($url, $pst['id']);
             $this->redirect('this');
         }
+
         /**
          *
          * @param integer $postid
@@ -142,6 +169,7 @@ namespace Components{
                 DB::forum_posts_data('id', $postid)->delete();
                 $cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage);
                 $cache->remove(array(\Nette\Caching\Cache::TAGS => array('discussion/'.$url)));
+                $this->getParent()->propagatePostDeletion($f['id']);
             }
         }
         /**
