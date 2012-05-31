@@ -16,6 +16,7 @@
     <img src="" id="dropbox" style="max-width: 350px; max-height:350px;"/>
     <div id="filecontrol"></div>
 </div>
+{if $user->isLoggedIn()}
 {control uploadForm}
 <script type="text/javascript" src="{!$staticPath}/js/mooupload.js"></script>
 <script type="text/javascript" src="{!$staticPath}/js/ysr-crop.js"></script>
@@ -51,5 +52,5 @@
 	});
     });
 </script>
-
+{/if}
 {/block}

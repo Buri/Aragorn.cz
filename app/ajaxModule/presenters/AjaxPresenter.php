@@ -149,5 +149,17 @@ namespace ajaxModule{
             $this->template->data = "OK";
         }
 
+        public function actionForumGetSinglePost($postid){
+            $this->setView('forum-post');
+            $this->template->post = $this->context->database->forum_posts('id', $postid)->fetch();
+            $this->template->postd = $this->context->database->forum_posts_data('id', $postid)->fetch();
+        }
+
+        public function actionLoadForumPost($postid){
+            $this->setView('forum-post-raw');
+            $p = $this->context->database->forum_posts_data('id', $postid)->fetch();
+            $this->template->data = $p['post'];
+        }
+
     }
 }

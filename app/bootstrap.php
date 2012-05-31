@@ -17,7 +17,7 @@ $configurator->setTempDirectory(__DIR__ . '/../temp');
 $loader = $configurator->createRobotLoader()->addDirectory(APP_DIR)->addDirectory(LIBS_DIR)->register();
 $configurator->addConfig(CFG_DIR . '/config.neon');
 $container = $configurator->createContainer();
-#$container->session->setExpiration('+ 365 days');
+$container->session->setExpiration('+ 1 year');
 
 if($container->parameters["lockdown"] == 'true'){
     require_once APP_DIR . "/templates/lockdown.html";

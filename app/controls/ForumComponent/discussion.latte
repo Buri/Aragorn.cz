@@ -1,3 +1,19 @@
+<style>
+    .post-text a.citation{
+        padding: 5px;
+        padding-right: 15px;
+        border-radius: 5px;
+        background: #666;
+        display: block;
+    }
+    .post-text cite{
+        display: none;
+        border-left: 10px solid #fff;
+    }
+    .post-text cite.show{
+        display: block;
+    }
+</style>
 {if $write}
 <div class="newPost">
     {form forumForm}
@@ -16,50 +32,6 @@
     <br/>
     {input send id=>'post'}
     {/form}
-    <script type="text/javascript">
-        /*$('frm-forum-discussion-forumForm').addEvent('submit', function(e){
-            new Event(e).stop()
-            var f = new Form.Request(this, $('content'));
-            f.addEvent('success', function(){ console.log('done'); $('frmforumForm-post').set('value', '');}.bind(this));
-            f.send();
-        });*/
-        var showNMD = function(){
-            $$('.newPost')[0].addClass('slideinform'); 
-            //$('frmforumForm-post').focus();
-        }
-        $('frmforumForm-post').addEvent('keydown', function(e){
-            if(e.key == 'enter' && e.shift){
-                e.stop();
-                $('post').click(); //.fireEvent('submit');
-            }
-        });
-        $$('a.alert.button').addEvent('click', function(e){
-            new Event(e).stop();
-            AC.message('Report', 'Send report');
-        });
-        $$('a.edit.button').addEvent('click', function(e){
-            new Event(e).stop();
-            AC.message('Edit', 'Editace příspěvku');
-        });
-        $$('a.delete.button').addEvent('click', function(e){
-            new Event(e).stop();
-            if(confirm('Opravdu chcete smazat tento příspěvek?')){
-                AC.ajax('forumdeletepost', { id:this.get('data-postid')}, function(html){ 
-                    if(html[2].get('text') == 'ok')
-                        AC.Ajax.reloadLocation();
-                    else
-                        AC.message('Chyba', 'Smazání se nezdařilo. Máte příslušná oprávnění?');
-                });
-            }
-        });
-        $$('a.cite.button').addEvent('click', function(e){
-            new Event(e).stop();
-            showNMD();
-            var post = this.getParent().getParent().getParent();
-            var txt = '[cite=' + post.get('name') + ']' + post.getElement('span').get('text').trim() + '[/cite]\n';
-            $('frmforumForm-post').insertAtCursor(txt, false).focus();
-        });
-    </script>
 </div>
 {else}
 <div class="no-new-post">Nemáte právo přispívat do této diskuze.</div>
@@ -67,7 +39,7 @@
 {*
   * @todo: vyřešit kešování pro různé uživatele
   *}
-{cache $id.'//'.$vp->getPaginator()->getPage(), tags => ['discussion/' . $id], expire=>'+ 20 minutes', sliding=>true }
+{*cache $id.'//'.$vp->getPaginator()->getPage(), tags => ['discussion/' . $id], expire=>'+ 20 minutes', sliding=>true *}
 {control vp}
 <div class="discussion">
     {var $posts = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($vp->getPaginator()->getLength(), $vp->getPaginator()->getOffset())}
@@ -82,19 +54,19 @@
         <div class="post-body">
             <div class="post-info">
                 {if $write}
+                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
                 {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
-                <a href="#" class="edit button" title="Upravit příspěvek">&nbsp;</a>
+                <a href="#" class="edit button" title="Upravit příspěvek" data-id="{$post['id']}">&nbsp;</a>
                 <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
                 {/if}
-                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
                 <a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
-                {if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
-                {/if}
+                {*if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
+                {/if*}
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
-            <span class="post-text">{\Components\DiscussionComponent::parseBB($post->forum_posts_data['post'])}</span>
-            <div class="status">{!$control->presenter->userStatus($post['author']);}</div>
+            <span class="post-text">{!\Components\DiscussionComponent::parseBB(htmlspecialchars($post->forum_posts_data['post']))}</span>
+            <div class="status">{$control->presenter->userStatus($post['author'])}</div>
         </div>
     </div>
     {/foreach}
@@ -103,4 +75,68 @@
     {/if}
 </div>
 {control vp}
-{/cache}
+<script type="text/javascript">
+        /*$('frm-forum-discussion-forumForm').addEvent('submit', function(e){
+            new Event(e).stop()
+            var f = new Form.Request(this, $('content'));
+            f.addEvent('success', function(){ console.log('done'); $('frmforumForm-post').set('value', '');}.bind(this));
+            f.send();
+        });*/
+
+    $$('.discussion').addEvents({
+        'click:relay(a.alert.button)':function(e){
+            new Event(e).stop();
+            AC.message('Report', 'Send report');
+            //console.log(this);
+            return false;
+        },
+        'click:relay(a.cite.button)':function(e){
+            new Event(e).stop();
+            var post = this.getParent().getParent().getParent();
+            var txt = '[cite=' + post.get('name') + ']' + post.getElement('div').get('text').trim()  + ' - ' + post.getElement('i').get('text').trim() + '[/cite]\n';
+            $('frmforumForm-post').insertAtCursor(txt, false).focus();
+        },
+        'click:relay(a.delete.button)':function(e){
+            new Event(e).stop();
+            if(confirm('Opravdu chcete smazat tento příspěvek?')){
+                AC.ajax('forumdeletepost', { id:this.get('data-postid')}, function(html){
+                    if(html[2].get('text') == 'ok')
+                        AC.Ajax.reloadLocation();
+                    else
+                        AC.message('Chyba', 'Smazání se nezdařilo. Máte příslušná oprávnění?');
+                });
+            }
+        },
+        'click:relay(a.edit.button)':function(e){
+            new Event(e).stop();
+            if($('frmforumForm-post').get('value').length && !confirm('Editací příspěvku ztratíte rozepsaný text.\nChcete pokračovat?')) return;
+            AC.ajax('LoadForumPost', {
+                postid:this.get('data-id')
+            }, function(reply){
+                console.log(reply)
+                $('frmforumForm-post').set('value', reply[2].get('text'));
+            });
+        },
+        'click:relay(a.citation)':function(e){
+            new Event(e).stop();
+            var el = this.nextSibling;
+            el.toggleClass('show');
+            if(!el.hasClass('show') || el.get('data-xhr-loaded')) return;
+            var msgid = el.get('data-msg').substr(3);
+            AC.ajax('forumGetSinglePost', {
+                postid:msgid
+            }, function(reply){
+                this.set('html', '');
+                this.set('data-xhr-loaded', true);
+                this.grab(reply[0]);
+            }.bind(el));
+        }
+    });
+        $('frmforumForm-post').addEvent('keydown', function(e){
+            if(e.key == 'enter' && e.shift){
+                e.stop();
+                $('post').click(); //.fireEvent('submit');
+            }
+        });
+    </script>
+{*/cache*}

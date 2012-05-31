@@ -296,7 +296,7 @@ var AragornClient = new Class({
 
 window.addEvents({'domready': function(){
     new LazyLoad({elements:'img.ll'});
-    AC.profileLinkTips = new FloatingTips($$('a.user-link'), {
+   /* AC.profileLinkTips = new FloatingTips($$('a.user-link'), {
         html:true,
         position:'right',
         content:function(e){
@@ -309,11 +309,11 @@ window.addEvents({'domready': function(){
                 setTimeout(function(){
                     $$('a[href=' + e.get('href') + ']').set('data-profileinfo', null);
                 }, 30000);
-                AC.profileLinkTips.toggle(e).toggle(e);
+                AC.profileLinkTips.hide(e).show(e);
             }.bind(this), 'get');
             return "Načítám...";
         }
-    });
+    });*/
     if(window.AUTHENTICATED && false){
         var iddlebar = new MoogressBar('iddlebar', {
             bgImage:'http://static.aragorn.cz/images/dark/progressbar/blue.gif', 
@@ -342,7 +342,7 @@ window.addEvents({'domready': function(){
                     onComplete:function(){
                         AC.resetInactivity();
                         $('content').removeClass('contentLoading');
-                        AC.profileLinkTips.attach($$('a.user-link'));
+                        //AC.profileLinkTips.attach($$('a.user-link'));
                         //spinner.stopSpin();
                     },
                     onFailure:function(){

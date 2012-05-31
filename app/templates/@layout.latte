@@ -23,122 +23,7 @@
 <html lang="cs" xml:lang="cs" xmlns="http://www.w3.org/1999/xhtml">
     <head>
         {include 'head.latte'}
-        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.joined.css" />
-        <style>
-.mooupload_error {
-  color: #FF0000;
-}
-
-.mooupload_noerror {
-  color: #008000;
-}
-
-.mooupload_btncontainer {
-  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
-  padding: 10px;
-}
-
-.mooupload_btncontainer button {
-  /*border: 1px solid #C5C5C5;*/
-  padding: 2px 5px 3px 20px;
-  /*background-color: #F3F3F3;*/
-  font-size: 12px;
-  margin-right: 10px;
-  /*-webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;*/
-  width: 130px;
-  height: 60px;
-}
-
-.mooupload_btncontainer button.addfile {
-  background: url(/assets/images/dark/buttons/dropbox.png) center center no-repeat;
-  border: none;
-  vertical-align: middle;
-  height: 130px;
-}
-
-.mooupload_btncontainer button.start {
-  background: #F3F3F3 url(/assets/images/accept.png) 3px center no-repeat;
-}
-
-.mooupload_btncontainer button:active {
-}
-
-.mooupload_btncontainer div.progresscont {
-  display: none;
-  width: 100px;
-  height: 11px;
-  border: 1px solid #000;
-  float: right;
-  margin: 10px 80px 0 0;
-  background-color: #FFFFFF;
-}
-
-.mooupload_progressbar {
-  text-align: center;
-  font-size: 8px;
-  display: block;
-  width: 0px;
-  height: 100%;
-}
-
-.mooupload_off {
-  background: #FFF url(/assets/images/progress_grey.gif) center left repeat-x;
-}
-
-.mooupload_on {
-  background: #FFF url(/assets/images/progress.gif) center left repeat-x;
-}
-
-.dark ul.module-menu li{
-        display: inline-block;
-        margin-left: 15px;
-    }
-            .dark menu div.block p{
-                color:#000;
-                padding: 5px;
-            }
-                 /*
-	(c) 2009 David Grudl. All rights reserved.
-*/
-
-
-.dark .paginator {
-    margin: 1em 0;
-    font-size: 90%;
-    text-align: center;
-}
-
-.dark .paginator a, .dark .paginator span {
-    margin-right: 0.1em;
-    padding: 0.2em 0.5em;
-    color: #999999;
-    background-color: #333;
-}
-
-.dark .paginator a {
-    border: 1px solid #9AAFE5;
-    text-decoration: none;
-    color: #cccccc;
-}
-.dark .paginator a:hover {
-    background: #ccc;
-    color:#333;
-}
-
-.dark .paginator span.button {
-    border: 1px solid #DDDDDD;
-}
-
-.dark .paginator .current {
-    background: #CCC;
-    border: 1px solid #CCC;
-    color: white;
-    font-weight: bold;
-}
-
-        </style>
+        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.css" />
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
             window.addEvent('domready', function(){
@@ -168,11 +53,14 @@
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ''}">
+        <menu id="bookmarks">
+            <a n:for="$i = 0; $i < 20; $i++" href="#">Záložka {$i}</a>
+        </menu>
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         {* {include 'topmenu.latte'} *}
         <div class="holder" style="width:980px;">
             {include 'logo.latte'}
-            <menu id="sidebar-left" style="width: 130px; float:left; display:inline-block;min-height: 500px; padding: 12px 3px; background: url(/assets/images/dark/bg/content.png); margin-right: 0px;">
+            <menu id="sidebar-left">
                 <div class="block">
                     {if $user->isLoggedIn()}
                     <!--DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
@@ -182,24 +70,24 @@
                         <img src="{$presenter->userIcon()}" /> {$user->getIdentity()->username}
                     </a>
                     <a href="{link settings:}" class="middle" title="Nastavení" id="menu-settings">
-                        <img src="{$staticPath}/images/settings.png" /> Nastavení
+                       {* <img src="{$staticPath}/images/settings.png" /> *} Nastavení
                     </a>
                     <a href="{link mail:}" class="middle ajax" title="Pošta" id="menu-post">
-                        <img src="{$staticPath}/images/unread_mail.png" /> Pošta
+                        {*<img src="{$staticPath}/images/unread_mail.png" />*} Pošta
                     </a>
                     <a href="{link notes:my}" class="middle" id="menu-notes" title="Osobní poznámky">
-                        <img src="{$staticPath}/images/rs.png" /> Poznámky
+                        {*<img src="{$staticPath}/images/rs.png" />*} Poznámky
                     </a>
                     {if $user->isAllowed('admin')}
                     <a href="{link :admin:dashboard:}" class="middle" id="menu-admin" title="Redakční systém">
-                        <img src="{$staticPath}/images/rs.png" /> RS
+                        {*<img src="{$staticPath}/images/rs.png" /> *} RS
                     </a>
                     {* <button onclick="AC.send('SESS');">Info</button> 
                     <button onclick="window.open('http://' + location.host + ':8000', 'width=800,height=600,menubar=no,status=no,scrollbars=no,resizable=yes,left=0,top=0');">Server status</button> 
                     *}
                     {/if}
                     <a href="{plink dashboard:logout}" class="middle" title="Odhlásit" id="menu-logout">
-                        <img src="{$staticPath}/images/logout.png" /> Odhlásit
+                        {*<img src="{$staticPath}/images/logout.png" />*} Odhlásit
                     </a>
                     {else}
                     <a href="#" class="profile">Přihlášení</a>
@@ -224,20 +112,20 @@
                 <div class="block">
                     <a href="#" class="profile">Komunita</a>
                     <a href="{link chat:}" class="middle ajax" id="menu-chat">
-                        <img src="{$staticPath}/images/chat-icon.png" /> Chat (<span id="numChatOnline">{count(
+                        {*<img src="{$staticPath}/images/chat-icon.png" />*} Chat (<span id="numChatOnline">{count(
                             \Utilities::array_flatten(
                             \frontendModule\chatPresenter::getChatroomOccupants(
                             $node->getConnection())))}</span>)
                     </a>
                     <a href="{link users:}" class="middle ajax" id="menu-users" title="Celkem připojení: {$node->getNumberOfConnections()}">
-                        <img src="{$staticPath}/images/users-icon.png" />
+                       {* <img src="{$staticPath}/images/users-icon.png" />*}
                         Lidé (<span id="numUsrOnline">{$node->getNumberOfUsersOnline()}</span>)
                     </a>
                     <a href="{link calendar:}" class="middle ajax" id="menu-calendar">
-                        <img src="{$staticPath}/images/dark/menu/calendar.png" /> Akce
+                      {*  <img src="{$staticPath}/images/dark/menu/calendar.png" />*} Akce
                     </a>
                     <a href="{link help:}" class="middle ajax" id="menu-help">
-                        <img src="{$staticPath}/images/help-icon.png" /> Nápověda
+                     {*   <img src="{$staticPath}/images/help-icon.png" />*} Nápověda
                     </a>
                     <div id="iddlebar"></div>
                 </div>
@@ -245,18 +133,18 @@
                     <a href="" class="profile">Skiny</a>
                     <a href="" class="change-skin" data-skin="dark">Dark</a>
                     <a href="" class="change-skin" data-skin="light">Light</a>
-                    <a href="" class="change-skin" data-skin="gold">Gold</a>
-                    <a href="" class="change-skin" data-skin="nostalgia">Nostalgia</a>
+                    {*<a href="" class="change-skin" data-skin="gold">Gold</a>
+                    <a href="" class="change-skin" data-skin="nostalgia">Nostalgia</a>*}
                 </div>
                 {if $user->isLoggedIn()}
-                <div class="block">
+               {* <div class="block">
                     <a href="#" class="profile">Záložky</a>
                     <ul id="bookmarks">
                         <li>Záložka 1</li>
                         <li>Záložka 2</li>
                         <li>Záložka 3</li>
                     </ul>
-                </div>
+                </div>*}
                 {else}
                 <div class="block">
                     <a href="#" class="profile">Jak začít?</a>
@@ -317,7 +205,7 @@
     {include 'scripts.latte'}
     <script>
         setTimeout(function(){
-       //     $('nette-debug').dispose();
+            $('nette-debug').dispose();
         }, 1000);
     </script>
 </html>

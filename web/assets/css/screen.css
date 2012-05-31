@@ -1,0 +1,1046 @@
+/*
+    Document   : screen.css
+    Created on : 8.7.2011, 14:20:20
+    Author     : Buri
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+.transition *{
+    -moz-transition: all 1s linear ;
+    -webkit-transition: all 1s linear ;
+    -ms-transition: all 1s linear ;
+    -o-transition: all 1s linear ;
+    transition: all 1s linear ;
+}
+
+
+/* DARK skin */
+body.dark{
+    background-color: #000;
+    /*background: url('/images/dark/bg/bg.jpg') no-repeat center 0 fixed transparent;*/
+    background: url('/images/dark/bg/bg.png') no-repeat center top black;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    font-family: Verdana, Arial, Helvetica;
+    font-size: 14px;
+}
+
+.dark div.holder{
+    /*background: url(http://s1.aragorn.cz/g/gallery/bg.jpg) repeat-y center;*/
+    background: #000;
+}
+.dark footer{
+/*background: url(http://s1.aragorn.cz/g/gallery/footer.jpg) no-repeat center;*
+margin-top: -2px;*/
+}
+
+/* generic elements */
+
+/* generic classes */
+.hide{
+    display:none;
+}
+.offline{
+    background-color: red;
+    color: white;
+}
+.online{
+    background-color: lime;
+    color: #000;
+}
+
+
+/* bookmarks */
+.dark menu#bookmarks{
+    position:fixed;
+    top:0;
+    right:-149px;
+    width: 150px;
+    border-left: 14px solid silver;
+    overflow: auto;
+    -moz-transition: all 0.2s ease-in-out;
+    height: 100%;
+}
+.dark menu#bookmarks:hover{
+    right:0px;
+}
+
+/* floating tips */
+.dark .floating-tip {
+    background-color: #333;
+    border: 1px solid #666;
+    padding: 5px 15px;
+    color: #dddddd;
+    font-weight: bold;
+    font-size: 11px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    opacity: 0.8;
+}
+
+/* connection status */
+#constat{
+    display: none;
+}
+.runac #constat{
+    display: inline-block;
+    position: fixed;
+    left: 5px;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+}
+
+/* selects */
+.dark .mc_display {
+	color: #333333;
+	font-size: 11px;
+	background-image: url(moochoose_select_bgs.png);
+	line-height: 20px;
+	vertical-align: middle;
+	display: inline-block;
+	text-align: left;
+	overflow: hidden;
+	white-space: nowrap;
+	cursor: default;
+	outline: none;
+	outline-style: none;
+/*	-moz-outline-style:none;*/
+}
+.dark .mc_display:hover {
+	background-position: 0 -20px;
+	color: #000000;
+}
+.dark .mc_display.active {
+	background-position: 0 -40px;
+	color: #000000;
+}
+.dark .mc_display .mc_opener {
+	background-image: url(moochoose_select_bgs.png);
+	background-position: -910px -60px;
+	height: 20px;
+	width: 30px;
+	position: absolute;
+}
+.dark .mc_display:hover .mc_opener {
+	background-position: -940px -60px;
+}
+.dark .mc_display.active .mc_opener {
+	background-position: -970px -60px;
+}
+.dark .mc_display .mc_options {
+	border: solid 1px #CCC;
+	margin-bottom: -1px;
+	display: none;
+	background-color: #FFF;
+}
+.dark .mc_display .mc_option {
+	display: block;
+	padding: 0 3px 0 11px;
+	margin: 0 3px;
+	border-bottom: solid 1px #e4e4e4;
+	font-size: 11px;
+	color: #333;
+	line-height: 19px;
+	text-align: left;
+	white-space: nowrap;
+	cursor: default;
+}
+.dark .mc_display .mc_option:hover, .dark .mc_display .mc_option.hover {
+	color: #000;
+	padding: 0 3px 0 11px;
+	border-bottom: solid 1px #CCC;
+	background-color: #F8F8F8;
+	background-image: url(moochoose_select_bgs.png);
+	background-position: 0 -60px;
+}
+.dark .mc_display .mc_option.active {
+	color: #003947;
+	border-bottom: solid 1px #b0cdd6;
+	font-weight: bold;
+	background-color: #d9e7ec;
+	background-image: url(moochoose_select_bgs.png);
+	background-position: 0 -80px;
+}
+
+/* Message Boxes */
+.dark .msgBox{
+	font-family:Arial, Helvetica, sans-serif;
+	opacity: 0;
+	position:absolute;
+	top:-1000px;
+	left:0px;
+	max-width: 250px;
+	min-width: 150px;
+	color:#aaa;
+	background: rgb(0, 0, 0); /* compatibility fallback */
+	background: rgba(0, 0, 0, 0.8);
+	padding: 10px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	-moz-box-shadow: 2px 2px 6px #666;
+	-webkit-box-shadow: 2px 2px 5px #bbb;
+	z-index:-1;
+}
+
+.dark .msgBoxImage{
+	width: 40px;
+	height: 40px;
+}
+
+.dark .msgBoxIcon{
+	float:left;
+	width: 40px;
+	height: 40px;
+	padding-right: 7px;
+}
+
+.dark .msgBoxTitle{
+	float:left;
+	color: #FFFFFF;
+}
+
+.dark .msgBoxContent{
+	float:left;
+	max-width: 80%;
+	font-size:12px;
+}
+
+.dark .msgBoxMessage{		float:left;}
+.dark .msgBoxLink{		color:#6699CC;}
+.dark .msgBoxLink:hover{	color:#FF9900;}
+
+.dark .msgEditable{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	width:250px;
+	background: rgb(0, 0, 0); /* compatibility fallback */
+	background: rgba(255, 255, 255, 0.1);
+	border:#000;
+	color:#FFF;
+}
+
+.dark .mBox.Core {
+	font-size:12px;
+	line-height:normal;
+}
+.dark .mBox.Core .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+}
+.dark .mBox.Core .mBoxContent,
+.dark .mBox.Core .mBoxTitle,
+.dark .mBox.Core .mBoxFooter {
+	padding:15px;
+/*	word-break: break-all;*/
+}
+.dark .mBox.Core.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+/*** modal theme: default ***/
+
+.dark .mBox.Modal {
+	font-size:12px;
+	line-height:normal;
+        color: #000;
+}
+.dark .mBox.Modal .mBoxContainer {
+	background:#fff;
+	border:6px solid #fff;
+	-webkit-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	-moz-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	/*-webkit-border-radius:5px;
+	-moz-border-radius:5px;*/
+	border-radius:5px;
+}
+.dark .mBox.Modal .mBoxContent {
+	background:#fff;
+	padding:15px;
+	border:1px solid #b0b0b0;
+/*	word-break:break-all;*/
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	border-radius:2px;
+}
+.dark .mBox.Modal.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.dark .mBox.Modal.hasFooter .mBoxContent {
+	-webkit-border-bottom-left-radius:0;
+	-moz-border-radius-bottomleft:0;
+	border-bottom-left-radius:0;
+	-webkit-border-bottom-right-radius:0;
+	-moz-border-radius-bottomright:0;
+	border-bottom-right-radius:0;
+}
+.dark .mBox.Modal.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.dark .mBox.Modal .mBoxTitle {
+	position:relative;
+	color:#707070;
+	font-size:14px;
+	text-shadow:0 1px 0 #fff;
+	padding: 7px 15px;
+	border:1px solid #b0b0b0;
+	border-bottom:0;
+	background-color:#f8f8f8;
+/*	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);*/
+/*	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);*/
+	/*filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);*/
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:2px;
+	-moz-border-radius-topleft:2px;
+	border-top-left-radius:2px;
+	-webkit-border-top-right-radius:2px;
+	-moz-border-radius-topright:2px;
+	border-top-right-radius:2px;
+}
+.dark .mBox.Modal .mBoxTitleContainer.mBoxDraggable {
+	cursor:move;
+}
+.dark .mBox.Modal .mBoxClose {
+	display:block;
+	width:13px;
+	height:13px;
+	padding:0px 0px 0px 0px;
+	position:absolute;
+	top:15px;
+	right:22px;
+	background-color:#fff;
+	border:1px solid #dadada;
+	-webkit-border-radius:10px;
+	-moz-border-radius:10px;
+	border-radius:10px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	-moz-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+}
+.dark .mBox.Modal .mBoxClose div {
+	opacity:0.65;
+	width:7px;
+	height:7px;
+	position:absolute;
+	top:3px;
+	left:3px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+}
+.dark .mBox.Modal .mBoxClose:hover {
+	border-color:#c0c0c0;
+}
+.dark .mBox.Modal .mBoxClose:hover div {
+	opacity:1;
+}
+.dark .mBox.Modal .mBoxClose:hover {
+	background-position:-17px -52px;
+}
+.dark .mBox.Modal .mBoxFooterContainer {
+	background-color:#f6f6f6;
+	border:1px solid #b0b0b0;
+	border-top:0;
+	padding:7px 15px;
+	-webkit-border-bottom-left-radius:2px;
+	-moz-border-radius-bottomleft:2px;
+	border-bottom-left-radius:2px;
+	-webkit-border-bottom-right-radius:2px;
+	-moz-border-radius-bottomright:2px;
+	border-bottom-right-radius:2px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.dark .mBox.Modal .mBoxFooter {
+
+}
+.dark .mBox.Modal .mBoxButtonContainer {
+	text-align:right;
+}
+.dark .mBox.Modal .mBoxButton {
+	margin-right:10px;
+}
+.dark .mBox.Modal .mBoxButtonLast {
+	margin-right:0px;
+}
+
+/*** modal: confirm ***/
+
+.dark .mBox.Modal.Confirm .mBoxContent {
+	color:#555555;
+	font-size:16px;
+	padding:30px 30px 30px 75px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+}
+.dark .mBox.Modal.Confirm .mBoxButtonContainer {
+	text-align:center;
+}
+
+/*** notice theme: default ***/
+
+.dark .mBox.Notice {
+	font-size:16px;
+	line-height:normal;
+}
+.dark .mBox.Notice .mBoxContainer {
+	color:#fff;
+	text-shadow:0 -1px 1px #000;
+	padding:20px 30px;
+	cursor:pointer;
+	background-color:#000;
+	background:rgba(0, 0, 0, 0.85);
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+}
+.dark .mBox.Notice .mBoxContent {
+/*	word-break:break-all;*/
+}
+
+/*** notice icons ***/
+
+.dark .mBox.Notice .mBoxNoticeOk,
+.dark .mBox.Notice .mBoxNoticeSuccess,
+.dark .mBox.Notice .mBoxNoticeError,
+.dark .mBox.Notice .mBoxNoticeCancel,
+.dark .mBox.Notice .mBoxNoticeInfo,
+.dark .mBox.Notice .mBoxNoticeNotice,
+.dark .mBox.Notice .mBoxNoticeAttention {
+	padding-left:70px;
+	background-image:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png');
+	background-repeat:no-repeat;
+}
+
+/*** notice: ok ***/
+
+.dark .mBox.Notice .mBoxNoticeOk,
+.dark .mBox.Notice .mBoxNoticeSuccess {
+	background-position:20px -187px;
+}
+
+/*** notice: error ***/
+
+.dark .mBox.Notice .mBoxNoticeError,
+.dark .mBox.Notice .mBoxNoticeCancel {
+	background-position:20px -487px;
+}
+
+/*** notice: info ***/
+
+.dark .mBox.Notice .mBoxNoticeInfo {
+	background-position:20px -787px;
+}
+
+/*** notice: notice, attention ***/
+
+.dark .mBox.Notice .mBoxNoticeNotice,
+.dark .mBox.Notice .mBoxNoticeAttention {
+	background-position:20px -1087px;
+}
+
+/*** tooltip theme: default ***/
+
+.dark .mBox.Tooltip {
+	font-size:11px;
+	line-height:normal;
+}
+.dark .mBox.Tooltip .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.dark .mBox.Tooltip .mBoxContent {
+	background:#fff;
+	color:#353535;
+	padding:5px 8px;
+/*	word-break:break-all;*/
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.dark .mBox.Tooltip.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+}
+.dark .mBox.Tooltip.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.dark .mBox.Tooltip .mBoxTitle {
+	color:#505050;
+	text-shadow:0 1px 0 #fff;
+	padding:5px 8px;
+	font-weight:bold;
+	border-bottom:1px solid #d6d6d6;
+	background-color:#f8f8f8;
+/*	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);*/
+/*	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);*/
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:5px;
+	-moz-border-radius-topleft:5px;
+	border-top-left-radius:5px;
+	-webkit-border-top-right-radius:5px;
+	-moz-border-radius-topright:5px;
+	border-top-right-radius:5px;
+}
+.dark .mBox.Tooltip .mBoxPointer {
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
+}
+.dark .mBox.Tooltip .mBoxPointerTop {
+	width:17px;
+	height:9px;
+	background-position:0px -18px;
+}
+.dark .mBox.Tooltip .mBoxPointerBottom {
+	width:17px;
+	height:9px;
+	background-position:0px -28px;
+}
+.dark .mBox.Tooltip .mBoxPointerRight {
+	width:9px;
+	height:17px;
+	background-position:-10px 0px;
+}
+.dark .mBox.Tooltip .mBoxPointerLeft {
+	width:9px;
+	height:17px;
+	background-position:0px 0px;
+}
+.dark cite{
+    font-style: italic;
+    background-color: #ccd;
+    color: #333;
+    padding: 6px;
+    border: 1px dashed white;
+    display: block;
+}
+.dark cite > a.anchor {
+    color: #000;
+    background-color: #00F;
+}
+.dark div, .dark menu{
+    padding:0;
+    margin:0;
+}
+.dark a{
+    color: #E4F9E3;
+    text-decoration: none;
+}
+.dark img{
+    border: none;
+}
+.dark footer{
+    text-align: center;
+    font-size: small;
+    white-space: pre-line;
+    color: #FFF;
+}
+.dark button{
+    font-family: Tahoma,Arial, Helvetica;
+}
+.dark .holder{
+    width: 920px;
+    display: inline-block;
+    text-align: left;
+}
+.dark .logo{
+    height:185px;
+}
+.dark .slide-left{
+    margin-left: -170px;
+}
+.dark #sidebar-left, .dark #sidebar-right{
+    /*z-index: 2;
+    position: fixed;*/
+}
+.dark .slide-left:hover{
+    margin-left: 0px;
+}
+.dark .leftmenu{
+    border:1px solid red;
+    float: left;
+    width:100px;
+    height: 400px;
+    
+}
+.dark .menu{
+    /*border-bottom: 1px solid white;*/
+    border-top: none;
+    text-align: center;
+}
+.dark .menu.main{
+    height: 34px;
+}
+.dark .menu.main *{
+    vertical-align: middle;
+}
+.dark #menu-den:hover{
+    background: url('/images/dark/bg/logo.png') no-repeat 0 -188px;
+}
+.dark #menu-forum:hover{
+    background: url('/images/dark/bg/logo.png') no-repeat 0 -276px;
+}
+.dark #menu-articles:hover{
+    background: url('/images/dark/bg/logo.png') no-repeat right -292px;
+}
+.dark #menu-gallery:hover{
+    background: url('/images/dark/bg/logo.png') no-repeat right -181px;
+}
+.dark #menu-aragorn:hover{
+    background: url('/images/dark/bg/logo.png') no-repeat center -460px;
+}
+.dark .content{
+    padding: 6px;
+    min-height: 500px;
+    color: #fff;
+   /* background: url('/images/dark/bg/content.png');*/
+}
+.dark .menu.logo{
+    /*border-radius: 0 0 16px 16px; */
+    background: url(/images/dark/bg/logo.png) no-repeat scroll center top transparent;
+}
+.dark .menu.logo a{
+    color: transparent;
+}
+.dark .menu .left{
+    float:left;
+}
+.dark .menu .right{
+    float: right;
+}
+.dark .left a, .dark .right a{
+    width:200px;
+}
+.dark .menu.logo a{
+    display: block;
+    height: 87px;
+    vertical-align: middle;
+}
+.dark .menu a.middle{
+    height: 100%;
+}
+.dark .hidden{
+    display:none;
+}
+.dark .pre{
+    white-space: pre-wrap;
+}
+.dark .lock{
+    padding-right: 20px;
+    background-image: url('/images/chatlock.png');
+    background-position: center right;
+    background-repeat: no-repeat;
+}
+
+.dark .contentLoading{
+    opacity:0.1;
+    background-image: url('/images/dark/bg/content.png');
+    background-color: #000;
+    -moz-transition: all .9s linear;
+}
+
+.dark .role-root, .dark .role-moderator, .dark .role-guest{
+    padding-right: 17px;
+}
+.dark .role-root{
+    color: #F6F;
+    background: url('/images/dark/link/admin.png') no-repeat right center;
+    background-size: 14px;
+}
+.dark .role-moderator{
+    color: #F66;
+    background: url('/images/dark/link/moderator.png') no-repeat right center;
+    background-size: 14px;
+}
+.dark .role-user{
+    color: #99c;
+}
+.dark .role-guest{
+    color: #333;
+}
+
+/* LogInForm style definition */
+.dark .logInForm{
+    display: inline;
+}
+.dark .logInForm *{
+    font-size: 12px;
+    display: inline;
+}
+.dark form#frm-logInForm.logInForm a{
+    padding: 0;
+}
+
+
+.dark #overlay{
+    background-image: url(/images/overlay.png) !important;
+}
+.dark #msgStatus{
+    border-radius:6px; 
+    padding: 0 6px;
+}
+.dark #msgStatus.sending{
+    background-color: #cc9;
+}
+.dark .menu.main a, .dark .main.menu{
+    vertical-align: middle;
+    color: #332;
+}
+.dark .main.menu{
+    text-align: left;
+    padding-left: 35px;
+    padding-top: 3px;
+    background: #ccd;
+    border-bottom: none;
+    height: 25px;
+}
+.dark .main.menu .float-right{
+    float:right; 
+    padding-right: 6px; 
+    margin-top:-3px;
+}
+.dark .main.menu .float-right img{
+    max-height: 23px; 
+}
+.dark .discussion{
+    background-color: #222;
+    padding: 15px 0;
+    margin-top: 15px;
+    border-radius: 15px;
+}
+.dark .post{
+    margin-top: 5px;
+    background-color: #333;
+    border-radius: 4px;
+}
+.dark .post.botline{
+    border-bottom: 1px solid white;
+    border-radius: 5px;
+}
+.dark .post .head{
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+    vertical-align: top;
+    padding: 2px 4px;
+}
+.dark .post .head img{
+    max-width: 90px;
+    max-height: 90px;
+}
+.dark .post .status{
+    margin-top: 15px;
+    border-top: 1px solid silver;
+    font-size: small;
+}
+.dark .post .post-body{
+    width: 709px;
+    display: inline-block;
+    padding: 5px;
+    padding-top: 0px;
+}
+.dark .post .post-info{
+    display: inline-block;
+    width: 700px;
+    text-align: right;
+    font-size: small;
+}
+.dark .post .post-text{
+    white-space: pre-wrap;
+}
+.dark .post .post-info .button{
+    display:inline-block;
+    height: 18px;
+    width: 18px;
+    background-position: center;
+    background-size: 18px;
+}
+.dark .post .post-info a.alert{
+    background-image: url(/images/report.png);
+}
+.dark .post .post-info a.alert:hover{
+    background-image: url(/images/reporta.png);
+}
+.dark .post .post-info a.edit{
+    background-image: url(/images/edit.png);
+}
+.dark .post .post-info a.edit:hover{
+    background-image: url(/images/edita.png);
+}
+.dark .post .post-info a.delete{
+    background-image: url(/images/delete.png);
+}
+.dark .post .post-info a.delete:hover{
+    background-image: url(/images/deletea.png);
+}
+.dark .post .post-info a.cite{
+    background-image: url(/images/cite.png);
+}
+.dark .post .post-info a.cite:hover{
+    background-image: url(/images/citea.png);
+}
+
+.dark .newPost{
+    background: gray;
+    width: 99%;
+    padding: 6px;
+    /*left: 0;*
+    position: fixed;
+    bottom: -205px;
+    height: 220px;*/
+    text-align: center;
+    -moz-transition: all .2s linear;
+    border-radius: 6px 6px 0 0;
+    /*-moz-transition: bottom .2s linear;
+    -o-transition: bottom .2s linear;
+    -webkit-transition: bottom .2s linear;*/
+}
+.dark .slideinform{
+    bottom: 0;
+}
+.dark #frm-forum-discussion-forumForm{
+    text-align: left;
+}
+.dark #frm-forum-discussion-forumForm textarea{
+    width: 99%;
+}
+.dark #post{
+    width: 100%;
+}
+.dark .forum-navigation{
+    font-size: small;
+    margin-bottom: 15px;
+}
+.dark .forum-holder{
+    border:1px solid silver;
+    border-radius: 6px;
+    padding: 0 6px;
+    margin-bottom: 4px;
+}
+.dark .forum-holder:hover{
+    background: #cc9;
+}
+.dark .forum-sticky{
+    background: #533;
+}
+.dark .forum-count{
+    float:right;display:inline-block;width: 40px; text-align: center;
+}
+.dark .forum-last-message{
+    float:right;display:inline-block;width: 130px;height: 100%;border-right: 1px solid white;text-align: center;
+}
+ .dark menu{
+    color: #fff;
+    background: #333;
+}
+
+.dark menu#sidebar-left{
+    width: 130px;
+    float:left;
+    display:inline-block;
+    padding: 2px;
+    /*min-height: 500px;
+    padding: 12px 3px;
+    background: url(/images/dark/bg/content.png); */
+    margin-right: 0px;
+}
+.dark menu a{
+    display:block;
+    /*color: #5a90fc;*/
+    padding: 5px;
+}
+.dark menu a:hover{
+    background-color: #555;
+}
+.dark menu div.block a{
+    padding-left: 32px;
+}
+.dark menu a img{
+    max-width: 32px;
+    vertical-align: middle;
+}
+.dark menu div.block{
+    background-color: #222;
+    /*margin: 5px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;*/
+}
+.dark menu div.block a.profile{
+    background: #ccc;
+    background-image: -moz-linear-gradient(center top , #63656B 3%, #222324 90%);
+    padding:0;
+    /*margin: -5px;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: 5px;
+    color: #196bb7;
+    padding: 10px;*/
+    font-weight: bold;
+    text-align: center;
+}
+.dark menu div.block a.profile img{
+    max-width: 42px;
+    max-height: 54px;
+    border: 1px solid #C6C6C6;
+}
+
+.dark menu div.block p{
+    color: white;
+    margin-bottom: 0;
+}
+
+.dark menu div.block input[type=text],.dark menu div.block input[type=password]{
+    width: 94%;
+}
+.dark #frmLogin{
+    margin: 5px;
+}
+.dark .mooupload_error {
+  color: #FF0000;
+}
+
+.dark .mooupload_noerror {
+  color: #008000;
+}
+
+.dark .mooupload_btncontainer {
+  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
+  padding: 10px;
+}
+
+.dark .mooupload_btncontainer button {
+  /*border: 1px solid #C5C5C5;*/
+  padding: 2px 5px 3px 20px;
+  /*background-color: #F3F3F3;*/
+  font-size: 12px;
+  margin-right: 10px;
+  /*-webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;*/
+  width: 130px;
+  height: 60px;
+}
+
+.dark .mooupload_btncontainer button.addfile {
+  background: url(/images/dark/buttons/dropbox.png) center center no-repeat;
+  border: none;
+  vertical-align: middle;
+  height: 130px;
+}
+
+.dark .mooupload_btncontainer button.start {
+  background: #F3F3F3 url(/images/accept.png) 3px center no-repeat;
+}
+
+.dark .mooupload_btncontainer button:active {
+}
+
+.dark .mooupload_btncontainer div.progresscont {
+  display: none;
+  width: 100px;
+  height: 11px;
+  border: 1px solid #000;
+  float: right;
+  margin: 10px 80px 0 0;
+  background-color: #FFFFFF;
+}
+
+.dark .mooupload_progressbar {
+  text-align: center;
+  font-size: 8px;
+  display: block;
+  width: 0px;
+  height: 100%;
+}
+
+.dark .mooupload_off {
+  background: #FFF url(/images/progress_grey.gif) center left repeat-x;
+}
+
+.dark .mooupload_on {
+  background: #FFF url(/images/progress.gif) center left repeat-x;
+}
+
+.dark ul.module-menu li{
+        display: inline-block;
+        margin-left: 15px;
+    }
+.dark menu div.block p{
+    color:#000;
+    padding: 5px;
+}
+/*
+	paginator
+*/
+
+
+.dark .paginator {
+    margin: 1em 0;
+    font-size: 90%;
+    text-align: center;
+}
+
+.dark .paginator a, .dark .paginator span {
+    margin-right: 0.1em;
+    padding: 0.2em 0.5em;
+    color: #999999;
+    background-color: #333;
+}
+
+.dark .paginator a {
+    border: 1px solid #9AAFE5;
+    text-decoration: none;
+    color: #cccccc;
+}
+.dark .paginator a:hover {
+    background: #ccc;
+    color:#333;
+}
+
+.dark .paginator span.button {
+    border: 1px solid #DDDDDD;
+}
+
+.dark .paginator .current {
+    background: #CCC;
+    border: 1px solid #CCC;
+    color: white;
+    font-weight: bold;
+}

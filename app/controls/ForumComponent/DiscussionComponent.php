@@ -194,7 +194,8 @@ namespace Components{
                                 'open_tag'=>'<img src="', 'close_tag'=>'" class="ll" />',
                                 'childs'=>''),
                 'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,
-                                'open_tag'=>'<a class="anchor" href="#{PARAM}">^</a><cite>', 'close_tag'=>'</cite>',
+                                'open_tag'=>'<a class="citation" href="#{PARAM}">{CONTENT}</a>' .
+                                                     '<cite class="cite-msg-{PARAM}" data-msg="{PARAM}">', 'close_tag'=>'</cite>',
                                 'childs'=>''),
                 'spoiler'=>       array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<div class="spoiler">', 'close_tag'=>'</div>'),

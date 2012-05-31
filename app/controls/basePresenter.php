@@ -206,10 +206,12 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $user->setAuthenticator($this->context->authenticator);
         try{
             $user->login($v["username"], $v["password"]);
+            /*dump($v);
+            exit;*/
             if($v['forever']){
-                $user->setExpiration(0, false);
+                $user->setExpiration('+ 1 year', false);
             }else{
-                $user->setExpiration('+ 60 minutes', false, true);
+                $user->setExpiration('+ 60 minutes', true, true);
             }
             DB::users_profiles('id', $user->getId())->update(array('login'=>time()));
             $path = 'safe://' . APP_DIR . '/../db/user_ip_addresses/' . $user->getId() . '.txt';
@@ -220,7 +222,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 $size = filesize($path);
                 $fp = fopen($path, 'a+');
                 rewind($fp);
-                $ips = fread($fp, filesize($path));
+                $ips = fread($fp, $size);
             }
             if($ips){
                 $ips = explode(';', $ips);
