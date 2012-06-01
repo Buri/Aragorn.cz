@@ -35,13 +35,13 @@ var onDeath  = function(w){
     console.log('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
     if(!w.suicide){
         var w1 = cluster.fork();
-        w1.on('death', onDeath);
+        w1.on('exit', onDeath);
         console.log('Worker ' + w1.uniqueID + ' spawned.');
     }
 };
 for(var i = WORKER_NUM; i; i--){
     var worker = cluster.fork();
-    worker.on('death', onDeath);
+    worker.on('exit', onDeath);
     worker.on('online', function(){
         ONLINE_WORKERS++;
         if(ONLINE_WORKERS == WORKER_NUM){
@@ -50,7 +50,7 @@ for(var i = WORKER_NUM; i; i--){
     });
 }
 
-process.on('SIGINT', function(){
+/*process.on('SIGINT', function(){
     log.info('Graceful shutdown!');
     for(var worker in cluster.workers){
         var w = cluster.workers[worker];
@@ -62,6 +62,6 @@ process.on('SIGINT', function(){
         console.log('Server going down NOW!');
         process.exit();
     }, 1000);
-});
+});*/
 
 console.log(' * Spawning complete, cluster is on standby.');
