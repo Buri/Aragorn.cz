@@ -18,6 +18,7 @@ namespace Components{
         protected $forumId = null;
         private $context;
         private $cache;
+        protected $lastVisit;
 
         /**
          *
@@ -166,7 +167,7 @@ namespace Components{
             }while($parent != 0 && $parent != -1 );
             /* And clear top level forum cache */
             DB::forum_visit('idforum',  $ids)->update(array(
-                "time" => new \NotORM_Literal('unix_timestamp()'),
+              //  "time" => new \NotORM_Literal('unix_timestamp()'),
                 "unread" => new \NotORM_Literal('unread + 1')
             ));
             $this->cache->clean(array(
@@ -196,9 +197,13 @@ namespace Components{
         }
 
         public function setLastAccess(){
+            #dump('Setting last access');
             $user = $this->context->user;
             $db = DB::forum_topic('urlfragment', $this->url)->fetch();
             if($db['id'] && $user->getId() != null){
+                $r = DB::forum_visit(array('iduser' => $user->getId(), 'idforum' => $db['id']))->fetch();
+                $this->lastVisit = $r['time'];
+              #  dump($r['time'] . '-'.time());
                 DB::forum_visit()->insert_update(
                         array('iduser'=>$user->getId(), 'idforum'=>$db['id']),
                         array('time'=>time(), 'unread'=>0),
@@ -209,7 +214,7 @@ namespace Components{
 
         public function createComponentDiscussion(){
             $c = new \Components\DiscussionComponent; //($this, $name, "hola");
-            return $c->setCache($this->context->cacheStorage)->setUser($this->context->user);
+            return $c->setCache($this->context->cacheStorage)->setUser($this->context->user)->setLastVisit($this->lastVisit);
         }
 
         public static function getIdByPath($path){

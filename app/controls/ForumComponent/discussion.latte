@@ -1,17 +1,20 @@
 <style>
-    .post-text a.citation{
+.dark .post-text a.citation{
         padding: 5px;
         padding-right: 15px;
         border-radius: 5px;
         background: #666;
         display: block;
     }
-    .post-text cite{
+    .dark .post-text cite{
         display: none;
         border-left: 10px solid #fff;
     }
-    .post-text cite.show{
+    .dark .post-text cite.show{
         display: block;
+    }
+    .dark .unread{
+        background-color: #999;
     }
 </style>
 {if $write}
@@ -45,7 +48,7 @@
     {var $posts = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($vp->getPaginator()->getLength(), $vp->getPaginator()->getOffset())}
     {if count($posts)}
     {foreach $posts as $post}
-    <div class="post{sep} botline{/sep}" name="msg{$post['id']}">
+    <div class="post{sep} botline{/sep}{if $post['time'] > intval($lastvisit)} unread{/if}" name="msg{$post['id']}">
         <a name="msg{$post['id']}" />
         <div class="head">
             {!$control->presenter->userLink($post['author'], true)}

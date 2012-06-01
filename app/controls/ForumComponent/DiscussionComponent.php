@@ -39,6 +39,12 @@ namespace Components{
          */
         protected $user;
 
+        /**
+         *
+         * @var int
+         */
+        protected $lastVisit = 0;
+
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
         }
@@ -65,6 +71,16 @@ namespace Components{
 
         /**
          *
+         * @param int $visit
+         * @return \Components\DiscussionComponent
+         */
+        public function setLastVisit($visit){
+            $this->lastVisit = $visit;
+            return $this;
+        }
+
+        /**
+         *
          * @param string|null $url
          */
         public function render($url = null){
@@ -75,6 +91,9 @@ namespace Components{
 
             $info = DB::forum_topic('urlfragment', $url)->fetch();
             $opt = $info['options'];
+
+            //$visit = DB::forum_visit(array('idforum' => $info['id'], 'iduser' => $user->getId()))->select('time')->fetch();
+            $this->template->lastvisit = $this->lastVisit;
             
             $vp = new \VisualPaginator($this, 'vp');
             $paginator = $vp->getPaginator();
@@ -143,7 +162,7 @@ namespace Components{
             $pst = DB::forum_posts()->insert($postdata);
             DB::forum_posts_data()->insert(array('post'=>$post));
             DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
-            $this->parent->setLastAccess();
+            //$this->parent->setLastAccess();
             $cache = new \Nette\Caching\Cache($this->storage, 'Nette.Templating.Cache');
             $u = DB::forum_topic('id', $url)->fetch();
             $urlf = $u['urlfragment'];
