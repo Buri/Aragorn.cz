@@ -94,7 +94,7 @@ namespace frontendModule{
          */
         public function actionMail($data){
             $data = unserialize($data);
-            $l = $this->link("finish", $data["token"]);            
+            $l = $this->link("//finish", $data["token"]);
 
             $template = new \Nette\Templating\FileTemplate(__DIR__. '/../templates/registration/sendmail.latte');
             $template->registerFilter(new \Nette\Latte\Engine);
@@ -110,9 +110,10 @@ namespace frontendModule{
       }
 
         public function actionFinish( $id ){
+            $db = $this->context->database;
             if($this->template->banned) return false;
             $this->getTemplate()->message = "";
-            $reg = DB::registration()->where("token = ?", $id);
+            $reg = $db->registration()->where("token = ?", $id);
             if(!count($reg)){
                 $this->getTemplate()->message = "Registrace nebyla nalezena. Nevypršela už platnost odkazu?";
             }else{
@@ -125,8 +126,22 @@ namespace frontendModule{
                     $reg->delete();
                     return false;
                 }
-                DB::users()->insert(array("id" => 0, "username" => $row["username"]));
-                DB::users_profiles()->insert(array("id"=>0, "password" => $row["password"], "mail" => $row["mail"], "created" => $row["create_time"], "login"=>0, 'urlfragment'=> \Utilities::string2url($row['username'])));
+                $db->users()->insert(array(
+                    "id" => 0,
+                    "username" => $row["username"]
+                ));
+                $db->users_profiles()->insert(array(
+                    "id"=>0,
+                    "password" => $row["password"],
+                    "mail" => $row["mail"],
+                    "created" => $row["create_time"],
+                    "login"=>0,
+                    'urlfragment'=> \Utilities::string2url($row['username'])
+                ));
+                $db->users_prerferences()->insert(array(
+                    "id"=>0,
+                    "color" => "#fff"
+                ));
 
                 $reg->delete(); /* Vloží se pouze jednou, ale smažou se všechny odpovídající tokeny */
                 $this->getTemplate()->message = "Registrace byla dokončena. Nyní se můžete přihlásit.";

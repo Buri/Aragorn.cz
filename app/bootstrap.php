@@ -32,10 +32,11 @@ Nette\Diagnostics\Debugger::$strictMode = TRUE;
 Nette\Diagnostics\Debugger::$logDirectory = WWW_DIR . '/../log';
 
 if($container->parameters['debug']['force'] === true){
-    $configurator->setDebugMode(array("192.168.56.1", "127.0.0.1"));
+    #$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1"));
     $configurator->setDebugMode(Nette\Config\Configurator::DEVELOPMENT);
     $application->catchExceptions = FALSE;
 
+    \Nette\Diagnostics\Debugger::enable(\Nette\Diagnostics\Debugger::DEVELOPMENT);
     \Extras\Debug\ComponentTreePanel::register();
     \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
     \Panel\ServicePanel::register($container, $loader);
