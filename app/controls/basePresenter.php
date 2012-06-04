@@ -39,40 +39,43 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         parent::startup();
 
         /* Panely */
-        if(true) { // dev only
+        if($this->context->parameters['debug']['force'] === true) { // dev only
             // service conflict with @nette.mail
             Nette\Mail\Message::$defaultMailer = new \Schmutzka\Diagnostics\DumpMail($this->getContext()->session);
-            // or with 2nd parameter, which sets email expiration in seconds
-            //Message::$defaultMailer = new Schmutzka\Diagnostics\DumpMail($this->getContext()->session, 30);
             \Nette\Diagnostics\Debugger::addPanel(new \Schmutzka\Panels\DumpMail($this->getContext()->session));
             \Extras\Debug\RequestsPanel::register();
             \Panel\User::register();
             \Panel\Navigation::register();
         }
-        
 
         /* Template shortcut */
         $t = $this->getTemplate();
         
-        /* If user is banished from server, log him out */
-        if($t->user->getIdentity() && DB::bans()
-                ->where('expires > ? AND (user = ? OR ip LIKE ?) ', time(), $t->user->getId(), "%".$_SERVER["REMOTE_ADDR"]."%")
-                ->count() > 0){
-            $this->actionLogout();
-        }
+        $this->checkBans();
         
         /* Setup template variables */
         $t->registerHelper('r', function($ar, $i = null){
             return $i == null ? implode(", ", $ar) : $ar[$i];
         });
-        $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("staticServer", "www.aragorn.cz");
-        $t->userPath = $this->userpath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . Nette\Environment::getVariable("userServer", "www.aragorn.cz");
+        $t->staticPath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . $this->context->parameters['servers']['staticContent'] ;
+        $t->userPath = $this->userpath = (!empty($_SERVER["HTTPS"]) ? "https" : "http") . "://" . $this->context->parameters['servers']['userContent'] ;
         $t->title = "";
         $t->forceReload = false;
         $t->ajax = $this->isAjax();
         $t->node = $this->node;
         /* Fix invalid links generation */
         #$this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
+    }
+
+    protected function checkBans(){
+        /* If user is banished from server, log him out */
+        $uid = $this->context->user->getId();
+        if($this->context->user->getIdentity() && $this->context->database->bans()
+                ->where('expires > ? AND (user = ? OR ip LIKE ?) ', time(), $uid, "%".$_SERVER["REMOTE_ADDR"]."%")
+                ->count() > 0){
+            $this->actionLogout();
+        }
+        
     }
     
     protected function getCache($ns = true){

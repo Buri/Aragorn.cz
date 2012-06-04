@@ -12,7 +12,7 @@ var cluster = require('cluster'),
     log = Tracer.colorConsole(),
     Config = require('./modules/config.js').parse(),
     CPU_NUM = os.cpus().length, 
-    WORKER_NUM = Config.jobs || (CPU_NUM + 2);
+    WORKER_NUM = Config.node.jobs || (CPU_NUM + 2);
     
 console.log('================\n' + 
             'Host:   ' + os.hostname() + '\n' +
@@ -26,7 +26,7 @@ cluster.setupMaster({
     silent:false
 });
 try{
-fs.unlinkSync(Config.usock);
+fs.unlinkSync(Config.node.phpbridge.socket);
 }catch(e){}
 
 console.log(' * Cluster ready, spawning ' + WORKER_NUM + ' workers.');

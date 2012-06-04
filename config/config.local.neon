@@ -1,6 +1,8 @@
 development < production:
 production:
   parameters:
+    debug:
+      force: true
     servers:
       domain: aragorn.cz
       staticContent: static.aragorn.cz
@@ -8,6 +10,6 @@ production:
     database:
       lazy: true
       driver: mysql
-      params: "host=127.0.0.1;port=3306;dbname=aragorn_cz_4;"
+      params: "host=127.0.0.1;port=3306;dbname=aragorn_cz;"
       user: root
       password: a

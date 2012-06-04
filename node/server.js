@@ -167,18 +167,18 @@ var http = require('http'),
             }
         }.bind(s));
     });
-server.listen(parseInt(Config.port));
-console.log('Socket.io listening at port ' + Config.port);
+server.listen(parseInt(Config.node.port));
+console.log('Socket.io listening at port ' + Config.node.port);
 
 /*
  * Creates unix socket at target location for PHP => node.js communication
  * Faster than standart socket + safe from outer connections
  */
-phpUnixSocket.listen(Config.usock, function() {
+phpUnixSocket.listen(Config.node.phpbridge.socket, function() {
 //    console.log('server listening');
-    fs.chmodSync(Config.usock, 0777);
+    fs.chmodSync(Config.node.phpbridge.socket, 0777);
 });
-console.log('Unix socket opened in ' + Config.usock);
+console.log('Unix socket opened in ' + Config.node.phpbridge.socket);
 
 /*
  * Socket.io server

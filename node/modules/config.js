@@ -33,7 +33,7 @@ var Config = new Class({
             logdir:         [null, 'Where to log errors', opts.logdir],
             staticServer:   [null, 'Path to static files', opts.staticServer],
             userServer:     [null, 'Path to user content', opts.userServer],
-            usock:          [null, 'Path to unix socket for PHP', opts.usock]
+            nodeSocket:          [null, 'Path to unix socket for PHP', opts.nodeSocket]
         }*/));
         return opts;
     }
