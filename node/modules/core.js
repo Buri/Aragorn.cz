@@ -1,4 +1,4 @@
-require('mootools').apply(GLOBAL);
+require('mootools'); 
 
 exports.info = {
     'authors':['Buri'],

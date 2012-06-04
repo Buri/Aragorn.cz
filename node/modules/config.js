@@ -1,4 +1,4 @@
-require('mootools').apply(GLOBAL);
+require('mootools'); 
 
 var cli = require('cli'),     
     yaml = require('js-yaml'), 
@@ -7,13 +7,14 @@ var cli = require('cli'),
 var Config = new Class({
     Implements: [Options],
     options:{
-        path: ['/var/www/config/config.neon', '/var/www/config/config.local.neon'],
+        path: [process.env.PWD + '/../config/config.neon', process.env.PWD + '/../config/config.local.neon'],
         args: process.argv
     },
     initialize:function(options){
         this.setOptions(options);
     },
     parse:function(){
+//console.log(process);
         var opts = {};
         for(var i = 0; i < this.options.path.length; i++){
             try{

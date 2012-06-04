@@ -1,6 +1,7 @@
 var starttime = new Date().getTime();
 console.log('Thread started at ' + new Date());
-require('mootools').apply(GLOBAL);
+require('mootools');
+
 /*
  * Module loading
  */
@@ -102,7 +103,7 @@ var http = require('http'),
     var server = http.createServer(function(req, res){        
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write('<h1>System information</h1>\n');
-        res.write(
+/*        res.write(
             '<style type="text/css">.b{font-weight:bold;}</style>\n' +
             '<table>\n' +
             '<tr><th colspan="2">Server</th></tr>\n' +
@@ -173,8 +174,8 @@ console.log('Socket.io listening at port ' + Config.port);
  * Creates unix socket at target location for PHP => node.js communication
  * Faster than standart socket + safe from outer connections
  */
-
 phpUnixSocket.listen(Config.usock, function() {
+//    console.log('server listening');
     fs.chmodSync(Config.usock, 0777);
 });
 console.log('Unix socket opened in ' + Config.usock);

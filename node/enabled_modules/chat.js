@@ -1,4 +1,4 @@
-require('mootools').apply(GLOBAL);
+require('mootools'); 
 exports.info = {
     'authors':['Buri'],
     version:{
@@ -19,7 +19,7 @@ exports.ChatServer = new Class({
     options:{
         length:50,          // How many messages to store in one channel? Defaults to 500
         timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
-        userServer:'static.aragorn.cz' // From where to serve icons?
+        userServer:'stat.aragorn.cz' // From where to serve icons?
     },
     redis:null,
     socket:null,

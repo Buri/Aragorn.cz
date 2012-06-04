@@ -1044,3 +1044,32 @@ margin-top: -2px;*/
     color: white;
     font-weight: bold;
 }
+.dark div.widget{
+        border: 1px solid gray;
+        border-radius: 1px;
+        padding: 6px;
+        float:left;
+        max-width:213px;
+        margin: 3px;
+    }
+    .dark div.widgetHead{
+        background: #716969;
+        color: #cfc;
+        margin: -6px -6px 3px -6px;
+        padding: 4px;
+    }
+    .dark div.widgetTitle{
+        display: inline-block;
+        cursor: move;
+    }
+    .dark .widgetMenuButton{
+        display: inline-block;
+        background: url(/images/dark/buttons/wheel-icon.png) center center no-repeat;
+        background-size: contain;
+        width: 24px;
+        height: 20px;
+        float: right;
+        border: 1px solid #999;
+        border-radius: 4px;
+        cursor: pointer;
+    }

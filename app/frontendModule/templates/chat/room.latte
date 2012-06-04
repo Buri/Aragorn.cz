@@ -7,9 +7,9 @@
     <body n:syntax="double" class="{$_COOKIE['skin']}">
         <div style="display:block;">
             <audio id="audioNotification" preload="full">
-                <source src="http://static.aragorn.cz/sound/global.ogg" />
-                <source src="http://static.aragorn.cz/sound/global.mp3" />
-                <source src="http://static.aragorn.cz/sound/global.wav" />
+                <source src="{!$staticPath}/sound/global.ogg" />
+                <source src="{!$staticPath}/sound/global.mp3" />
+                <source src="{!$staticPath}/sound/global.wav" />
             </audio>
         </div>
         <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px; padding-top: 25px;"></div>
@@ -207,7 +207,7 @@
                                 var e = new Element('div', {
                                     'class':'users',
                                     'data-info':JSON.stringify(usr)
-                                }).adopt(new Element('img', {src:usr.icon, 'class':'user-list-icon'}), new Element('span', {text:usr.name + ' '}), new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:'http://static.aragorn.cz/images/' + img + '.png', styles:{'vertical-align':'middle'}}));
+                                }).adopt(new Element('img', {src:usr.icon, 'class':'user-list-icon'}), new Element('span', {text:usr.name + ' '}), new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:'http://stat.aragorn.cz/images/' + img + '.png', styles:{'vertical-align':'middle'}}));
                                 $(this.options.userList).grab(e);
                             }.bind(this));
                             this.tips.attach(this.options.tipsSelector);

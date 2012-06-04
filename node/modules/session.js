@@ -1,5 +1,5 @@
 var redis = require('redis');
-require('mootools').apply(GLOBAL);
+require('mootools'); 
 
 /*
  * Sessoion.js

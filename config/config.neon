@@ -37,10 +37,10 @@ production:
     actionRoutingTable: "vstoupit:enter,odejit:leave,mistnost:room,spatne-heslo:badpasswd,dokoncit:finish,overeni-emailu:mail,prochazet:default,profil:profile,logout:logout,zapomenute-heslo:recoverpassword"
     staticServer: static.aragorn.cz
     userServer: user.aragorn.cz
-    servers:
-      domain: aragorn.cz
-      staticContent: static.aragorn.cz
-      userContent: user.aragorn.cz
+    #servers:
+#      domain: aragorn.cz
+#      staticContent: stat.aragorn.cz
+#      userContent: usr.aragorn.cz
     registration:
       enabled: true
       closeReason: Přpravujeme databázi.
@@ -48,15 +48,15 @@ production:
     memcache:
       host: 127.0.0.1
       port: "11211"    
-    database:
-      lazy: true
-      driver: mysql
-      params: "host=127.0.0.1;port=3306;dbname=aragorn_cz;"
-      user: root
-      password: a
+    #database:
+     # lazy: true
+      #driver: mysql
+      #params: "host=127.0.0.1;port=3306;dbname=aragorn_cz_4;"
+      #user: aragorn_cz_4
+      #password: four.aragorn.cz
     node:
       port: 8000
-      jobs: 0
+      jobs: 2
       phpbridge:
         protocol: unix://
         socket: /var/run/nodejs.sock
@@ -64,4 +64,6 @@ production:
 
     port: 8000
     usock: /var/run/nodejs.sock
-    jobs: 0
+    jobs: 2
+includes:
+  - config.local.neon

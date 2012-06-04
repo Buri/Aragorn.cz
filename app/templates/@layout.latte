@@ -196,16 +196,16 @@
         </footer>
         <div style="display:none;">
             <audio id="audioNotification" preload="full">
-                <source src="http://static.aragorn.cz/sound/global.ogg" />
-                <source src="http://static.aragorn.cz/sound/global.mp3" />
-                <source src="http://static.aragorn.cz/sound/global.wav" />
+                <source src="{!$staticPath}/sound/global.ogg" />
+                <source src="{!$staticPath}/sound/global.mp3" />
+                <source src="{!$staticPath}/sound/global.wav" />
             </audio>
         </div>
     </body>
     {include 'scripts.latte'}
     <script>
         setTimeout(function(){
-            $('nette-debug').dispose();
+     //       $('nette-debug').dispose();
         }, 1000);
     </script>
 </html>

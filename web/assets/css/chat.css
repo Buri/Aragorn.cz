@@ -21,7 +21,7 @@ body,html,div{
 body{
     background-color: #000;
     color:#fff;
-    background-image: url(http://static.aragorn.cz/images/chat-bg.jpg);
+    background-image: url(/images/chat-bg.jpg);
     background-position: top center;
 }
 footer{

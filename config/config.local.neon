@@ -1,0 +1,13 @@
+development < production:
+production:
+  parameters:
+    servers:
+      domain: aragorn.cz
+      staticContent: static.aragorn.cz
+      userContent: user.aragorn.cz
+    database:
+      lazy: true
+      driver: mysql
+      params: "host=127.0.0.1;port=3306;dbname=aragorn_cz_4;"
+      user: root
+      password: a

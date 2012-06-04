@@ -3,7 +3,7 @@
 var START_TIME = new Date().getTime();
 console.log('Booting cluster... ' + new Date());
 
-require('mootools').apply(GLOBAL);
+require('mootools');
 require('./modules/utility.js').apply(GLOBAL);
 var cluster = require('cluster'),
     os = require('os'),

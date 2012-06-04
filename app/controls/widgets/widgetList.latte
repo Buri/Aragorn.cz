@@ -1,34 +1,3 @@
-<style>
-    div.widget{
-        border: 1px solid gray;
-        border-radius: 1px;
-        padding: 6px;
-        float:left;
-        max-width:213px;
-        margin: 3px;
-    }
-    div.widgetHead{
-        background: #716969;
-        color: #cfc;
-        margin: -6px -6px 3px -6px;
-        padding: 4px;
-    }
-    div.widgetTitle{
-        display: inline-block;
-        cursor: move;
-    }
-    .widgetMenuButton{
-        display: inline-block;
-        background: url(http://static.aragorn.cz/images/dark/buttons/wheel-icon.png) center center no-repeat;
-        background-size: contain;
-        width: 24px;
-        height: 20px;
-        float: right;
-        border: 1px solid #999;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-</style>
 <div class="widgetList{if $userLoggedIn} moveable{/if}" id="dashboardWidgetList">
     {foreach $widgetList as $widget}
             {control widget $widget}
