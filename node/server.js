@@ -392,7 +392,7 @@ app.configure(function(){
         },
         setEmptyUser:function(sid){
             SessionManager.redis.hgetall(SessionManager.storageKey + sid + '-user', function(err, usr){
-                log.warn(usr);
+                log.trace(usr);
                 if(usr)
                     SessionManager.redis.del('user-' + usr.id);
             });
