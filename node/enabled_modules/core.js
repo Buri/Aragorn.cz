@@ -33,7 +33,7 @@ exports.Core = new Class({
         }
     },
     redisHook:function(message, client, channel){
-        console.log(message);
+        log.trace(message);
         //message.data.from = message.user.name;
         message.data.time = message.itime || message.time || new Date().getTime();
         client.json.emit('core', message);

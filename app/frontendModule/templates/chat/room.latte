@@ -7,9 +7,9 @@
     <body n:syntax="double" class="{$_COOKIE['skin']}">
         <div style="display:block;">
             <audio id="audioNotification" preload="full">
-                <source src="{!$staticPath}/sound/global.ogg" />
-                <source src="{!$staticPath}/sound/global.mp3" />
-                <source src="{!$staticPath}/sound/global.wav" />
+                <source src="{{!$staticPath}}/sound/global.ogg" />
+                <source src="{{!$staticPath}}/sound/global.mp3" />
+                <source src="{{!$staticPath}}/sound/global.wav" />
             </audio>
         </div>
         <div id="user-list" style="position: fixed; width: 140px; top:20px;right: 0; border-left: 1px dashed gray; bottom: 0; padding: 4px; padding-top: 25px;"></div>
@@ -76,8 +76,15 @@
                     glass:'glass',
                     limit:50,
                     input:'msg',
-                    typeDelay:800
+                    typeDelay:800,
+                    awayTimeout:5000
                 },
+                transport:null,
+                tips:null,
+                showDelete:false,
+                connectedUsers:[],
+                unreadMessages:0,
+                away:false,
                 initialize:function(t, options){
                     this.setOptions(options);
                     t.registerCmd('chat', this._handle.bind(this));
@@ -90,10 +97,19 @@
                     this.options.input = $(this.options.input);
                     if(this.options.input)
                         this.options.input.addEvent('keyup', this._typingInfo.bind(this));
+                    window.addEvents({
+                        'blur': function(){
+                            this.away = true;
+                            //document.title = 'blur';
+                        }.bind(this),
+                        'focus': function(){
+                            this.away = false;
+                            this.unreadMessages = 0;
+                            AC.updateFavicon('');
+                            //document.title = 'FOCUS!';
+                        }.bind(this)
+                    });
                 },
-                transport:null,
-                tips:null,
-                showDelete:false,
                 toggleDeletes:function(){
                     this.showDelete = !this.showDelete;
                     if(this.showDelete)
@@ -102,7 +118,6 @@
                         $$('.cross-delete').addClass('hide');
                     return this.showDelete;
                 },
-                connectedUsers:[],
                 matchUser:function(u){
                     if(!u || !(u.length)) return false;
                     u = u.toLowerCase();
@@ -154,6 +169,10 @@
                     msg = msg.data;
                     switch(msg.action){
                         case 'post':
+                            if(this.away){
+                                this.unreadMessages++;
+                                AC.updateFavicon(this.unreadMessages);
+                            }
                             //console.log('New post');
                             var d = new Date();
                             d.setTime(msg.time || whole.time);
