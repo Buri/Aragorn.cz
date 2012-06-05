@@ -16,12 +16,15 @@ var http = require('http'),
     redis = require('redis');
     RedisStore = require('socket.io/lib/stores/redis'),
     Tracer = require('tracer'),
-    log = Tracer.colorConsole();
-    
     utility.apply(GLOBAL);
     /* Other variables */
     //var Config = yaml.load(fs.readFileSync('../config/config.neon', 'utf8')).production.parameters;
     var Config = require('./modules/config.js').parse();
+    var log = Tracer.colorConsole({
+        level: Config.node.loglevel,
+        format: "{{timestamp}} <{{title}}> {{file}}:{{line}} {{message}} ",
+        dateformat : "dd.mm.yyyy HH:MM:ss.L"
+    });
     app = null,
     
     
@@ -47,20 +50,29 @@ var http = require('http'),
      Modules = {
         /* Public api */
         register:function(name){
+            log.trace('Resolving module', name)
             var path = fs.readlinkSync('./enabled_modules/' + name);
-            console.log('Loading module ' + name + ': ' + path);
+            log.trace('Loading module ' + name + ': ' + path);
             var module = require(path);
             module.launchurl = name;
             var namespace = this.app.sockets;
             var handle = module.info.handle;
             var c = module.create(namespace, Config);
+            log.debug('Loaded module', path);
             this.list[handle] = c;
+
             return this.list[handle];
         },
         remove:function(name){
-            if(this.list[name]) delete this.list[name];
+            if(this.list[name]){
+                log.debug('Removing module ' + name)
+                delete this.list[name];
+            }else{
+                log.warn('Removing module ' + name + ' failed')
+            }
         },
         alias:function(target, alias){
+            log.trace('Created module alias', target, alias)
             this.list[alias] = this.list[target];
             return this[target];
         },
@@ -69,12 +81,14 @@ var http = require('http'),
         
         /* Private api */
         unixHook:function(message, socket){
+            //log.trace('Message recieved on PHP Bridge', message);
             return this.list[message.command].unixHook(message, socket);
         },
         sessionHook:function(message, client){
+            log.trace('Message on Socket.io', message)
             if(this.list[message.cmd])
                 return this.list[message.cmd].sessionHook(message, client);
-            console.error('Undefined message', message);
+            log.error('Undefined message', message);
             return false;
         },
         setupClient:function(client){
@@ -94,16 +108,15 @@ var http = require('http'),
         app:null,
         list:{}
     };
-    
     /*
      * Setup servers 
      */
     
     /* Main WS server@8000 */
-    var server = http.createServer(function(req, res){        
+    var server = http.createServer(/*function(req, res){
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write('<h1>System information</h1>\n');
-/*        res.write(
+        res.write(
             '<style type="text/css">.b{font-weight:bold;}</style>\n' +
             '<table>\n' +
             '<tr><th colspan="2">Server</th></tr>\n' +
@@ -118,17 +131,17 @@ var http = require('http'),
             '<tr><td class="b">Clients:</td><td>' + JSON.stringify(io) + '</tr></td>\n' +
             '</table>\n'
         ); 
-        /*res.write('<pre>\n');
+        res.write('<pre>\n');
         res.write(JSON.stringify(SessionManager.list()));
-        res.write('</pre>\n');*/
+        res.write('</pre>\n');
         res.end('<hr />\nCreated by <a href="http://aragorn.cz/">Aragorn.cz</a> &copy; 2011');
-    }),
+    }*/),
    
     phpUnixSocket = net.createServer(function(s) {
         s.setEncoding('utf-8');
         s.on('data', function(data){
             var json = JSON.parse(data);
-            //console.log(json);
+            log.trace('Message recieved on PHP Bridge\n', json);
             if(json && json.command){
                 switch(json.command){
                     case "user-login":
@@ -151,7 +164,8 @@ var http = require('http'),
                         }.bind(this));
                         break;
                     case 'user-is-online':
-                        SessionManager.redis.exists('user-' + json.data.uid, function(err, res){
+                        SessionManager.redis.sismember('online-users-set',json.data.uid, function(err, res){
+                            //log.warn(res);
                             this.write(JSON.stringify(parseInt(res)));
                         }.bind(this));
 
@@ -168,17 +182,21 @@ var http = require('http'),
         }.bind(s));
     });
 server.listen(parseInt(Config.node.port));
-console.log('Socket.io listening at port ' + Config.node.port);
+log.info('Socket.io listening at port ' + Config.node.port);
 
 /*
  * Creates unix socket at target location for PHP => node.js communication
  * Faster than standart socket + safe from outer connections
  */
 phpUnixSocket.listen(Config.node.phpbridge.socket, function() {
-//    console.log('server listening');
-    fs.chmodSync(Config.node.phpbridge.socket, 0777);
+    try{
+        fs.chmodSync(Config.node.phpbridge.socket, 0777);
+        log.info('PHP Bridge listening on ' + Config.node.phpbridge.socket)
+    }catch(e){
+        log.error('Error chmoding socket', e);
+    }
 });
-console.log('Unix socket opened in ' + Config.node.phpbridge.socket);
+log.info('Unix socket opened in ' + Config.node.phpbridge.socket);
 
 /*
  * Socket.io server
@@ -210,7 +228,7 @@ console.log('Unix socket opened in ' + Config.node.phpbridge.socket);
  */
 app = io.listen(server);
 app.configure(function(){
-    app.set('log level', 0);                    // reduce logging
+    app.set('log level', 2);                    // reduce logging
     app.set('transports', [                     // enable all transports (optional if you want flashsocket)
         'websocket'
       , 'flashsocket'
@@ -234,7 +252,7 @@ app.configure(function(){
         redis:redis.createClient(),
         init:function(){
             /* Clear all sessions from old run */
-            console.log('Clearing up old sessions...');
+            log.info('Clearing up old sessions...');
             this.redis.keys('session-*', function(err, res){
                 if(err) return;
                 var m = this.redis.multi();
@@ -249,14 +267,25 @@ app.configure(function(){
         removeConnection:function(client){
             var r = this.redis;
             client.get('session-id', function(err, res){
-            if(!r.connected) r = redis.createClient();
+                log.trace('Disconnected client\'s sid', res);
+                if(!r.connected)
+                    r = redis.createClient();
                 var c = this.storageKey + res;
                 r.srem(c, client.id, function(err, res){
                     if(err) return;
-                    r.smembers(c, function(err, mem){
+                    r.scard(c, function(err, count){
                         if(err) return;
-                        if(!mem || !mem.length){
-                            r.multi().expire(c, 35).expire(c + '-user', 35).exec();
+                        log.trace('Session clients', count);
+                        if(!count){
+                            r.hgetall(c + '-user', function(err, user){
+                                log.trace('Removing sessions data');
+                                r.multi()
+                                .del(c, 35)
+                                .del(c + '-user', 35)
+                                .del('user-' + user.id)
+                                .srem('online-users-set', user.id)
+                                .exec();
+                            });
                         }
                     });
                 });
@@ -267,23 +296,28 @@ app.configure(function(){
             client.redis = this.redis;
             client.isAllowed = this.isAllowed.bind(client);
             
-            this.redis.incr('connection-counter');
+            this.redis.incr('connection-counter', function(err, res){
+                log.trace('# of clients ', res);
+            });            
             
             client.on('SESSION_SID', function(sid){
                 SessionManager.exists(sid, function(ex){
-                //console.log('Sid exists: ' + (ex ? 'yes' : 'no'));
-                if(!ex){ 
-                    client.emit('SESSION_RESET_SID');
-                }else {
-                    SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
-                    client.set('session-id', sid);
-                    client.emit('SESSION_CONFIRMED_SID', sid);
-                    client.join('/sessions/' + sid);
-                    SessionManager.broadcastSessionNumber();
-                }
+                    if(!ex){
+                        log.debug('Recieved invalid session', sid);
+                        client.emit('SESSION_RESET_SID');
+                    }else {
+                        log.trace('Adding client to session');
+                        SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
+                        client.set('session-id', sid);
+                        client.emit('SESSION_CONFIRMED_SID', sid);
+                        client.join('/sessions/' + sid);
+                        SessionManager.broadcastSessionNumber();
+                    }
                 }.bind(this));
             });
+
             client.on('SESSION_REQUEST_SID', function(){
+                log.debug('Client requested new id');
                 SessionManager.createSession(function(sid){
                     SessionManager.redis.sadd(SessionManager.storageKey + sid, client.id);
                     SessionManager.setEmptyUser(sid);
@@ -293,10 +327,14 @@ app.configure(function(){
                     client.set('session-id', sid);
                     client.emit('SESSION_REGISTER_SID', sid);
                     client.join('/sessions/' + sid);
+                    log.debug('Responded with', sid);
                 }.bind(this));
             });
+
             client.on('disconnect', function(){
-                this.redis.decr('connection-counter');
+                this.redis.decr('connection-counter', function(err, res){
+                    log.trace('# of clients ', res);
+                });
                 SessionManager.removeConnection(this);
             });
 
@@ -313,8 +351,10 @@ app.configure(function(){
             this.redis.exists(this.storageKey + sid + '-user', function(err, res){
                 if(err) return;
                 if(res){
+                    log.trace('Create session - exitst', sid);
                     this.createSession(cb);
                 }else{
+                    log.trace('Generated session id', sid);
                     cb(sid);
                 }
             }.bind(this));
@@ -326,10 +366,7 @@ app.configure(function(){
             }.bind(this));
         },
         login:function(sid, user, cb){
-            //console.log(sid + ' - ', user);
-            this.redis.exists('user-' + user.id, function(err, r){
-                if(!r) this.redis.incr('onlineusers-counter');
-            }.bind(this));
+            log.debug('User logging in', sid);
             var m = this.redis.multi();
             m.hmset(this.storageKey + sid + '-user',
                 'id', user.id,
@@ -339,19 +376,23 @@ app.configure(function(){
                 'roles', JSON.stringify(user.roles)
             );
             m.set('user-' + user.id, sid);
+            m.sadd('online-users-set', user.id);
             m.exec(function(err){
                     if(err) return;
-                    /*this.redis.hgetall(this.storageKey + sid + '-user'/*, function(e, o){console.log(o);});*/
+                    //this.redis.hgetall(this.storageKey + sid + '-user'/*, function(e, o){console.log(o);});
                     cb(sid);
                 }.bind(this));
         },
-        logout:function(sid){
-            this.redis.decr('onlineusers-counter');
-            this.setEmptyUser(sid);
+        logout:function(uid){
+            log.debug('User logging out', uid);
+            var m = this.redis.multi();
+            m.srem('online-users-set', uid);
+            m.exec()
+            this.setEmptyUser(uid);
         },
         setEmptyUser:function(sid){
             SessionManager.redis.hgetall(SessionManager.storageKey + sid + '-user', function(err, usr){
-//                console.log(usr);
+                log.warn(usr);
                 if(usr)
                     SessionManager.redis.del('user-' + usr.id);
             });
@@ -365,9 +406,11 @@ app.configure(function(){
             );
         },
         length:function(cb){
-            if(!cb) return; 
-            this.redis.get('onlineusers-counter', function(err, res){
-                cb(res == 'null' ? 0 : parseInt(res) - 1);
+            if(!cb) return;
+            this.redis.scard('online-users-set', function(err, res){
+                log.trace('# of online users', res)
+                cb(res);
+                //cb(res == 'null' ? 0 : parseInt(res));
             });
         },
         broadcastSessionNumber:function(){
@@ -458,12 +501,12 @@ app.sockets.on('connection', function (client) {
 var mods = fs.readdirSync('./enabled_modules');
 Modules.setapp(app);
 if(mods.length && mods[0]){
-    console.log('Modules found: ' + mods.join(', '));
+    log.info('Modules found: ' + mods.join(', '));
     mods.each(function(name){
-        //console.log('Registering module ' + name);
+        log.debug('Registering module ' + name);
         Modules.register(name);
     });
-    console.log(mods.length + ' modules were launched.');
+    log.info(mods.length + ' modules were launched.');
 }else{
-    console.log('Server loaded without modules.');
+    log.info('Server loaded without modules.');
 }

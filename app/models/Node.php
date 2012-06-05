@@ -50,6 +50,7 @@ class Node extends Nette\Object{
             $username = $idt->username;
             $preferences = $idt->preferences;
         }else{
+            return "false";
             $roles = null;
             $id = null;
             $username = null;

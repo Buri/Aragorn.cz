@@ -352,9 +352,9 @@ window.addEvents({'domready': function(){
                 });
             this.req.send({'url':url});
         });
-        //if(!Browser.ie || location.href.indexOf('mistnost') == -1 )
-        //History.handleInitialState();
-/*        if($$('#content').length){
+        if(!Browser.ie || location.href.indexOf('mistnost') == -1 )
+            History.handleInitialState();
+        if($$('#content').length){
             $(document.body).addEvent('click:relay(a.ajax)', function(event) {
                 event.stop();
                 if($(this).get('xhrrunning')){
@@ -367,7 +367,7 @@ window.addEvents({'domready': function(){
                 //spinner.startSpin();
                 History.push(this.get('href'));
             });
-        }*/
+        }
         var fn = function(e){
             if(e.type == 'change' || (e.type == 'keyup' && e.key == 'enter') || e.target.id == 'btnStatus'){
                 AC.ajax('statusupdate', {id:$('msgStatus').get('value')});

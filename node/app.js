@@ -9,12 +9,17 @@ var cluster = require('cluster'),
     os = require('os'),
     Tracer = require('tracer'),
     fs = require('fs'),
-    log = Tracer.colorConsole(),
     Config = require('./modules/config.js').parse(),
     CPU_NUM = os.cpus().length, 
-    WORKER_NUM = Config.node.jobs || (CPU_NUM + 2);
+    WORKER_NUM = Config.node.jobs || (CPU_NUM + 2),
+    log = Tracer.colorConsole({
+        level: Config.node.loglevel,
+        format: "{{timestamp}} <{{title}}> {{file}}:{{line}} {{message}} ",
+        dateformat : "dd.mm.yyyy HH:MM:ss.L"
+    });
+
     
-console.log('================\n' + 
+log.info('\n================\n' +
             'Host:   ' + os.hostname() + '\n' +
             'OS:     ' + os.type() + ' (' + os.arch() + ')/' + os.platform() + ' ' + os.release() + '\n' + 
             'CPU:    ' + CPU_NUM + 'x ' + os.cpus()[0].model + '\n' +
@@ -26,17 +31,19 @@ cluster.setupMaster({
     silent:false
 });
 try{
-fs.unlinkSync(Config.node.phpbridge.socket);
-}catch(e){}
+    fs.unlinkSync(Config.node.phpbridge.socket);
+}catch(e){
+    log.warn('Unlink failed on ' + Config.node.phpbridge.socket, e)
+}
 
-console.log(' * Cluster ready, spawning ' + WORKER_NUM + ' workers.');
+log.info (' * Cluster ready, spawning ' + WORKER_NUM + ' workers.');
 var ONLINE_WORKERS = 0;
 var onDeath  = function(w){
-    console.log('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
+    log.error('Worker ' + w.uniqueID + ' died (suicide = ' + (w.suicide) + ').');
     if(!w.suicide){
         var w1 = cluster.fork();
         w1.on('exit', onDeath);
-        console.log('Worker ' + w1.uniqueID + ' spawned.');
+        log.info('Worker ' + w1.uniqueID + ' spawned.');
     }
 };
 for(var i = WORKER_NUM; i; i--){
@@ -45,7 +52,7 @@ for(var i = WORKER_NUM; i; i--){
     worker.on('online', function(){
         ONLINE_WORKERS++;
         if(ONLINE_WORKERS == WORKER_NUM){
-            console.log(' * All workers are ready.\n================');
+            log.info(' * All workers are ready.\n================');
         }
     });
 }
@@ -64,4 +71,4 @@ for(var i = WORKER_NUM; i; i--){
     }, 1000);
 });*/
 
-console.log(' * Spawning complete, cluster is on standby.');
+log.info(' * Spawning complete, cluster is on standby.');

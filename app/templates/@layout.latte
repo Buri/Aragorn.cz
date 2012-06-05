@@ -52,7 +52,7 @@
         </script>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
-    <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ''}">
+    <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ' runac'}">
         <menu id="bookmarks">
             <a n:for="$i = 0; $i < 20; $i++" href="#">Záložka {$i}</a>
         </menu>
@@ -155,6 +155,7 @@
                 {/if}
             </menu>
             <div class="content" id="content" style="width:832px; float:left;">
+                <h1 id="location">{$title}</h1>
                 <ul n:if="count($flashes)" class="flashes">
                     {foreach $flashes as $flash}
                     <li>{$flash->message}</li>

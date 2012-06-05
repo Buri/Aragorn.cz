@@ -1073,3 +1073,6 @@ margin-top: -2px;*/
         border-radius: 4px;
         cursor: pointer;
     }
+    .dark h1#location{
+        text-align: center;
+    }

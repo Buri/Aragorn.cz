@@ -19,6 +19,7 @@ exports.apply = function(o){
         }
         return -1;
     };
+
     o.Number.prototype.bytes2string = function(){
         var b = this, u = ['B', 'KB', 'MB', 'GB', 'TB', 'PT', 'EB'], i = 0;
         while(b >= 1024){
@@ -28,6 +29,8 @@ exports.apply = function(o){
         var c = '' + b;
         return c.substr(0, c.indexOf('.') + 3) + ' ' + u[i];
     }
+
+    o.dump = new exports.Logger;
 }
 
 exports.serverUptime = function(starttime){
@@ -65,3 +68,20 @@ exports.serverUptime = function(starttime){
     tstr += diff + ' second' + (diff > 1 ? 's' : '');
     return tstr;
 }
+
+exports.Logger = new Class({
+        Implements: [Options, Events],
+        options:{
+            level: 5,   // 0 - none, 1 - errors, 2 - warnings, 3 - notices, 4 - debug, 5 - trace
+            color: true
+        },
+        init:function(options){
+            this.setOptions(options);
+        },
+        write:function(level){
+            this.fireEvent('write', arguments);
+            if(level <= this.options.level){
+                console.log(arguments);
+            }
+        }
+    });
