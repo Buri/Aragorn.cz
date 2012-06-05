@@ -4,6 +4,7 @@
 !/temp/userspace/*
 /log/*
 !/log/.gitignore
+/assets/dev/*
 /node/node_modules/*
 /db/user_ip_addresses/*
 !/db/user_ip_addresses
@@ -12,6 +13,8 @@
 !/userspace/u/.gitignore
 /userspace/i/*
 !/userspace/i/.gitignore
+!/userspace/g/.gitignore
+/userspace/g/*
 !/userspace
 /documentation/*
 !/documentation/.gitignore
