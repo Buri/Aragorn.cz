@@ -20,10 +20,19 @@ var http = require('http'),
     /* Other variables */
     //var Config = yaml.load(fs.readFileSync('../config/config.neon', 'utf8')).production.parameters;
     var Config = require('./modules/config.js').parse();
-    var log = Tracer.colorConsole({
-        level: Config.node.loglevel,
+    log = Config.node.log.file == '' ?  Tracer.colorConsole({
+        level: Config.node.log.level,
         format: "{{timestamp}} <{{title}}> {{file}}:{{line}} {{message}} ",
         dateformat : "dd.mm.yyyy HH:MM:ss.L"
+    }) : Tracer.console({
+        transport : function(data) {
+            fs.open(Config.node.log.file, 'a', 0666, function(e, id) {
+                fs.write(id, data.output+"\n", null, 'utf8', function() {
+                    fs.close(id, function() {
+                    });
+                });
+            });
+        }
     });
     app = null,
     
@@ -228,7 +237,7 @@ log.info('Unix socket opened in ' + Config.node.phpbridge.socket);
  */
 app = io.listen(server);
 app.configure(function(){
-    app.set('log level', 2);                    // reduce logging
+    app.set('log level', 0);                    // reduce logging
     app.set('transports', [                     // enable all transports (optional if you want flashsocket)
         'websocket'
       , 'flashsocket'

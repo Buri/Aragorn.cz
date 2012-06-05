@@ -45,8 +45,9 @@ production:
     node:
       port: 8000
       jobs: 1
-      loglevel: trace
-      logfile: ''
+      log:
+        level: trace
+        file: ''
       phpbridge:
         protocol: unix://
         socket: /var/run/nodejs.sock

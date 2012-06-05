@@ -12,10 +12,19 @@ var cluster = require('cluster'),
     Config = require('./modules/config.js').parse(),
     CPU_NUM = os.cpus().length, 
     WORKER_NUM = Config.node.jobs || (CPU_NUM + 2),
-    log = Tracer.colorConsole({
-        level: Config.node.loglevel,
+    log = Config.node.log.file == '' ?  Tracer.colorConsole({
+        level: Config.node.log.level,
         format: "{{timestamp}} <{{title}}> {{file}}:{{line}} {{message}} ",
         dateformat : "dd.mm.yyyy HH:MM:ss.L"
+    }) : Tracer.console({
+        transport : function(data) {
+            fs.open(Config.node.log.file, 'a', 0666, function(e, id) {
+                fs.write(id, data.output+"\n", null, 'utf8', function() {
+                    fs.close(id, function() {
+                    });
+                });
+            });
+        }
     });
 
     
@@ -56,19 +65,5 @@ for(var i = WORKER_NUM; i; i--){
         }
     });
 }
-
-/*process.on('SIGINT', function(){
-    log.info('Graceful shutdown!');
-    for(var worker in cluster.workers){
-        var w = cluster.workers[worker];
-        w.destroy();
-    }
-    
-    // Give workers time to die. (1s)
-    setTimeout(function(){
-        console.log('Server going down NOW!');
-        process.exit();
-    }, 1000);
-});*/
 
 log.info(' * Spawning complete, cluster is on standby.');
