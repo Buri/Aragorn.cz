@@ -96,7 +96,7 @@ namespace frontendModule{
             $data = unserialize($data);
             $l = $this->link("//finish", $data["token"]);
 
-            $template = new \Nette\Templating\FileTemplate(__DIR__. '/../templates/registration/sendmail.latte');
+            $template = new \Nette\Templating\FileTemplate(__DIR__. '/../templates/registration/mail/confirm-mail.latte');
             $template->registerFilter(new \Nette\Latte\Engine);
             $template->link =$l;
 
@@ -150,6 +150,78 @@ namespace frontendModule{
 
         public function actionRecoverpassword(){
 
+        }
+
+        public function createComponentRecoverPassword(){
+            $form = new Form;
+            $form->addText('mail', '')
+                    ->addRule(Form::FILLED, 'Je nutné vyplnit e-mail.')
+                    ->addRule(Form::EMAIL, 'Zadaný e-mail není platný');
+            $form->addSubmit('send', 'Obnovit heslo');
+            $form->onSuccess[] = callback($this, 'handleRecoverPassword');
+            return $form;
+        }
+
+        protected function generatePassword($length=9, $strength=0) {
+	$vowels = 'aeuy';
+	$consonants = 'bdghjmnpqrstvz';
+	if ($strength & 1) {
+		$consonants .= 'BDGHJLMNPQRSTVWXZ';
+	}
+	if ($strength & 2) {
+		$vowels .= "AEUY";
+	}
+	if ($strength & 4) {
+		$consonants .= '23456789';
+	}
+	if ($strength & 8) {
+		$consonants .= '@#$%';
+	}
+
+	$password = '';
+	$alt = time() % 2;
+	for ($i = 0; $i < $length; $i++) {
+		if ($alt == 1) {
+			$password .= $consonants[(rand() % strlen($consonants))];
+			$alt = 0;
+		} else {
+			$password .= $vowels[(rand() % strlen($vowels))];
+			$alt = 1;
+		}
+	}
+	return $password;
+}
+
+
+        public function handleRecoverPassword(Form $form){
+            $vals = $form->getValues();
+            $db = $this->context->database;
+            $row = $db->users_profiles('mail', $vals->mail);
+            if($row->count()){
+                $row = $row->fetch();
+                $usr = $db->users('id', $row['id'])->fetch();
+                $user = $usr['username'];
+
+                $password = $this->generatePassword(9, 1 | 2 | 4);
+
+                $mail = new \Nette\Mail\Message();
+                $mail->addTo($vals->mail);
+                $mail->setFrom('system@' . $this->context->parameters['servers']['domain']);
+                $template = new \Nette\Templating\FileTemplate(__DIR__. '/../templates/registration/mail/recover-password.latte');
+                $template->registerFilter(new \Nette\Latte\Engine);
+                $template->username = $user;
+                $template->password = $password;
+                $mail->setHtmlBody($template);
+                $mail->send();
+                $row->update(array(
+                    "password" => sha1($password)
+                ));
+
+                $this->flashMessage('Na váš e-mail bylo odesláno nové heslo.');
+                $this->redirect('this');
+            }else{
+                $form->addError('Zadaný mail nebyl nalezen v databázi.');
+            }
         }
     }
 }
