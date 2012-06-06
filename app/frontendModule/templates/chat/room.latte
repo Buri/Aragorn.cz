@@ -42,6 +42,7 @@
                 Vyřešit zobrazování postav...
             {{/if}}
             <div id="constat" title="Connection status: offline" class="offline" style="display: inline-block; position: relative;">&infin;</div>
+            <a href="/chat/enter/1/">ENTER</a>
         </footer>
         <script n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
@@ -60,14 +61,14 @@
                         content:function(e){ 
                             var info = JSON.decode(e.get('data-info')),
                                 diff = parseInt((new Date().getTime() - info.time)/1000),
-                                act = {m:parseInt(diff/60), s:diff%60, type:{idle:'Čte', 'writing':'Píše...', 'textready':'Má rozepsaný text', deleting:'Maže...', offline:'Nepřipojený'}},
-                                html = '<img src="' + info.icon + '" style="max-height:50px; vertical-align: top;" />\n' +
+                                act = {m:parseInt(diff/60), s:diff%60, type:{idle:'Čte', 'writing':'Píše...', 'textready':'Má rozepsaný text', deleting:'Maže...', offline:'Nepřipojený', away:'Nevšímá si chatu'}},
+                                html = '<img src="' + info.info.icon + '" style="max-height:50px; vertical-align: top;" />\n' +
                                        '<div style="display:inline-block; margin-left:3px;">\n' +
                                        '<b>' + info.name + '</b><br/>\n' + 
                                        '<i>'+ act.m + ' min. a ' + act.s + ' sec.</i><br/>\n'+
                                        '<span>' + act.type[info.state] + '</span><br/>\n' + 
-                                       '<span>' + info.status + '</span>' +
-                                       '</div>'; 
+                                       '<span>' + info.info.status + '</span>' +
+                                       '</div>';
                             return html;
                         }
                     },
@@ -89,10 +90,6 @@
                     this.setOptions(options);
                     t.registerCmd('chat', this._handle.bind(this));
                     this.transport = t;
-                    t.addEvent('SESSION_HANDSHAKE',function(){
-                        t.send('chat', {action:'enter', rid:rid});
-                        t.send('chat', {action:'userlist', rid:rid});
-                    });
                     this.tips = new FloatingTips(this.options.tipsSelector, this.options.tips);
                     this.options.input = $(this.options.input);
                     if(this.options.input)
@@ -100,14 +97,20 @@
                     window.addEvents({
                         'blur': function(){
                             this.away = true;
-                            //document.title = 'blur';
+                            this.transport.send('chat',{action:'state', state:'away', rid:rid});
                         }.bind(this),
                         'focus': function(){
                             this.away = false;
+                            this.transport.send('chat',{action:'state', state:this._typing.state, rid:rid});
+                            if(this.unreadMessages)
+                                AC.updateFavicon('');
                             this.unreadMessages = 0;
-                            AC.updateFavicon('');
-                            //document.title = 'FOCUS!';
                         }.bind(this)
+                    });
+                    /* Fire right after real data is pushed to node.js */
+                    AC.addEvent('identitypush', function(){
+                        t.send('chat', {action:'enter', rid:rid});
+                        t.send('chat', {action:'userlist', rid:rid});
                     });
                 },
                 toggleDeletes:function(){
@@ -201,7 +204,7 @@
                                     text:' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ' '
                                 }),
                                 new Element('strong', {text:(msg.from || whole.user.name) + (msg.whisper ? ' » ' + msg.whisper : '') + ': '}),
-                                new Element('span', {text:msg.message})
+                                new Element('span', {html:msg.message})
                             ).inject($(this.options.glass), 'top');
                             if(this.options.limit){
                                 var c = $$('#' + this.options.glass + ' div'), s = parseInt(typeOf(this.options.limit) == 'number' ? this.options.limit : $(this.options.limit).get('value'));
@@ -219,14 +222,20 @@
                             AC.message(msg.title, msg.body, msg.options);
                             break;
                         case 'userlist':
-                            $$('#user-list div.users, #user-list div.users *').dispose(); 
+                            $$('#user-list div.users, #user-list div.users *').dispose();
                             this.connectedUsers = msg.list;
                             this.connectedUsers.each(function(usr){
-                                var img = usr.state == 'typing' ? 'edit-icon' : (usr.state == 'textready' ? 'notepad-icon' : 'blank');
+                                usr.info = JSON.decode(usr.info);
+                                //console.log(usr);
+                                var img = usr.state == 'typing' ? 'edit-icon' : (usr.state == 'textready' ? 'notepad-icon' : (usr.state == 'away' ? 'user-away' : 'blank'));
                                 var e = new Element('div', {
                                     'class':'users',
                                     'data-info':JSON.stringify(usr)
-                                }).adopt(new Element('img', {src:usr.icon, 'class':'user-list-icon'}), new Element('span', {text:usr.name + ' '}), new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:'http://stat.aragorn.cz/images/' + img + '.png', styles:{'vertical-align':'middle'}}));
+                                }).adopt(
+                                    new Element('img', {src:usr.info.icon, 'class':'user-list-icon'}),
+                                    new Element('span', {text:usr.name + ' '}),
+                                    new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:{{$staticPath}} + '/images/' + img + '.png', styles:{'vertical-align':'middle'}})
+                                );
                                 $(this.options.userList).grab(e);
                             }.bind(this));
                             this.tips.attach(this.options.tipsSelector);
@@ -293,6 +302,7 @@
                                         break;
                                     case 'kickall':
                                         if(!confirm('Vyhodit všechny z místnosti?')) break;
+                                        Chat.send('cmd', {command:cmd});
                                     default:
                                         Chat.send('cmd', {command:cmd, params:{param:param}});
                                 }

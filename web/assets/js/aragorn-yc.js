@@ -150,7 +150,10 @@ var AragornClient = new Class({
             //console.log('HANDSHAKE!');
             this.connected = true;
             this._ping.timeout = setInterval(this.fn.ping.bind(this), 1000);
-            this.ajax('testIdentity', {sid:Cookie.read('sid')});
+            this.ajax('testIdentity', {sid:Cookie.read('sid')}, function(tree){
+                //console.log('Handshake complete', tree[2].get('text'), this);
+                this.fireEvent('identitypush');
+            }.bind(this));
             if(this.options.batchOffline){
                 this.batch.each(function(msg){
                     this.sendRaw(msg);

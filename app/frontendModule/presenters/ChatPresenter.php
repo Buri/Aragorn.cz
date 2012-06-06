@@ -58,7 +58,12 @@ namespace frontendModule{
             if(!DB::chatroom_occupants('idroom = ? AND idusers = ?', array($id, Environment::getUser()->getId()))->count() && !(Environment::getUser()->isAllowed('chat', 'ninja') || $param = "ninja")){
                 $this->redirect(301, 'chat:enter', $id);
             }*/
-            $room = DB::chatrooms('id', $id)->fetch();
+            $usrs = self::getChatroomOccupants($this->node->getConnection());
+            //dump($usrs);
+            if(array_search($this->getUser()->getId(), $usrs[$id]) === false){
+                $this->redirect('enter', $id);
+            }
+            $room = $this->context->database->chatrooms('id', $id)->fetch();
             $t = $this->getTemplate();
             $t->param = $param;
             $t->rid = $id;
@@ -67,33 +72,33 @@ namespace frontendModule{
         }
 
         public function actionEnter($id, $param){
-            $user = Environment::getUser();
+            $user = $this->getUser();
+            $db = $this->context->database;
             switch($this->canEnter($id, $param)){
                 case 'OK':
-                    $r = DB::chatrooms('id', $id)->select('id,password,max')->fetch();
-                    if(!DB::chatroom_occupants()->where('idusers = ?', Environment::getUser()->getId())->count())
-                        DB::chatroom_occupants()->insert(array("id"=>0, "idroom"=>$id, "idusers"=>Environment::getUser()->getId(), "activity"=>time()));
-                    $usr = DB::users_profiles('id', $user->getId())->fetch();
+                    $usr = $db->users_profiles('id', $user->getId())->fetch();
+                    $prefs = $db->users_preferences('id', $user->getId())->fetch();
                     $this->node->getConnection()->writeReadClose(json_encode(array("command" => "chat",
                         "data" => array(
-                            "uid" => Environment::getUser()->getId(),
-                            "name" => Environment::getUser()->getIdentity()->username,
-                            "room" => $r["id"],
+                            "uid" => $user->getId(),
+                            "name" => $user->getIdentity()->username,
+                            "room" => $id,
                             "action" => "enter",
                             "info" => array(
                                 "permissions" => array(
                                     "delete" => $user->isAllowed('chat', 'delete')
                                 ),
-                                "icon" => 'http://' . Environment::getVariable('userServer', 'user.aragorn.cz') . '/i/' . $usr['icon'],
+                                "icon" => 'http://' . $this->context->parameters['servers']['userContent'] . '/i/' . $usr['icon'],
                                 "status" => $usr['status'],
-                                "id" => $user->getId()
+                                "color" => $prefs['chatcolor'],
                             )
                         )
                     )), 4096);
                     $this->redirect(301, 'chat:room', $id);
                     break;
                 case 'BAD_PASSWD':
-                    $this->redirect(301, 'chat:badpasswd');
+                    $this->flashMessage('Špatné heslo.');
+                    $this->redirect(301, 'chat:');
                     break;
                 case 'NOT_FOUND':
                     $this->redirect(301, 'chat:');
@@ -102,18 +107,20 @@ namespace frontendModule{
         }
 
         public function actionNinja($id, $param){
-            if(Environment::getUser()->isAllowed('chat', 'ninja'))
+            if($this->getUser()->isAllowed('chat', 'ninja'))
                 $this->redirect(301, 'chat:room', array('id' => $id, 'param' => 'ninja'));
             else
                 $this->redirect(301, 'chat:');
         }
 
         private function canEnter($id, $passwd = null){
-            $r = DB::chatrooms('id', $id)->select('id,password,max');
+            $db = $this->getContext()->database;
+            $user = $this->getUser();
+            $r = $db->chatrooms('id', $id)->select('id,password,max');
             if($r->count()){
                 $r = $r->fetch();
-                if(!$r["password"] || Environment::getUser()->isAllowed('chat', 'override_password') || $r["password"] == sha1($passwd)){
-                    if($r["max"] && !Environment::getUser()->isAllowed('chat', 'override_limit') && DB::chatroom_occupants("idroom", $id)->count() >= $r["max"]){
+                if(!$r["password"] || $user->isAllowed('chat', 'override_password') || $r["password"] == sha1($passwd)){
+                    if($r["max"] && $user->isAllowed('chat', 'override_limit') /*&& $db->chatroom_occupants("idroom", $id)->count() >= $r["max"]*/){
                         return 'NOT_FOUND';
                     }
                     return 'OK';
@@ -124,17 +131,13 @@ namespace frontendModule{
                 return 'NOT_FOUND';
             }
         }
-        public function actionBadpasswd(){
-            $this->setView('default');
-            $this->getTemplate()->message = "Zadali jste špatné heslo.";
-            $this->actionDefault();
-        }
 
         public function actionLeave($id, $param = null){
+            $user = $this->getUser();
             $this->node->getConnection()->writeReadClose(json_encode(array("command" => "chat",
                 "data" => array(
-                    "uid" => Environment::getUser()->getId(),
-                    "name" => Environment::getUser()->getIdentity()->username,
+                    "uid" => $user->getId(),
+                    "name" => $user->getIdentity()->username,
                     "room" => $id,
                     "action" => "leave",
                     "silent" => $param == "silent" ? true : false

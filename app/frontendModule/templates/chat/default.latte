@@ -15,7 +15,7 @@
         {/if}
         </td><td> {$room["description"]} </td><td>
         {foreach $room["occupants"] as $occupant}
-            {$occupant}{sep}, {/sep}
+            {$presenter->getContext()->database->users('id', $occupant)->fetch()|r:'username'}{sep}, {/sep}
         {/foreach}
         {if !count($room["occupants"])}
         <em>místnost je prázdná</em>

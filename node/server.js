@@ -93,13 +93,13 @@ var http = require('http'),
             //log.trace('Message recieved on PHP Bridge', message);
             return this.list[message.command].unixHook(message, socket);
         },
-        sessionHook:function(message, client){
+       /* sessionHook:function(message, client){
             log.trace('Message on Socket.io', message)
             if(this.list[message.cmd])
                 return this.list[message.cmd].sessionHook(message, client);
             log.error('Undefined message', message);
             return false;
-        },
+        },*/
         setupClient:function(client){
             this.getList().each(function(mod){
                 //console.log(mod);
@@ -287,6 +287,7 @@ app.configure(function(){
                         log.trace('Session clients', count);
                         if(!count){
                             r.hgetall(c + '-user', function(err, user){
+                                if(err || !user) return;
                                 log.trace('Removing sessions data');
                                 r.multi()
                                 .del(c, 35)
@@ -482,7 +483,7 @@ app.configure(function(){
                     if(!this.redis.connected) this.redis = redis.createClient();
                     this.redis.hgetall('session-' + id + '-user', function(err, user){
                         if(err) return;
-                        console.log(user);
+                        log.trace(user);
                         user.permissions = JSON.parse(user.permissions);
                         user.roles = JSON.parse(user.roles);
                         this.userData = user;
