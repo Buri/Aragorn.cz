@@ -6,15 +6,6 @@
         Purpose of the stylesheet follows.
 */
 
-.transition *{
-    -moz-transition: all 1s linear ;
-    -webkit-transition: all 1s linear ;
-    -ms-transition: all 1s linear ;
-    -o-transition: all 1s linear ;
-    transition: all 1s linear ;
-}
-
-
 /* DARK skin */
 body.dark{
     background-color: #000;
@@ -36,22 +27,6 @@ body.dark{
 /*background: url(http://s1.aragorn.cz/g/gallery/footer.jpg) no-repeat center;*
 margin-top: -2px;*/
 }
-
-/* generic elements */
-
-/* generic classes */
-.hide{
-    display:none;
-}
-.offline{
-    background-color: red;
-    color: white;
-}
-.online{
-    background-color: lime;
-    color: #000;
-}
-
 
 /* bookmarks */
 .dark menu#bookmarks{
@@ -82,19 +57,6 @@ margin-top: -2px;*/
     opacity: 0.8;
 }
 
-/* connection status */
-#constat{
-    display: none;
-}
-.runac #constat{
-    display: inline-block;
-    position: fixed;
-    left: 5px;
-    top: 5px;
-    width: 20px;
-    height: 20px;
-    text-align: center;
-}
 
 /* selects */
 .dark .mc_display {
@@ -641,9 +603,13 @@ margin-top: -2px;*/
 }
 .dark .menu .left{
     float:left;
+    z-index: 1;
+    margin-top: -185px;
 }
 .dark .menu .right{
     float: right;
+    z-index: 1;
+    margin-top: -185px;
 }
 .dark .left a, .dark .right a{
     width:200px;
@@ -1045,34 +1011,316 @@ margin-top: -2px;*/
     font-weight: bold;
 }
 .dark div.widget{
-        border: 1px solid gray;
-        border-radius: 1px;
-        padding: 6px;
-        float:left;
-        max-width:213px;
-        margin: 3px;
-    }
-    .dark div.widgetHead{
-        background: #716969;
-        color: #cfc;
-        margin: -6px -6px 3px -6px;
-        padding: 4px;
-    }
-    .dark div.widgetTitle{
-        display: inline-block;
-        cursor: move;
-    }
-    .dark .widgetMenuButton{
-        display: inline-block;
-        background: url(/images/dark/buttons/wheel-icon.png) center center no-repeat;
-        background-size: contain;
-        width: 24px;
-        height: 20px;
-        float: right;
-        border: 1px solid #999;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    .dark h1#location{
-        text-align: center;
-    }
+    border: 1px solid gray;
+    border-radius: 1px;
+    padding: 6px;
+    float:left;
+    max-width:213px;
+    margin: 3px;
+}
+.dark div.widgetHead{
+    background: #716969;
+    color: #cfc;
+    margin: -6px -6px 3px -6px;
+    padding: 4px;
+}
+.dark div.widgetTitle{
+    display: inline-block;
+    cursor: move;
+}
+.dark .widgetMenuButton{
+    display: inline-block;
+    background: url(/images/dark/buttons/wheel-icon.png) center center no-repeat;
+    background-size: contain;
+    width: 24px;
+    height: 20px;
+    float: right;
+    border: 1px solid #999;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.dark h1#location{
+    text-align: center;
+}
+
+.dark .action-public{
+    background: #0033ff;
+}
+.dark .action-private{
+    background: #FF9900;
+}
+
+.dark #actions{
+    width:100%;
+    text-align: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.dark .datepicker {
+	position: absolute;
+	font-size: 10px;
+	font-family: "Lucida Grande", LucidaGrande, "Lucida Sans", Geneva, Verdana, sans-serif;
+	color: #fff;
+	line-height: normal;
+	width: 172px;
+	height: 135px;
+	padding: 14px;
+	background: url("/images/dark/bg/datepicker.png") no-repeat;
+}
+
+/* header
+********************************************************/
+.dark .datepicker .header {
+	position: relative;
+	height: 15px;
+	margin-bottom: 5px;
+	padding-top: 1px;
+}
+
+.dark .datepicker .header .title {
+	text-align: center;
+	margin: 2px 18px 0 18px;
+}
+
+.dark .datepicker .header .titleText {
+	color: #ccff00;
+}
+
+.dark .datepicker .header .previous,
+.dark .datepicker .header .next,
+.dark .datepicker .header .closeButton {
+	position: absolute;
+	cursor: pointer;
+	text-indent: -40px;
+	overflow: hidden;
+	width: 12px;
+	height: 12px;
+	top: 2px;
+	background-image: url("/images/dark/buttons/datepicker.png");
+	background-position: left top;
+	background-repeat: no-repeat;
+}
+
+.dark .datepicker .header .previous {
+	left: 4px;
+}
+.dark .datepicker .header .previous:hover {
+	background-position: left bottom;
+}
+.dark .datepicker .header .next {
+	right: 4px;
+	background-position: -13px top;
+}
+.dark .datepicker .header .next:hover {
+	background-position: -13px bottom;
+}
+.dark .datepicker .header .closeButton {
+	display: none;
+	right: 0px;
+	top: 0px;
+	background-position: right top;
+}
+.dark .datepicker .header .closeButton:hover {
+	background-position: right bottom;
+}
+
+/* body
+********************************************************/
+.dark .datepicker .body {
+	position: relative;
+	top: 0px;
+	left: 2px;
+	width: 168px;
+	height: 112px;
+	overflow: hidden;
+}
+
+/* time
+********************************************************/
+.dark .datepicker .time {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.dark .datepicker .time .hour,
+.dark .datepicker .time .separator,
+.dark .datepicker .time .minutes {
+	background: #333;
+	border: 0px;
+	width: 50px;
+	font-size: 32px;
+	color: #fff;
+	position: absolute;
+	top: 10px;
+	text-align: center;
+	padding: 2px;
+}
+
+.dark .datepicker .time .hour {
+	left: 15px;
+}
+.dark .datepicker .time .separator {
+	background: transparent;
+	width: 10px;
+	left: 76px;
+}
+
+.dark .datepicker .time .minutes {
+	left: 95px;
+}
+.dark .datepicker .time .ok {
+	position: absolute;
+	top: 65px;
+	height: 32px;
+	width: 136px;
+	left: 15px;
+	font-size: 20px;
+}
+
+/* days-grid
+********************************************************/
+.dark .datepicker .days .day {
+	float: left;
+	text-align: center;
+	overflow: hidden;
+	width: 23px;
+	padding-top: 1px;
+	height: 14px;
+	margin: 0 1px 1px 0;
+	font-weight: normal;
+}
+.dark .datepicker .days .titles {
+	height: 15px;
+	margin-bottom: 2px;
+	text-transform: uppercase;
+	color: #aaa;
+}
+.dark .datepicker .days .day0 {
+	margin-right: 0;
+}
+
+.dark .datepicker .days .week5 .day {
+	margin-bottom: 0;
+}
+
+/* days-colors
+********************************************************/
+.dark .datepicker .days .week .day {
+	cursor: pointer;
+}
+.dark .datepicker .days .week .day:hover {
+	color: #ccff00;
+}
+
+.dark .datepicker .days .otherMonth {
+	color: #444444;
+}
+
+.dark .datepicker .days .selected {
+	color: #ccff00;
+}
+
+/* months-grid
+********************************************************/
+.dark .datepicker .months .month {
+	float: left;
+	cursor: pointer;
+	text-align: center;
+	padding-top: 6px;
+	width: 55px;
+	overflow: hidden;
+	height: 21px;
+	margin: 0 1px 1px 0;
+}
+
+.dark .datepicker .months .month3,
+.dark .datepicker .months .month6,
+.dark .datepicker .months .month9,
+.dark .datepicker .months .month12 {
+	margin-right: 0;
+}
+
+.dark .datepicker .months .month10,
+.dark .datepicker .months .month11,
+.dark .datepicker .months .month12 {
+	margin-bottom: 0;
+}
+
+/* months-colors
+********************************************************/
+.dark .datepicker .months .month:hover {
+	color: #ccff00;
+}
+
+.dark .datepicker .months .selected {
+	color: #ccff00;
+}
+
+/* years-grid
+********************************************************/
+.dark .datepicker .years .year {
+	float: left;
+	cursor: pointer;
+	text-align: center;
+	padding-top: 6px;
+	width: 32px;
+	overflow: hidden;
+	height: 21px;
+	margin: 0 1px 1px 0;
+}
+
+.dark .datepicker .years .year4,
+.dark .datepicker .years .year9,
+.dark .datepicker .years .year14,
+.dark .datepicker .years .year19 {
+	margin-right: 0;
+}
+
+.dark .datepicker .years .year15,
+.dark .datepicker .years .year16,
+.dark .datepicker .years .year17,
+.dark .datepicker .years .year18,
+.dark .datepicker .years .year19 {
+	margin-bottom: 0;
+}
+
+/* years-colors
+********************************************************/
+.dark .datepicker .years .year:hover {
+	color: #ccff00;
+}
+
+.dark .datepicker .years .selected {
+	color: #ccff00
+}
+
+/* global
+********************************************************/
+.dark .datepicker .unavailable {
+	color: #533 !important;
+	cursor: default !important;
+	text-decoration: line-through;
+}
+
+.dark .datepicker table {
+	border-spacing: 0;
+}
+
+.dark .datepicker th,
+.dark .datepicker td {
+	padding: 0;
+}

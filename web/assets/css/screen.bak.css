@@ -14,6 +14,32 @@
     transition: all 1s linear ;
 }
 
+/* generic classes */
+.hide{
+    display:none;
+}
+.offline{
+    background-color: red;
+    color: white;
+}
+.online{
+    background-color: lime;
+    color: #000;
+}
+/* connection status */
+#constat{
+    display: none;
+}
+
+.runac #constat{
+    display: inline-block;
+    position: fixed;
+    left: 5px;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+}
 
 /* DARK skin */
 body.dark{
@@ -39,18 +65,7 @@ margin-top: -2px;*/
 
 /* generic elements */
 
-/* generic classes */
-.hide{
-    display:none;
-}
-.offline{
-    background-color: red;
-    color: white;
-}
-.online{
-    background-color: lime;
-    color: #000;
-}
+
 
 
 /* bookmarks */
@@ -82,19 +97,6 @@ margin-top: -2px;*/
     opacity: 0.8;
 }
 
-/* connection status */
-#constat{
-    display: none;
-}
-.runac #constat{
-    display: inline-block;
-    position: fixed;
-    left: 5px;
-    top: 5px;
-    width: 20px;
-    height: 20px;
-    text-align: center;
-}
 
 /* selects */
 .dark .mc_display {

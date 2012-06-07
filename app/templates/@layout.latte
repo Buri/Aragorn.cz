@@ -17,6 +17,7 @@
         location.reload();
     {/if}
 </script>
+<h1 id="location">{$title}</h1>
 {include #content}
 {else}
 <!DOCTYPE html>
@@ -189,12 +190,12 @@
                     });*/
                 </script>
             </menu> *}
+            <footer>
+                Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.
+                Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
+                Jakékoliv kopírování obsahu je zakázáno.
+            </footer>
         </div>
-        <footer>
-            Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.
-            Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
-            Jakékoliv kopírování obsahu je zakázáno. 
-        </footer>
         <div style="display:none;">
             <audio id="audioNotification" preload="full">
                 <source src="{!$staticPath}/sound/global.ogg" />
