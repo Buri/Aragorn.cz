@@ -1,3 +1,37 @@
 {$title='Kalendář'}
 {block content}
-Seznam akcí
+{include menu.latte}
+<table id="actions">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Název</th>
+            <th>Kdy</th>
+            <th>Místo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $actions as $action}
+        <tr{if $action['begin'] < $time} class="running"{/if}>
+            <td class="action-{if $action['public']}public{else}private{/if}">&nbsp;</td>
+            <td><a n:href="view $action['id']" class="ajax">{$action['name']}</a></td>
+            <td>
+                {if date('d.m.Y', $action['begin']) == date('d.m.Y')}
+                    Dnes
+                {elseif date('d.m.Y', $action['begin']) == date('d.m.Y', time() + 3600*24)}
+                    Zítra
+                {else}
+                    {$action['begin']|date:'d.m.Y H.i'}
+                {/if}
+            </td>
+            <td>
+                {if $action['location']}
+                    {$action['location']}
+                {else}
+                    <i>Neurčeno</i>
+                {/if}
+            </td>
+        </tr>
+        {/foreach}
+    </tbody>
+</table>

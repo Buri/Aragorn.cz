@@ -1,0 +1,25 @@
+{? $title='Přidat akci - Kalendář'}
+{block content}
+{include menu.latte}
+{if $user->isLoggedIn()}
+{control addAction}
+<script type="text/javascript" n:syntax="double">
+    window.addEvent('domready', function(){
+        var input = document.createElement('input');
+        input.setAttribute('type', 'datetime-local');
+        if(input.type != 'datetime-local'){
+            Locale.use('cs-CZ')
+            new Picker.Date($$('input[type=datetime-local]'), {
+                timePicker: true,
+                minDate:new Date(),
+                positionOffset: {x: 5, y: 0},
+                /*pickerClass: 'datepicker_dashboard',*/
+                useFadeInOut: !Browser.ie
+            });
+            //console.log('Fallback')
+        }
+    });
+</script>
+{else}
+Pro přidání akce musíte být přihlášen.
+{/if}

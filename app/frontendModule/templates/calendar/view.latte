@@ -1,0 +1,40 @@
+{? $title=$action['name'] . ' - Kalendář'}
+{block content}
+{include menu.latte}
+<h2>{$action['name']}</h2>
+<div id="action-detail-informations">
+    <div>
+        Pořadatel:
+        {!$presenter->userlink($action['owner'])}
+    </div>
+    {if $moderators->count()}
+    <div>
+        Správci:
+        {foreach $moderators as $moderator}
+        {!$presenter->userlink($moderator['iduser'])}{sep},{/sep}
+        {/foreach}
+    </div>
+    {/if}
+    <div>
+        Kdy: {$action['begin']|date:'d.m.Y H:i'} - {$action['end']|date:'d.m.Y H:i'}<br/>
+        Kde: {$action['location']} <br/>
+        Limit:<br/>
+        Cena:<br/>
+        Opakování: {$action['repeating']}
+    </div>
+    <div>
+        {$action['description']}
+    </div>
+    <div>
+        Účastníci:
+        {foreach $attendants as $attendant}
+            {!$presenter->userlink($attendant['iduser'])}({$attendant['rsvp']}){sep}, {/sep}
+        {/foreach}
+    </div>
+    <div>
+        <a n:href="rsvp $action['id'], 'y'">Zúčastním se</a>
+        <a n:href="rsvp $action['id'], 'm'">Možná</a>
+        <a n:href="rsvp $action['id'], 'n'">Nezúčastním se</a>
+    </div>
+</div>
+{control forum, 'calendar-forum-'.$id}
