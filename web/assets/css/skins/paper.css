@@ -1,0 +1,1279 @@
+/*
+    Document   : screen.css
+    Created on : 8.7.2011, 14:20:20
+    Author     : Buri
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* DARK skin */
+
+body.paper{
+    background-color: #000;
+    background-image: url('/images/paper/bg/bg_body.jpg');
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    color: #000;
+    font-family: Verdana, Arial, Helvetica;
+    font-size: 14px;
+}
+
+.paper div.holder{
+    background: url("/images/paper/bg/bg_wrap.png");
+    margin-top: 350px;
+}
+
+/* bookmarks */
+.paper menu#bookmarks{
+    position:fixed;
+    top:0;
+    right:-149px;
+    width: 150px;
+    border-left: 14px solid silver;
+    overflow: auto;
+    -moz-transition: all 0.2s ease-in-out;
+    height: 100%;
+}
+.paper menu#bookmarks:hover{
+    right:0px;
+}
+
+.paper cite{
+    font-style: italic;
+    background-color: #ccd;
+    color: #333;
+    padding: 6px;
+    border: 1px dashed white;
+    display: block;
+}
+.paper cite > a.anchor {
+    color: #000;
+    background-color: #00F;
+}
+.paper div, .paper menu{
+    padding:0;
+    margin:0;
+}
+.paper a{
+    color: #5D3915;
+    text-decoration: none;
+}
+.paper img{
+    border: none;
+}
+.paper footer{
+    text-align: center;
+    font-size: small;
+    white-space: pre-line;
+    background: url("/images/paper/bg/bg_footer.png") no-repeat center bottom;
+    margin-left: 5px;
+    height: 300px;
+}
+.paper button{
+    font-family: Tahoma,Arial, Helvetica;
+}
+.paper .holder{
+    width: 995px;
+    display: inline-block;
+    text-align: left;
+}
+.paper .slide-left{
+    margin-left: -170px;
+}
+
+.paper .slide-left:hover{
+    margin-left: 0px;
+}
+.paper .leftmenu{
+    border:1px solid red;
+    float: left;
+    width:100px;
+    height: 400px;
+    
+}
+.paper .menu{
+    border-top: none;
+    text-align: center;
+}
+.paper .menu.main{
+    height: 34px;
+}
+.paper .menu.main *{
+    vertical-align: middle;
+}
+
+.paper #content{
+    padding: 18px;
+    min-height: 500px;
+    color: #000;
+    width: 940px;
+    margin-top:0px;
+}
+.paper .menu.logo{
+    background: url("/images/paper/bg/bg_header.png") no-repeat 0 top ;
+    height:350px;
+    margin-top: -350px;
+}
+.paper .menu.logo a{
+    color: #000;
+    font-family: xirwena;
+    font-size: 32px;
+}
+.paper .menu .left{
+    /*float:left;*/
+    z-index: 1;
+    margin-top: 0px;
+    width: 50%
+}
+.paper .menu .right{
+    /*float: right;*/
+    z-index: 1;
+    margin-top: -100px;
+    width: 50%;
+    margin-left: 50%;
+    margin-top: -60px;
+}
+.paper .left a, .paper .right a{
+    width:200px;
+}
+.paper .menu.logo a{
+    display: inline-block;
+    /*height: 87px;*/
+    vertical-align: middle;
+    -moz-transition: all 0.3s linear;
+    -webkit-transition: all 0.3s linear;
+    -o-transition: all 0.3s linear;
+    -ms-transition: all 0.3s linear;
+    transition: all 0.3s linear;
+}
+.paper #menu-den:hover,.paper #menu-forum:hover,.paper #menu-articles:hover,.paper #menu-gallery:hover{
+    color: #d3a523
+}
+.paper #menu-aragorn{
+    width:80%;
+    height: 200px;
+    margin-top:100px;
+    color:transparent;
+}
+.paper .menu a.middle{
+    height: 100%;
+}
+.paper .hidden{
+    display:none;
+}
+.paper .pre{
+    white-space: pre-wrap;
+}
+.paper .lock{
+    padding-right: 20px;
+    background-image: url('/images/chatlock.png');
+    background-position: center right;
+    background-repeat: no-repeat;
+}
+
+.paper .contentLoading{
+    opacity:0.1;
+    background-color: #000;
+    -moz-transition: all .9s linear;
+}
+
+.paper .role-root, .paper .role-moderator, .paper .role-guest{
+    padding-right: 17px;
+}
+.paper .role-root{
+    color: #F6F;
+    background: url('/images/dark/link/admin.png') no-repeat right center;
+    background-size: 14px;
+}
+.paper .role-moderator{
+    color: #F66;
+    background: url('/images/dark/link/moderator.png') no-repeat right center;
+    background-size: 14px;
+}
+.paper .role-user{
+    color: #99c;
+}
+.paper .role-guest{
+    color: #333;
+}
+
+/* LogInForm style definition */
+.paper .logInForm{
+    display: inline;
+}
+.paper .logInForm *{
+    font-size: 12px;
+    display: inline;
+    vertical-align: middle;
+}
+.paper form#frm-logInForm.logInForm a{
+    padding: 0;
+}
+
+
+.paper #overlay{
+    background-image: url(/images/overlay.png) !important;
+}
+.paper #msgStatus{
+    border-radius:6px; 
+    padding: 0 6px;
+}
+.paper #msgStatus.sending{
+    background-color: #cc9;
+}
+.paper .menu.main a, .paper .main.menu{
+    vertical-align: middle;
+    color: #332;
+}
+.paper .main.menu{
+    text-align: left;
+    padding-left: 35px;
+    padding-top: 3px;
+    background: #ccd;
+    border-bottom: none;
+    height: 25px;
+}
+.paper .main.menu .float-right{
+    float:right; 
+    padding-right: 6px; 
+    margin-top:-3px;
+}
+.paper .main.menu .float-right img{
+    max-height: 23px; 
+}
+
+/* discussion */
+
+
+/* forum */
+
+ .paper menu{
+    color: #fff;
+    background: #333;
+}
+
+.paper menu#sidebar-left{
+    width: 100%;
+    padding: 2px;
+    margin-top: -350px;
+    background: transparent;
+}
+.paper menu a{
+    /*display:block;*/
+    /*color: #5a90fc;*/
+    padding: 5px;
+}
+.paper menu a:hover{
+    text-decoration: underline;
+}
+.paper menu div.block a{
+    
+}
+.paper menu a img{
+    max-width: 20px;
+    vertical-align: middle;
+}
+.paper menu div.block{
+    background-color: transparent;
+}
+.paper menu div.block a.profile{
+    font-weight: bold;
+    text-align: center;
+}
+.paper menu div.block a.profile img{
+    max-width: 20px;
+    max-height: 20px;
+    border: 1px solid #5D3915;
+}
+.paper menu div.block:first-of-type{
+    margin-left: 50px;
+    margin-top: 10px;
+}
+
+.paper menu div.block p{
+    color: white;
+    margin-bottom: 0;
+}
+
+.paper menu div.block input[type=text],.paper menu div.block input[type=password]{
+    width: 100px;
+    background: transparent;
+    border: 1px solid black;
+}
+.paper menu div.block input[type=text]:hover,.paper menu div.block input[type=password]:hover,
+.paper menu div.block input[type=text]:active,.paper menu div.block input[type=password]:active{
+    border: 1px solid #543232;
+}
+.paper #frmLogin{
+    margin: 5px;
+    margin-top: 0;
+    display: inline-block;
+}
+
+.paper ul.module-menu li{
+        display: inline-block;
+        margin-left: 15px;
+    }
+.paper menu div.block p{
+    color:#000;
+    padding: 5px;
+}
+/*
+	paginator
+*/
+
+
+.paper .paginator {
+    margin: 1em 0;
+    font-size: 90%;
+    text-align: center;
+}
+
+.paper .paginator a, .paper .paginator span {
+    margin-right: 0.1em;
+    padding: 0.2em 0.5em;
+    color: #999999;
+    background-color: #333;
+}
+
+.paper .paginator a {
+    border: 1px solid #9AAFE5;
+    text-decoration: none;
+    color: #cccccc;
+}
+.paper .paginator a:hover {
+    background: #ccc;
+    color:#333;
+}
+
+.paper .paginator span.button {
+    border: 1px solid #DDDDDD;
+}
+
+.paper .paginator .current {
+    background: #CCC;
+    border: 1px solid #CCC;
+    color: white;
+    font-weight: bold;
+}
+.paper div.widget{
+    border: 1px solid gray;
+    border-radius: 1px;
+    padding: 6px;
+    float:left;
+    max-width:213px;
+    margin: 3px;
+}
+.paper div.widgetHead{
+    background: #716969;
+    color: #cfc;
+    margin: -6px -6px 3px -6px;
+    padding: 4px;
+}
+.paper div.widgetTitle{
+    display: inline-block;
+    cursor: move;
+}
+.paper .widgetMenuButton{
+    display: inline-block;
+    background: url(/images/dark/buttons/wheel-icon.png) center center no-repeat;
+    background-size: contain;
+    width: 24px;
+    height: 20px;
+    float: right;
+    border: 1px solid #999;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.paper h1#location{
+    text-align: center;
+    font-family: xirwena;
+}
+
+.paper .action-public{
+    background: #0033ff;
+}
+.paper .action-private{
+    background: #FF9900;
+}
+
+.paper #actions{
+    width:100%;
+    text-align: center;
+}
+
+    .paper #editorial p{
+        white-space: pre-line;
+    }
+    .paper #top-picks{
+        display: inline-block;
+        width: 300px;
+        float: right;
+        border:0px solid #333;
+        background: transparent;
+        min-height: 200px;
+        padding: 1px;
+        margin: 10px;
+    }
+    .paper #top-picks .pick{
+        display: inline-block;
+        width: 292px;
+        background: transparent;
+        border: 0px solid #333;
+        padding: 3px;
+    }
+    .paper #top-picks .pick a.title{
+        display: block;
+        margin: 0px;
+        padding: 5px;
+        background-image: url("/images/paper/bg/small_title.png");
+        background-size: cover;
+        /*background-image: -webkit-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -o-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -ms-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);*/
+    }
+    .paper #top-picks .pick div.detail{
+        width: 232px;
+        display: inline-block;
+        padding: 5px;
+        font-size: small;
+        overflow: hidden;
+        height: 60px;
+        line-height: 20px;
+    }
+    .paper #top-picks .pick div.detail div{
+        white-space: pre-line;
+        -moz-transition: all .3s linear;
+        -webkit-transition: all .3s linear;
+        -o-transition: all .3s linear;
+        -ms-transition: all .3s linear;
+        transition: all .3s linear;
+    }
+    .paper #top-picks .pick div.detail div:hover{
+        margin-top: -62px;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.paper .datepicker {
+	position: absolute;
+	font-size: 10px;
+	font-family: "Lucida Grande", LucidaGrande, "Lucida Sans", Geneva, Verdana, sans-serif;
+	color: #fff;
+	line-height: normal;
+	width: 172px;
+	height: 135px;
+	padding: 14px;
+	background: url("/images/dark/bg/datepicker.png") no-repeat;
+}
+
+/* header
+********************************************************/
+.paper .datepicker .header {
+	position: relative;
+	height: 15px;
+	margin-bottom: 5px;
+	padding-top: 1px;
+}
+
+.paper .datepicker .header .title {
+	text-align: center;
+	margin: 2px 18px 0 18px;
+}
+
+.paper .datepicker .header .titleText {
+	color: #ccff00;
+}
+
+.paper .datepicker .header .previous,
+.paper .datepicker .header .next,
+.paper .datepicker .header .closeButton {
+	position: absolute;
+	cursor: pointer;
+	text-indent: -40px;
+	overflow: hidden;
+	width: 12px;
+	height: 12px;
+	top: 2px;
+	background-image: url("/images/dark/buttons/datepicker.png");
+	background-position: left top;
+	background-repeat: no-repeat;
+}
+
+.paper .datepicker .header .previous {
+	left: 4px;
+}
+.paper .datepicker .header .previous:hover {
+	background-position: left bottom;
+}
+.paper .datepicker .header .next {
+	right: 4px;
+	background-position: -13px top;
+}
+.paper .datepicker .header .next:hover {
+	background-position: -13px bottom;
+}
+.paper .datepicker .header .closeButton {
+	display: none;
+	right: 0px;
+	top: 0px;
+	background-position: right top;
+}
+.paper .datepicker .header .closeButton:hover {
+	background-position: right bottom;
+}
+
+/* body
+********************************************************/
+.paper .datepicker .body {
+	position: relative;
+	top: 0px;
+	left: 2px;
+	width: 168px;
+	height: 112px;
+	overflow: hidden;
+}
+
+/* time
+********************************************************/
+.paper .datepicker .time {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.paper .datepicker .time .hour,
+.paper .datepicker .time .separator,
+.paper .datepicker .time .minutes {
+	background: #333;
+	border: 0px;
+	width: 50px;
+	font-size: 32px;
+	color: #fff;
+	position: absolute;
+	top: 10px;
+	text-align: center;
+	padding: 2px;
+}
+
+.paper .datepicker .time .hour {
+	left: 15px;
+}
+.paper .datepicker .time .separator {
+	background: transparent;
+	width: 10px;
+	left: 76px;
+}
+
+.paper .datepicker .time .minutes {
+	left: 95px;
+}
+.paper .datepicker .time .ok {
+	position: absolute;
+	top: 65px;
+	height: 32px;
+	width: 136px;
+	left: 15px;
+	font-size: 20px;
+}
+
+/* days-grid
+********************************************************/
+.paper .datepicker .days .day {
+	float: left;
+	text-align: center;
+	overflow: hidden;
+	width: 23px;
+	padding-top: 1px;
+	height: 14px;
+	margin: 0 1px 1px 0;
+	font-weight: normal;
+}
+.paper .datepicker .days .titles {
+	height: 15px;
+	margin-bottom: 2px;
+	text-transform: uppercase;
+	color: #aaa;
+}
+.paper .datepicker .days .day0 {
+	margin-right: 0;
+}
+
+.paper .datepicker .days .week5 .day {
+	margin-bottom: 0;
+}
+
+/* days-colors
+********************************************************/
+.paper .datepicker .days .week .day {
+	cursor: pointer;
+}
+.paper .datepicker .days .week .day:hover {
+	color: #ccff00;
+}
+
+.paper .datepicker .days .otherMonth {
+	color: #444444;
+}
+
+.paper .datepicker .days .selected {
+	color: #ccff00;
+}
+
+/* months-grid
+********************************************************/
+.paper .datepicker .months .month {
+	float: left;
+	cursor: pointer;
+	text-align: center;
+	padding-top: 6px;
+	width: 55px;
+	overflow: hidden;
+	height: 21px;
+	margin: 0 1px 1px 0;
+}
+
+.paper .datepicker .months .month3,
+.paper .datepicker .months .month6,
+.paper .datepicker .months .month9,
+.paper .datepicker .months .month12 {
+	margin-right: 0;
+}
+
+.paper .datepicker .months .month10,
+.paper .datepicker .months .month11,
+.paper .datepicker .months .month12 {
+	margin-bottom: 0;
+}
+
+/* months-colors
+********************************************************/
+.paper .datepicker .months .month:hover {
+	color: #ccff00;
+}
+
+.paper .datepicker .months .selected {
+	color: #ccff00;
+}
+
+/* years-grid
+********************************************************/
+.paper .datepicker .years .year {
+	float: left;
+	cursor: pointer;
+	text-align: center;
+	padding-top: 6px;
+	width: 32px;
+	overflow: hidden;
+	height: 21px;
+	margin: 0 1px 1px 0;
+}
+
+.paper .datepicker .years .year4,
+.paper .datepicker .years .year9,
+.paper .datepicker .years .year14,
+.paper .datepicker .years .year19 {
+	margin-right: 0;
+}
+
+.paper .datepicker .years .year15,
+.paper .datepicker .years .year16,
+.paper .datepicker .years .year17,
+.paper .datepicker .years .year18,
+.paper .datepicker .years .year19 {
+	margin-bottom: 0;
+}
+
+/* years-colors
+********************************************************/
+.paper .datepicker .years .year:hover {
+	color: #ccff00;
+}
+
+.paper .datepicker .years .selected {
+	color: #ccff00
+}
+
+/* global
+********************************************************/
+.paper .datepicker .unavailable {
+	color: #533 !important;
+	cursor: default !important;
+	text-decoration: line-through;
+}
+
+.paper .datepicker table {
+	border-spacing: 0;
+}
+
+.paper .datepicker th,
+.paper .datepicker td {
+	padding: 0;
+}
+
+
+/* floating tips */
+.paper .floating-tip {
+    background-color: #333;
+    border: 1px solid #666;
+    padding: 5px 15px;
+    color: #dddddd;
+    font-weight: bold;
+    font-size: 11px;
+    border-radius: 3px;
+    opacity: 0.8;
+}
+
+
+/* selects */
+.paper .mc_display {
+	color: #333333;
+	font-size: 11px;
+	background-image: url(moochoose_select_bgs.png);
+	line-height: 20px;
+	vertical-align: middle;
+	display: inline-block;
+	text-align: left;
+	overflow: hidden;
+	white-space: nowrap;
+	cursor: default;
+	outline: none;
+	outline-style: none;
+/*	-moz-outline-style:none;*/
+}
+.paper .mc_display:hover {
+	background-position: 0 -20px;
+	color: #000000;
+}
+.paper .mc_display.active {
+	background-position: 0 -40px;
+	color: #000000;
+}
+.paper .mc_display .mc_opener {
+	background-image: url(moochoose_select_bgs.png);
+	background-position: -910px -60px;
+	height: 20px;
+	width: 30px;
+	position: absolute;
+}
+.paper .mc_display:hover .mc_opener {
+	background-position: -940px -60px;
+}
+.paper .mc_display.active .mc_opener {
+	background-position: -970px -60px;
+}
+.paper .mc_display .mc_options {
+	border: solid 1px #CCC;
+	margin-bottom: -1px;
+	display: none;
+	background-color: #FFF;
+}
+.paper .mc_display .mc_option {
+	display: block;
+	padding: 0 3px 0 11px;
+	margin: 0 3px;
+	border-bottom: solid 1px #e4e4e4;
+	font-size: 11px;
+	color: #333;
+	line-height: 19px;
+	text-align: left;
+	white-space: nowrap;
+	cursor: default;
+}
+.paper .mc_display .mc_option:hover, .paper .mc_display .mc_option.hover {
+	color: #000;
+	padding: 0 3px 0 11px;
+	border-bottom: solid 1px #CCC;
+	background-color: #F8F8F8;
+	background-image: url(moochoose_select_bgs.png);
+	background-position: 0 -60px;
+}
+.paper .mc_display .mc_option.active {
+	color: #003947;
+	border-bottom: solid 1px #b0cdd6;
+	font-weight: bold;
+	background-color: #d9e7ec;
+	background-image: url(moochoose_select_bgs.png);
+	background-position: 0 -80px;
+}
+
+/* Message Boxes */
+.paper .msgBox{
+	font-family:Arial, Helvetica, sans-serif;
+	opacity: 0;
+	position:absolute;
+	top:-1000px;
+	left:0px;
+	max-width: 250px;
+	min-width: 150px;
+	color:#aaa;
+	background: rgb(0, 0, 0); /* compatibility fallback */
+	background: rgba(0, 0, 0, 0.8);
+	padding: 10px;
+	z-index:-1;
+}
+
+.paper .msgBoxImage{
+	width: 40px;
+	height: 40px;
+}
+
+.paper .msgBoxIcon{
+	float:left;
+	width: 40px;
+	height: 40px;
+	padding-right: 7px;
+}
+
+.paper .msgBoxTitle{
+	float:left;
+	color: #FFFFFF;
+}
+
+.paper .msgBoxContent{
+	float:left;
+	max-width: 80%;
+	font-size:12px;
+}
+
+.paper .msgBoxMessage{		float:left;}
+.paper .msgBoxLink{		color:#6699CC;}
+.paper .msgBoxLink:hover{	color:#FF9900;}
+
+.paper .msgEditable{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	width:250px;
+	background: rgb(0, 0, 0); /* compatibility fallback */
+	background: rgba(255, 255, 255, 0.1);
+	border:#000;
+	color:#FFF;
+}
+
+.paper .mBox.Core {
+	font-size:12px;
+	line-height:normal;
+}
+.paper .mBox.Core .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+}
+.paper .mBox.Core .mBoxContent,
+.paper .mBox.Core .mBoxTitle,
+.paper .mBox.Core .mBoxFooter {
+	padding:15px;
+/*	word-break: break-all;*/
+}
+.paper .mBox.Core.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+/*** modal theme: default ***/
+
+.paper .mBox.Modal {
+	font-size:12px;
+	line-height:normal;
+        color: #000;
+}
+.paper .mBox.Modal .mBoxContainer {
+	background:#fff;
+	border:6px solid #fff;
+	box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	border-radius:5px;
+}
+.paper .mBox.Modal .mBoxContent {
+	background:#fff;
+	padding:15px;
+	border:1px solid #b0b0b0;
+	border-radius:2px;
+}
+.paper .mBox.Modal.hasTitle .mBoxContent {
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.paper .mBox.Modal.hasFooter .mBoxContent {
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:0;
+}
+.paper .mBox.Modal.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.paper .mBox.Modal .mBoxTitle {
+	position:relative;
+	color:#707070;
+	font-size:14px;
+	text-shadow:0 1px 0 #fff;
+	padding: 7px 15px;
+	border:1px solid #b0b0b0;
+	border-bottom:0;
+	background-color:#f8f8f8;
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	border-top-left-radius:2px;
+	border-top-right-radius:2px;
+}
+.paper .mBox.Modal .mBoxTitleContainer.mBoxDraggable {
+	cursor:move;
+}
+.paper .mBox.Modal .mBoxClose {
+	display:block;
+	width:13px;
+	height:13px;
+	padding:0px 0px 0px 0px;
+	position:absolute;
+	top:15px;
+	right:22px;
+	background-color:#fff;
+	border:1px solid #dadada;
+	border-radius:10px;
+	box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+}
+.paper .mBox.Modal .mBoxClose div {
+	opacity:0.65;
+	width:7px;
+	height:7px;
+	position:absolute;
+	top:3px;
+	left:3px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+}
+.paper .mBox.Modal .mBoxClose:hover {
+	border-color:#c0c0c0;
+}
+.paper .mBox.Modal .mBoxClose:hover div {
+	opacity:1;
+}
+.paper .mBox.Modal .mBoxClose:hover {
+	background-position:-17px -52px;
+}
+.paper .mBox.Modal .mBoxFooterContainer {
+	background-color:#f6f6f6;
+	border:1px solid #b0b0b0;
+	border-top:0;
+	padding:7px 15px;
+	-webkit-border-bottom-left-radius:2px;
+	-moz-border-radius-bottomleft:2px;
+	border-bottom-left-radius:2px;
+	-webkit-border-bottom-right-radius:2px;
+	-moz-border-radius-bottomright:2px;
+	border-bottom-right-radius:2px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.paper .mBox.Modal .mBoxFooter {
+
+}
+.paper .mBox.Modal .mBoxButtonContainer {
+	text-align:right;
+}
+.paper .mBox.Modal .mBoxButton {
+	margin-right:10px;
+}
+.paper .mBox.Modal .mBoxButtonLast {
+	margin-right:0px;
+}
+
+/*** modal: confirm ***/
+
+.paper .mBox.Modal.Confirm .mBoxContent {
+	color:#555555;
+	font-size:16px;
+	padding:30px 30px 30px 75px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+}
+.paper .mBox.Modal.Confirm .mBoxButtonContainer {
+	text-align:center;
+}
+
+/*** notice theme: default ***/
+
+.paper .mBox.Notice {
+	font-size:16px;
+	line-height:normal;
+}
+.paper .mBox.Notice .mBoxContainer {
+	color:#fff;
+	text-shadow:0 -1px 1px #000;
+	padding:20px 30px;
+	cursor:pointer;
+	background-color:#000;
+	background:rgba(0, 0, 0, 0.85);
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+}
+.paper .mBox.Notice .mBoxContent {
+/*	word-break:break-all;*/
+}
+
+/*** notice icons ***/
+
+.paper .mBox.Notice .mBoxNoticeOk,
+.paper .mBox.Notice .mBoxNoticeSuccess,
+.paper .mBox.Notice .mBoxNoticeError,
+.paper .mBox.Notice .mBoxNoticeCancel,
+.paper .mBox.Notice .mBoxNoticeInfo,
+.paper .mBox.Notice .mBoxNoticeNotice,
+.paper .mBox.Notice .mBoxNoticeAttention {
+	padding-left:70px;
+	background-image:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png');
+	background-repeat:no-repeat;
+}
+
+/*** notice: ok ***/
+
+.paper .mBox.Notice .mBoxNoticeOk,
+.paper .mBox.Notice .mBoxNoticeSuccess {
+	background-position:20px -187px;
+}
+
+/*** notice: error ***/
+
+.paper .mBox.Notice .mBoxNoticeError,
+.paper .mBox.Notice .mBoxNoticeCancel {
+	background-position:20px -487px;
+}
+
+/*** notice: info ***/
+
+.paper .mBox.Notice .mBoxNoticeInfo {
+	background-position:20px -787px;
+}
+
+/*** notice: notice, attention ***/
+
+.paper .mBox.Notice .mBoxNoticeNotice,
+.paper .mBox.Notice .mBoxNoticeAttention {
+	background-position:20px -1087px;
+}
+
+/*** tooltip theme: default ***/
+
+.paper .mBox.Tooltip {
+	font-size:11px;
+	line-height:normal;
+}
+.paper .mBox.Tooltip .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.paper .mBox.Tooltip .mBoxContent {
+	background:#fff;
+	color:#353535;
+	padding:5px 8px;
+/*	word-break:break-all;*/
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.paper .mBox.Tooltip.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+}
+.paper .mBox.Tooltip.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.paper .mBox.Tooltip .mBoxTitle {
+	color:#505050;
+	text-shadow:0 1px 0 #fff;
+	padding:5px 8px;
+	font-weight:bold;
+	border-bottom:1px solid #d6d6d6;
+	background-color:#f8f8f8;
+/*	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);*/
+/*	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);*/
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:5px;
+	-moz-border-radius-topleft:5px;
+	border-top-left-radius:5px;
+	-webkit-border-top-right-radius:5px;
+	-moz-border-radius-topright:5px;
+	border-top-right-radius:5px;
+}
+.paper .mBox.Tooltip .mBoxPointer {
+	background:url('http://static.aragorn.cz/images/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
+}
+.paper .mBox.Tooltip .mBoxPointerTop {
+	width:17px;
+	height:9px;
+	background-position:0px -18px;
+}
+.paper .mBox.Tooltip .mBoxPointerBottom {
+	width:17px;
+	height:9px;
+	background-position:0px -28px;
+}
+.paper .mBox.Tooltip .mBoxPointerRight {
+	width:9px;
+	height:17px;
+	background-position:-10px 0px;
+}
+.paper .mBox.Tooltip .mBoxPointerLeft {
+	width:9px;
+	height:17px;
+	background-position:0px 0px;
+}
+.paper .mooupload_error {
+  color: #FF0000;
+}
+
+.paper .mooupload_noerror {
+  color: #008000;
+}
+
+.paper .mooupload_btncontainer {
+  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
+  padding: 10px;
+}
+
+.paper .mooupload_btncontainer button {
+  /*border: 1px solid #C5C5C5;*/
+  padding: 2px 5px 3px 20px;
+  /*background-color: #F3F3F3;*/
+  font-size: 12px;
+  margin-right: 10px;
+  /*-webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;*/
+  width: 130px;
+  height: 60px;
+}
+
+.paper .mooupload_btncontainer button.addfile {
+  background: url(/images/dark/buttons/dropbox.png) center center no-repeat;
+  border: none;
+  vertical-align: middle;
+  height: 130px;
+}
+
+.paper .mooupload_btncontainer button.start {
+  background: #F3F3F3 url(/images/accept.png) 3px center no-repeat;
+}
+
+.paper .mooupload_btncontainer button:active {
+}
+
+.paper .mooupload_btncontainer div.progresscont {
+  display: none;
+  width: 100px;
+  height: 11px;
+  border: 1px solid #000;
+  float: right;
+  margin: 10px 80px 0 0;
+  background-color: #FFFFFF;
+}
+
+.paper .mooupload_progressbar {
+  text-align: center;
+  font-size: 8px;
+  display: block;
+  width: 0px;
+  height: 100%;
+}
+
+.paper .mooupload_off {
+  background: #FFF url(/images/progress_grey.gif) center left repeat-x;
+}
+
+.paper .mooupload_on {
+  background: #FFF url(/images/progress.gif) center left repeat-x;
+}

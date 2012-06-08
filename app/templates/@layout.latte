@@ -51,6 +51,27 @@
                 });                
             });
         </script>
+        <style type="text/css">
+            @font-face{ font-family: "xirwena";src: url("/assets/fonts/paper/xirwena.ttf") format('truetype');}
+            .paper div.block:nth-of-type(2){
+                display:none !important;
+            }
+            .paper div.block:nth-of-type(3){
+                margin-top: 330px;
+            }
+            .paper div.block:nth-of-type(4){
+                margin-top: 330px;
+            }
+            .paper div.block.how-to-start{
+                display:none;
+            }
+            .paper div.block:nth-of-type(2),.paper div.block:nth-of-type(3),.paper div.block:nth-of-type(4){
+                display: inline-block;
+                width: 470px;
+                vertical-align: middle;
+                text-align: center;
+            }
+        </style>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ' runac'}">
@@ -59,7 +80,7 @@
         </menu>
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         {* {include 'topmenu.latte'} *}
-        <div class="holder" style="width:980px;">
+        <div class="holder" {*style="width:980px;"*}>
             {include 'logo.latte'}
             <menu id="sidebar-left">
                 <div class="block">
@@ -133,6 +154,7 @@
                 <div class="block">
                     <a href="" class="profile">Skiny</a>
                     <a href="" class="change-skin" data-skin="dark">Dark</a>
+                    <a href="" class="change-skin" data-skin="paper">Paper</a>
                     <a href="" class="change-skin" data-skin="light">Light</a>
                     {*<a href="" class="change-skin" data-skin="gold">Gold</a>
                     <a href="" class="change-skin" data-skin="nostalgia">Nostalgia</a>*}
@@ -147,7 +169,7 @@
                     </ul>
                 </div>*}
                 {else}
-                <div class="block">
+                <div class="block how-to-start">
                     <a href="#" class="profile">Jak začít?</a>
                     <p>
                         Nějaký stručný návod jak začít.
@@ -155,7 +177,7 @@
                 </div>
                 {/if}
             </menu>
-            <div class="content" id="content" style="width:832px; float:left;">
+            <div class="content" id="content"{* style="width:832px; float:left;"*}>
                 <h1 id="location">{$title}</h1>
                 <ul n:if="count($flashes)" class="flashes">
                     {foreach $flashes as $flash}
@@ -164,37 +186,6 @@
                 </ul>
                 {include #content}
             </div>
-            {* <menu id="sidebar-right" style="border-left: 0px solid white; width: 126px; float:right; display:inline-block;min-height: 500px; padding: 5px 3px; text-align: left;background: url(/assets/images/dark/bg/content.png);">
-                
-                <script type="text/javascript">
-   /*                 var bookmarks = null, Bookmarks, tree;
-                    window.addEvent('load', function(){
-                        tree = new Mif.Tree({
-                        container: $('bookmarks'),
-                        forest: true,
-                        initialize: function(){
-                                new Mif.Tree.Drag(this, {
-                                });
-                        },
-                        types: {
-                                folder: {
-                                        openIcon: 'mif-tree-open-icon',
-                                        closeIcon: 'mif-tree-close-icon'
-                                }
-                        },
-                        dfltType: 'folder'
-                });
-
-                tree.load({ url:'/test.json'});
-
-                    });*/
-                </script>
-            </menu> *}
-            <footer>
-                Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.
-                Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
-                Jakékoliv kopírování obsahu je zakázáno.
-            </footer>
         </div>
         <div style="display:none;">
             <audio id="audioNotification" preload="full">
@@ -203,6 +194,12 @@
                 <source src="{!$staticPath}/sound/global.wav" />
             </audio>
         </div>
+        <footer>
+            <!--Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.
+            Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
+            Jakékoliv kopírování obsahu je zakázáno.-->
+            Nějaké statistiky toho, jak je Aragorn awesome
+        </footer>
     </body>
     {include 'scripts.latte'}
     <script>

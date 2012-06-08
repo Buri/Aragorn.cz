@@ -2,7 +2,7 @@
 {block content}
 <style>
     .dark .proflie-list-item{
-        
+
     }
     .dark .proflile-list-icon{
         max-width: 60px;
@@ -14,17 +14,54 @@
     .dark .proflie-list-item:hover{
         background: #111;
     }
-    #mytable{
+    .dark #mytable{
         width: 100%;
     }
-    th {
+    .dark th {
         background-color:grey; padding: 2px; cursor: pointer; }
-    td { padding: 2px;}
+    .dark td { padding: 2px;}
+
+
+    .paper .proflie-list-item{
+
+    }
+    .paper .proflile-list-icon{
+        max-width: 60px;
+        vertical-align: middle;
+    }
+    .paper .proflie-list-item.table-tr-odd{
+        border: 10px solid #000;
+        /*border-right:none;
+        border-left:none;*/
+        margin:  3px 0 3px 0;
+    }
+   .paper .proflie-list-item:hover{
+       background: #e2daa2;
+    }
+    .paper #mytable{
+        width: 100%;
+    }
+    .paper thead {
+        background: url("/assets/images/paper/bg/forum.png");
+        padding: 2px;
+        height: 65px;
+    }
+    .paper td {}
+    .paper tr  > td:first-of-type, .paper tr  > th:first-of-type{
+        padding-left: 15px;
+    }
+    .paper tr{
+        transition: all .1s ease-in-out;
+        -moz-transition: all .1s ease-in-out;
+        -webkit-transition: all .1s ease-in-out;
+        -o-transition: all .1s ease-in-out;
+        -ms-transition: all .1s ease-in-out;
+    }
 </style>
 <h>Uživatelé</h>
 <table id="mytable" cellspacing="0">
     <thead>
-    <tr><th>dsa</th><th>Uživatel</th><th>Poslední přihlášení</th><th>Stav</th></tr>
+    <tr><th></th><th>Uživatel</th><th>Poslední přihlášení</th><th>Stav</th></tr>
     </thead>
     <tbody>
 {foreach $users as $user}
@@ -34,7 +71,7 @@
         </a>
     </td>
     <td>{!$control->presenter->userLink($user)}</td>
-    <td>{!$profile['login']}</td>
+    <td>{!$profile['login']|date:'H:i'}</td>
     <td><img src="{$staticPath}/images/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></td>
 </tr>
 {/foreach}

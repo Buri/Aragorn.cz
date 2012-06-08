@@ -8,6 +8,76 @@
     .forum-moderators-list, .forum-description, .forum-access{
         border-bottom: 2px solid gray;
     }
+    .forum-list{
+        padding: 0;
+    }
+    .forum-list li{
+        list-style: none;
+    }
+    .paper #frm-forum-discussion-forumForm{
+    text-align: left;
+}
+.paper #frm-forum-discussion-forumForm textarea{
+    width: 99%;
+}
+.paper #post{
+    width: 100%;
+}
+.paper .forum-navigation{
+    font-size: small;
+    margin-bottom: 15px;
+}
+.paper .forum-holder{
+    /*border:1px solid silver;
+    border-radius: 6px;*/
+    /*background: url("/assets/images/paper/bg/forum.png") no-repeat top center;
+    padding: 10px 6px 0 6px;*/
+    padding: 0 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed #000;
+}
+.forum-holder dl{
+    width: 928px;
+    padding: 8px 0;
+}
+.forum-holder dl dt{
+    display: inline-block;
+    width: 550px;
+    vertical-align: middle;
+}
+.forum-holder dl dd{
+    margin-left: 0;
+    border-left: 1px solid white;
+    display: inline-block;
+    height: 40px;
+    vertical-align: middle;
+    text-align: center;
+    padding: 20px 5px 0 5px;
+}
+.paper .forum-holder:hover{
+    /*background: #cc9;*/
+    background: url("/assets/images/paper/bg/forum_hover.png") no-repeat center right;
+}
+.paper .forum-sticky{
+    /*background: #533;*/
+}
+.paper .forum-count{
+    display:inline-block;
+    width: 50px;
+    text-align: center;
+}
+.paper .forum-last-message{
+    display:inline-block;
+    width: 230px;
+    text-align: left;
+    /*border-right: 1px solid white;text-align: center;*/
+}
+.paper .forum-views{
+    width: 50px;
+}
+.paper .forum-holder dl:hover dd{
+    border-left-color: #000;
+}
 </style>
 <div class="forum-navigation"> Navigace:
 {for $i = count($n) - 1; $i >= 0; $i--}
@@ -72,25 +142,30 @@
     </div>
 </div>
 {/if}
-{foreach $topics as $topic}
-<div class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
-    <div class="forum-count">{var $c = $control->getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</div>
-    <div class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</div>
-    <div>
-        <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a> 
-        {if $control->userIsAllowed('forum','delete', $topic['id'])}[<a href="" onclick="deleteForum({$topic['id']});return false;">x</a>]{/if}
-        <br/>
-        <em>{$topic['description']}</em> <br/>
-        <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
-        {var $subtopics = \frontendModule\forumPresenter::getSubtopics($topic['id'])}
-        <div n:if="$subtopics->count()">Podtémata:
-            {foreach $subtopics as $subtopic}
-                <a href="{link $forum, $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>{sep}, {/sep}
-            {/foreach}
-        </div>
-    </div>
-</div>
-{/foreach}
+<ul class="forum-list">
+    {foreach $topics as $topic}
+    <li class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
+    <dl>
+        <dt>
+            <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a>
+            {if $control->userIsAllowed('forum','delete', $topic['id'])}[<a href="" onclick="deleteForum({$topic['id']});return false;">x</a>]{/if}
+            <br/>
+            <em>{$topic['description']}</em> <br/>
+            <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
+            {var $subtopics = \frontendModule\forumPresenter::getSubtopics($topic['id'])}
+            <div n:if="$subtopics->count()">Podtémata:
+                {foreach $subtopics as $subtopic}
+                    <a href="{link $forum, $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>{sep}, {/sep}
+                {/foreach}
+            </div>
+        </dt>
+        <dd class="forum-views">263</dd>
+        <dd class="forum-count">{var $c = $control->getPostCount($topic['id'])}{if $c['unread'] !== 0}{$c['unread']}/{/if}{$c['total']}</dd>
+        <dd class="forum-last-message">{if $lastpost}{!$lastpost['author']} v {date('H:i d/m', $lastpost['time'])}{else}Forum je prázdné.{/if}</dd>
+    </dl>
+    </li>
+    {/foreach}
+</ul>
 <script n:syntax="double">
     function deleteForum(id){
         if(confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?')){

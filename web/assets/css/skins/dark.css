@@ -538,7 +538,7 @@ margin-top: -2px;*/
     font-family: Tahoma,Arial, Helvetica;
 }
 .dark .holder{
-    width: 920px;
+    width: 980px;
     display: inline-block;
     text-align: left;
 }
@@ -592,6 +592,8 @@ margin-top: -2px;*/
     padding: 6px;
     min-height: 500px;
     color: #fff;
+    float:left;
+    width: 832px;
    /* background: url('/images/dark/bg/content.png');*/
 }
 .dark .menu.logo{
