@@ -315,9 +315,13 @@ exports.ChatServer = new Class({
                                             this.Messages.store(cname2, message);
                                         }
                                         message.data.message = this.formatUrl(message.data.message);
-                                        this.Messages.send(cname, message, true);
-                                        user.time = new Date().getTime();
-                                        user.update();
+                                        client.isAllowed('chat', 'moderator', function(a){
+                                            if(!a)
+                                                message.data.message = this.stripHTML(message.data.message);
+                                            this.Messages.send(cname, message, true);
+                                            user.time = new Date().getTime();
+                                            user.update();
+                                        }.bind(this));
                                     }.bind(this));
                                 }.bind(this));
                             }.bind(this));
@@ -408,5 +412,8 @@ exports.ChatServer = new Class({
         url = url.replace(exp, '<a href="$1" target="_blank" class="permalink">$1</a>');
         log.trace('Formating url: ' + url);*/
         return url.trim();
+    },
+    stipHTML:function(str){
+        return str.replace(/<(?:.|\n)*?>/gm, '');
     }
 });

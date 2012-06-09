@@ -3,6 +3,8 @@
     <head>
         {include '../../../templates/head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
+        <style>
+        </style>
     </head>
     <body n:syntax="double" class="{$_COOKIE['skin']}">
         <div style="display:block;">
@@ -17,6 +19,8 @@
         <footer>
             {{$param}}
             {{if $param != "ninja"}}
+            <button onclick="Chat.toggleTimestamp();">T</button>
+            <button onclick="Chat.toggleSmileys();">S</button>
             <form id="frmMsg">
                 Zpráva: <input type="text" name="msg" id="msg" size="40" autocomplete="off" /> <button type="submit">Odeslat</button>
             </form>
@@ -78,7 +82,11 @@
                     limit:50,
                     input:'msg',
                     typeDelay:800,
-                    awayTimeout:5000
+                    awayTimeout:5000,
+                    servers:{
+                        user:'{{!$userPath}}',
+                        'static':'{{!$staticPath}}'
+                    }
                 },
                 transport:null,
                 tips:null,
@@ -120,6 +128,14 @@
                     else
                         $$('.cross-delete').addClass('hide');
                     return this.showDelete;
+                },
+                toggleTimestamp:function(){
+                    $$('.datetime').toggleClass('hide');
+                    Cookie.write('chatHideTimes', !Cookie.read('chatHideTimes'), 3600*24*365);
+                },
+                toggleSmileys:function(){
+                    $$('.smiley').toggleClass('hide');
+                    Cookie.write('chatHideSmileys', !Cookie.read('chatHideSmileys'), 3600*24*365);
                 },
                 matchUser:function(u){
                     if(!u || !(u.length)) return false;
@@ -200,11 +216,11 @@
                                     }
                                 }),
                                 new Element('span', {
-                                    'class':'datetime',
+                                    'class':'datetime' + (Cookie.read('chatHideTimes') ? ' hide' : ''),
                                     text:' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ' '
                                 }),
                                 new Element('strong', {text:(msg.from || whole.user.name) + (msg.whisper ? ' » ' + msg.whisper : '') + ': '}),
-                                new Element('span', {html:msg.message})
+                                new Element('span', {html:this.parseSmileys(msg.message)})
                             ).inject($(this.options.glass), 'top');
                             if(this.options.limit){
                                 var c = $$('#' + this.options.glass + ' div'), s = parseInt(typeOf(this.options.limit) == 'number' ? this.options.limit : $(this.options.limit).get('value'));
@@ -234,7 +250,7 @@
                                 }).adopt(
                                     new Element('img', {src:usr.info.icon, 'class':'user-list-icon'}),
                                     new Element('span', {text:usr.name + ' '}),
-                                    new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:{{$staticPath}} + '/images/' + img + '.png', styles:{'vertical-align':'middle'}})
+                                    new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:this.options.servers['static'] + '/images/' + img + '.png', styles:{'vertical-align':'middle'}})
                                 );
                                 $(this.options.userList).grab(e);
                             }.bind(this));
@@ -248,8 +264,28 @@
                             break;
                      }
                 },
+                parseSmileys:function(text){
+                    if(Cookie.read('chatHideSmileys')){
+                        var exp =  /(\b(^")?(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig; // /(\()((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(\))|(\[)((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(\])|(\{)((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(\})|(<|&(?:lt|#60|#x3c);)((?:ht|f)tps?:\/\/[a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]+)(>|&(?:gt|#62|#x3e);)|((?:^|[^=\s'"\]])\s*['"]?|[^=\s]\s+)(\b(?:ht|f)tps?:\/\/[a-z0-9\-._~!$'()*+,;=:\/?#[\]@%]+(?:(?!&(?:gt|#0*62|#x0*3e);|&(?:amp|apos|quot|#0*3[49]|#x0*2[27]);[.!&',:?;]?(?:[^a-z0-9\-._~!$&'()*+,;=:\/?#[\]@%]|$))&[a-z0-9\-._~!$'()*+,;=:\/?#[\]@%]*)*[a-z0-9\-_~$()*+=\/#[\]@%])/img;
+                        text = text.replace(exp, '<a href="$1" target="_blank" class="permalink">$1</a>');
+                        for(var pattern in this.mileys){
+                            var re = new RegExp('(\\*' + pattern +  '\\*)', 'gi');
+                            console.log(re, text, re.test(text));
+                            text = text.replace(re, '<img src="'+ this.options.servers['static'] + '/images/smileys/' + Smileys[pattern] + '" class="smiley" alt="$1">');
+                        }
+                    }
+                    return text;
+                },
                 send:function(cmd, params){
                     this.transport.send('chat', Object.merge({action:cmd, rid:rid}, params));
+                },
+                smileys:{
+                    ':P':'tongue.gif',
+                    ':-P':'tongue.gif',
+                    'mad':'ai1.gif',
+                    'angel':'angel.gif',
+                    'angry':'angry.gif',
+                    'oops':'ashamed.gif'
                 }
             });
             window.addEvent('domready', function(){
