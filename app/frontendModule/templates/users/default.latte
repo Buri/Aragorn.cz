@@ -58,8 +58,24 @@
         -ms-transition: all .1s ease-in-out;
     }
 </style>
-<h>Uživatelé</h>
-<table id="mytable" cellspacing="0">
+<div class="forum-divider"></div>
+<ul class="forum-list user-list">
+{foreach $users as $user}
+<li class="forum-holder">{var $profile=$presenter->getUserProfile($user['id'])}
+    <dl>
+        <dt>
+            <a href="{$control->presenter->userLink($user,false)}">
+                <img src="{$control->presenter->userIcon($user)}" class="proflile-list-icon" />
+            </a>
+            {!$control->presenter->userLink($user)}
+        </dt>
+        <dd><img src="{$staticPath}/images/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></dd>
+        <dd>{!$profile['login']|date:'H:i'}</dd>
+    </dl>
+</li>
+{/foreach}
+</ul>
+ {*<table id="mytable" cellspacing="0">
     <thead>
     <tr><th></th><th>Uživatel</th><th>Poslední přihlášení</th><th>Stav</th></tr>
     </thead>
@@ -76,7 +92,7 @@
 </tr>
 {/foreach}
     </tbody>
-</table>
+</table>*}
 <script n:syntax="double">
     var myTable;
     window.addEvent('domready', function(){

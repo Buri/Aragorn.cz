@@ -1,141 +1,63 @@
-<style>
-    #forum-head{
-        border: 3px solid gray;
-    }
-    #forum-head div{
-        padding: 6px;
-    }
-    .forum-moderators-list, .forum-description, .forum-access{
-        border-bottom: 2px solid gray;
-    }
-    .forum-list{
-        padding: 0;
-    }
-    .forum-list li{
-        list-style: none;
-    }
-    .paper #frm-forum-discussion-forumForm{
-    text-align: left;
-}
-.paper #frm-forum-discussion-forumForm textarea{
-    width: 99%;
-}
-.paper #post{
-    width: 100%;
-}
-.paper .forum-navigation{
-    font-size: small;
-    margin-bottom: 15px;
-}
-.paper .forum-holder{
-    /*border:1px solid silver;
-    border-radius: 6px;*/
-    /*background: url("/assets/images/paper/bg/forum.png") no-repeat top center;
-    padding: 10px 6px 0 6px;*/
-    padding: 0 6px;
-    margin-bottom: 4px;
-    border-bottom: 1px dashed #000;
-}
-.forum-holder dl{
-    width: 928px;
-    padding: 8px 0;
-}
-.forum-holder dl dt{
-    display: inline-block;
-    width: 550px;
-    vertical-align: middle;
-}
-.forum-holder dl dd{
-    margin-left: 0;
-    border-left: 1px solid white;
-    display: inline-block;
-    height: 40px;
-    vertical-align: middle;
-    text-align: center;
-    padding: 20px 5px 0 5px;
-}
-.paper .forum-holder:hover{
-    /*background: #cc9;*/
-    background: url("/assets/images/paper/bg/forum_hover.png") no-repeat center right;
-}
-.paper .forum-sticky{
-    /*background: #533;*/
-}
-.paper .forum-count{
-    display:inline-block;
-    width: 50px;
-    text-align: center;
-}
-.paper .forum-last-message{
-    display:inline-block;
-    width: 230px;
-    text-align: left;
-    /*border-right: 1px solid white;text-align: center;*/
-}
-.paper .forum-views{
-    width: 50px;
-}
-.paper .forum-holder dl:hover dd{
-    border-left-color: #000;
-}
-</style>
-<div class="forum-navigation"> Navigace:
+<div class="forum-navigation forum-divider"> Navigace:
 {for $i = count($n) - 1; $i >= 0; $i--}
 <a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
 {/for}
 </div>
+{if $newforum}<a href="#" onclick="AC.prompt('Název nového fóra?', newForum); return false;">Založit nové forum</a>{/if}
 {if isset($fid) }
 <div id="forum-head">
-    <div style="text-align: center; display:none;">
-        <a href="#" id="forum-bookmark-toggle">Záložka</a>
-        <a href="#" id="forum-surveys-toggle">Ankety</a>
-        <a href="#" id="forum-stats-toggle">Statistiky</a>
-    {if $control->userIsAllowed('forum','admin', $fid)}
-        <a href="#" id="forum-admin-toggle" onclick="hideAll();$('forum-admin').slide('toggle');return false;">Administrace</a>
-        <div id="forum-admin">
-            <div>Přidání a odebrání správců</div>
-            <div>Přístup do diskuze</div>
-            <div>Obecné vlastnosti
-                <textarea id="forum-noticeboard-editor">{$noticeboard}</textarea>
-                <textarea id="forum-description-editor">{$info['description']}</textarea>
-                <button onclick="AC.ajax('updateforumnoticeboard', { id:{$fid}, param:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ AC.message('Hotovo'); AC.Ajax.reloadLocation(); }, 'get');">Uložit změny</button>
+    <div class="forum-head-bg">
+        <div style="text-align: center; display:none;">
+            <a href="#" id="forum-bookmark-toggle">Záložka</a>
+            <a href="#" id="forum-surveys-toggle">Ankety</a>
+            <a href="#" id="forum-stats-toggle">Statistiky</a>
+        {if $control->userIsAllowed('forum','admin', $fid)}
+            <a href="#" id="forum-admin-toggle" onclick="hideAll();$('forum-admin').slide('toggle');return false;">Administrace</a>
+            <div id="forum-admin">
+                <div>Přidání a odebrání správců</div>
+                <div>Přístup do diskuze</div>
+                <div>Obecné vlastnosti
+                    <textarea id="forum-noticeboard-editor">{$noticeboard}</textarea>
+                    <textarea id="forum-description-editor">{$info['description']}</textarea>
+                    <button onclick="AC.ajax('updateforumnoticeboard', { id:{$fid}, param:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ AC.message('Hotovo'); AC.Ajax.reloadLocation(); }, 'get');">Uložit změny</button>
+                </div>
+                <div>přesunutí/smazání/export/uzamčení diskuze</div>
             </div>
-            <div>přesunutí/smazání/export/uzamčení diskuze</div>
+        {/if}
+            <div id="forum-surveys">
+                Ankety
+            </div>
+            <div id="forum-stats">
+                <table>
+                    <thead>
+                        <th>Jméno</th>
+                        <th>Poslení návštěva</th>
+                        <th>Záložka</th>
+                    </thead>
+                    <tbody>
+                        {foreach DB::forum_visit('idforum', $fid) as $visit}
+                        <tr>
+                            <td>{!$control->parent->userlink($visit['iduser'])}</td>
+                            <td>{date('d.m.Y H.i', $visit['time'])}</td>
+                            <td>{($visit['bookmark'] ? 'Ano' : 'Ne')}</td>
+                        </tr>
+                        {/foreach}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    {/if}
-        <div id="forum-surveys">
-            Ankety
+        <div class="forum-moderators-list">
+            Správci:
+            {!$control->presenter->userlink($info['owner'])}{foreach DB::forum_moderator('forumid', $fid) as $mod}{first},{/first}
+                {!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}
+            {/foreach}
         </div>
-        <div id="forum-stats">
-            <table>
-                <thead>
-                    <th>Jméno</th>
-                    <th>Poslení návštěva</th>
-                    <th>Záložka</th>
-                </thead>
-                <tbody>
-                    {foreach DB::forum_visit('idforum', $fid) as $visit}
-                    <tr>
-                        <td>{!$control->parent->userlink($visit['iduser'])}</td>
-                        <td>{date('d.m.Y H.i', $visit['time'])}</td>
-                        <td>{($visit['bookmark'] ? 'Ano' : 'Ne')}</td>
-                    </tr>
-                    {/foreach}
-                </tbody>
-            </table>
+        <div class="forum-description">Popis: {$info['description']}</div>
+        <div class="forum-access">
+            Přístupová práva k diskuzi:
+            <br />
+            Diskuze je <em>{\Components\ForumComponent::LOCKED & $info['options'] ? "zamčená" : "odemčená"}</em>
         </div>
-    </div>
-    <div class="forum-moderators-list">
-        Správci: 
-        {!$control->presenter->userlink($info['owner'])}{foreach DB::forum_moderator('forumid', $fid) as $mod}{first},{/first}
-            {!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}
-        {/foreach}
-    </div>
-    <div class="forum-description">Popis: {$info['description']}</div>
-    <div class="forum-access">
-        Přístupová práva k serveru:
-        <br />
-        Diskuze je <em>{\Components\ForumComponent::LOCKED & $info['options'] ? "zamčená" : "odemčená"}</em>
     </div>
     <div class="forum-noticeboard">
     {!$noticeboard}
@@ -151,7 +73,7 @@
             {if $control->userIsAllowed('forum','delete', $topic['id'])}[<a href="" onclick="deleteForum({$topic['id']});return false;">x</a>]{/if}
             <br/>
             <em>{$topic['description']}</em> <br/>
-            <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>
+           {* <small><em>Založil: {! $control->presenter->userLink($topic["owner"], true)} : {date('d.m.Y H:i', $topic['created'])}</em></small>*}
             {var $subtopics = \frontendModule\forumPresenter::getSubtopics($topic['id'])}
             <div n:if="$subtopics->count()">Podtémata:
                 {foreach $subtopics as $subtopic}
@@ -180,7 +102,6 @@
         var ajax = new AC.ajax('newforum', {id:name,'param':{{$url}}}, newForumCb);
     }    
 </script>
-{if $newforum}<a href="#" onclick="AC.prompt('Název nového fóra?', newForum); return false;">Založit nové forum</a>{/if}
 {if $discussion}
 {control discussion,$url}
 {/if}

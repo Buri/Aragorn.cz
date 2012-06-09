@@ -16,6 +16,17 @@
     .dark .unread{
         background-color: #999;
     }
+
+.paper .discussion{
+    /*background-color: #222;
+    padding: 15px 0;
+    margin-top: 15px;
+    /*border-radius: 15px;*/
+}
+.paper ul.discussion li{
+    list-style: none;
+}
+
     .paper .post-text a.citation{
         padding: 5px;
         padding-right: 15px;
@@ -34,12 +45,7 @@
         background-color: #999;
     }
 
-    .paper .discussion{
-    background-color: #222;
-    padding: 15px 0;
-    margin-top: 15px;
-    /*border-radius: 15px;*/
-}
+    
 .paper .post{
     margin-top: 5px;
     /*background-color: #333;
@@ -47,8 +53,8 @@
     border-bottom: 1px dashed black;
 }
 .paper .post.botline{
-    border-bottom: 1px solid white;
-    border-radius: 5px;
+    /*border-bottom: 1px solid white;
+    border-radius: 5px;*/
 }
 .paper .post .head{
     display: inline-block;
@@ -89,28 +95,28 @@
     background-size: 18px;
 }
 .paper .post .post-info a.alert{
-    background-image: url(/images/report.png);
+    background-image: url("/assets/images/report.png");
 }
 .paper .post .post-info a.alert:hover{
-    background-image: url(/images/reporta.png);
+    background-image: url("/assets/images/reporta.png");
 }
 .paper .post .post-info a.edit{
-    background-image: url(/images/edit.png);
+    background-image: url("/assets/images/edit.png");
 }
 .paper .post .post-info a.edit:hover{
-    background-image: url(/images/edita.png);
+    background-image: url("/assets/images/edita.png");
 }
 .paper .post .post-info a.delete{
-    background-image: url(/images/delete.png);
+    background-image: url("/assets/images/delete.png");
 }
 .paper .post .post-info a.delete:hover{
-    background-image: url(/images/deletea.png);
+    background-image: url("/assets/images/deletea.png");
 }
 .paper .post .post-info a.cite{
-    background-image: url(/images/cite.png);
+    background-image: url("/assets/images/cite.png");
 }
 .paper .post .post-info a.cite:hover{
-    background-image: url(/images/citea.png);
+    background-image: url("/assets/images/citea.png");
 }
 
 .paper .newPost{
@@ -127,6 +133,9 @@
     /*-moz-transition: bottom .2s linear;
     -o-transition: bottom .2s linear;
     -webkit-transition: bottom .2s linear;*/
+}
+.paper .no-new-post{
+    font-style: italic;
 }
 .paper .slideinform{
     bottom: 0;
@@ -196,13 +205,7 @@
 </ul>
 {control vp}
 <script type="text/javascript">
-        /*$('frm-forum-discussion-forumForm').addEvent('submit', function(e){
-            new Event(e).stop()
-            var f = new Form.Request(this, $('content'));
-            f.addEvent('success', function(){ console.log('done'); $('frmforumForm-post').set('value', '');}.bind(this));
-            f.send();
-        });*/
-
+    $$('.discussion').removeEvents();
     $$('.discussion').addEvents({
         'click:relay(a.alert.button)':function(e){
             new Event(e).stop();
@@ -212,8 +215,9 @@
         },
         'click:relay(a.cite.button)':function(e){
             new Event(e).stop();
-            var post = this.getParent().getParent().getParent();
-            var txt = '[cite=' + post.get('name') + ']' + post.getElement('div').get('text').trim()  + ' - ' + post.getElement('i').get('text').trim() + '[/cite]\n';
+            var post = this.getParent().getParent().getParent().getParent();
+            console.log(post);
+            var txt = '[cite=' + post.get('name') + ']' + post.getElement('dt').get('text').trim()  + ' - ' + post.getElement('i').get('text').trim() + '[/cite]\n';
             $('frmforumForm-post').insertAtCursor(txt, false).focus();
         },
         'click:relay(a.delete.button)':function(e){
@@ -240,7 +244,8 @@
         'click:relay(a.citation)':function(e){
             new Event(e).stop();
             var el = this.nextSibling;
-            el.toggleClass('show');
+            console.log(el);
+            $(el).toggleClass('show');
             if(!el.hasClass('show') || el.get('data-xhr-loaded')) return;
             var msgid = el.get('data-msg').substr(3);
             AC.ajax('forumGetSinglePost', {
@@ -252,7 +257,7 @@
             }.bind(el));
         }
     });
-        $('frmforumForm-post').addEvent('keydown', function(e){
+        $$('#frmforumForm-post').addEvent('keydown', function(e){
             if(e.key == 'enter' && e.shift){
                 e.stop();
                 $('post').click(); //.fireEvent('submit');

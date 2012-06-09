@@ -71,16 +71,21 @@
                 vertical-align: middle;
                 text-align: center;
             }
+            .paper ul.flashes li{
+                background: url("/assets/images/paper/bg/flash.gif") repeat-y left top;
+                list-style: none;
+                padding: 5px 5px 5px 20px;
+            }
         </style>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ' runac'}">
+        {if $user->isLoggedIn()}
         <menu id="bookmarks">
             <a n:for="$i = 0; $i < 20; $i++" href="#">Záložka {$i}</a>
-        </menu>
+        </menu>{/if}
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
-        {* {include 'topmenu.latte'} *}
-        <div class="holder" {*style="width:980px;"*}>
+        <div class="holder">
             {include 'logo.latte'}
             <menu id="sidebar-left">
                 <div class="block">
@@ -104,9 +109,6 @@
                     <a href="{link :admin:dashboard:}" class="middle" id="menu-admin" title="Redakční systém">
                         {*<img src="{$staticPath}/images/rs.png" /> *} RS
                     </a>
-                    {* <button onclick="AC.send('SESS');">Info</button> 
-                    <button onclick="window.open('http://' + location.host + ':8000', 'width=800,height=600,menubar=no,status=no,scrollbars=no,resizable=yes,left=0,top=0');">Server status</button> 
-                    *}
                     {/if}
                     <a href="{plink dashboard:logout}" class="middle" title="Odhlásit" id="menu-logout">
                         {*<img src="{$staticPath}/images/logout.png" />*} Odhlásit
@@ -156,28 +158,10 @@
                     <a href="" class="change-skin" data-skin="dark">Dark</a>
                     <a href="" class="change-skin" data-skin="paper">Paper</a>
                     <a href="" class="change-skin" data-skin="light">Light</a>
-                    {*<a href="" class="change-skin" data-skin="gold">Gold</a>
-                    <a href="" class="change-skin" data-skin="nostalgia">Nostalgia</a>*}
                 </div>
-                {if $user->isLoggedIn()}
-               {* <div class="block">
-                    <a href="#" class="profile">Záložky</a>
-                    <ul id="bookmarks">
-                        <li>Záložka 1</li>
-                        <li>Záložka 2</li>
-                        <li>Záložka 3</li>
-                    </ul>
-                </div>*}
-                {else}
-                <div class="block how-to-start">
-                    <a href="#" class="profile">Jak začít?</a>
-                    <p>
-                        Nějaký stručný návod jak začít.
-                    </p>
-                </div>
-                {/if}
+   
             </menu>
-            <div class="content" id="content"{* style="width:832px; float:left;"*}>
+            <div class="content" id="content">
                 <h1 id="location">{$title}</h1>
                 <ul n:if="count($flashes)" class="flashes">
                     {foreach $flashes as $flash}
@@ -199,13 +183,19 @@
             Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
             Jakékoliv kopírování obsahu je zakázáno.-->
             Nějaké statistiky toho, jak je Aragorn awesome
+            Celkem {$db->users()->count()} uživatelů. Nejmladším členem je {!$presenter->userlink($db->users()->order('id desc')->limit(1)->fetch(),true)}            Diskuze: {$db->forum_topic()->count()} témat, {$db->forum_posts()->count()} příspěvků
+            Čas generování stránky: {?
+            $mtime = explode(" ", microtime());
+            $endTime = $mtime[1] + $mtime[0];
+            $pageGen = $endTime - $startTime
+            }{substr($pageGen, 0, 5)}s
         </footer>
     </body>
     {include 'scripts.latte'}
     <script>
         setTimeout(function(){
-     //       $('nette-debug').dispose();
-        }, 1000);
+            //$('nette-debug').dispose();
+        }, 500);
     </script>
 </html>
 {/if}

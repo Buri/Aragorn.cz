@@ -63,6 +63,8 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $t->forceReload = false;
         $t->ajax = $this->isAjax();
         $t->node = $this->node;
+        $t->startTime = $this->context->parameters['starttime'];
+        $t->db = $this->context->database;
         /* Fix invalid links generation */
         #$this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
     }

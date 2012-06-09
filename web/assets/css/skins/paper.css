@@ -117,7 +117,8 @@ body.paper{
 }
 .paper .menu.logo a{
     color: #000;
-    font-family: xirwena;
+    font-family: Papyrus;
+    font-weight: bold;
     font-size: 32px;
 }
 .paper .menu .left{
@@ -132,7 +133,7 @@ body.paper{
     margin-top: -100px;
     width: 50%;
     margin-left: 50%;
-    margin-top: -60px;
+    margin-top: -52px;
 }
 .paper .left a, .paper .right a{
     width:200px;
@@ -141,14 +142,16 @@ body.paper{
     display: inline-block;
     /*height: 87px;*/
     vertical-align: middle;
-    -moz-transition: all 0.3s linear;
-    -webkit-transition: all 0.3s linear;
-    -o-transition: all 0.3s linear;
-    -ms-transition: all 0.3s linear;
-    transition: all 0.3s linear;
+    -moz-transition: all 0.15s linear;
+    -webkit-transition: all 0.15s linear;
+    -o-transition: all 0.15s linear;
+    -ms-transition: all 0.15s linear;
+    transition: all 0.15s linear;
 }
-.paper #menu-den:hover,.paper #menu-forum:hover,.paper #menu-articles:hover,.paper #menu-gallery:hover{
-    color: #d3a523
+/*.paper #menu-den:hover,.paper #menu-forum:hover,.paper #menu-articles:hover,.paper #menu-gallery:hover{*/
+.paper .menu.logo a:hover{
+    /*color: #d3a523*/
+    color: #800c0c;
 }
 .paper #menu-aragorn{
     width:80%;
@@ -247,6 +250,97 @@ body.paper{
 
 
 /* forum */
+    .paper #forum-head .forum-head-bg{
+        /*border: 3px solid gray;*/
+        background: url("/images/paper/bg/forum_head.png") no-repeat center top;
+        padding-top: 34px;
+        padding-left: 20px;
+    }
+    .paper #forum-head div{
+        padding: 6px;
+    }
+    .paper #forum-head .forum-noticeboard{
+        background: url("/images/paper/bg/forum_noticeboard.gif") repeat center top;
+        padding-left: 28px;
+    }
+    /*.paper .forum-moderators-list, .forum-description, .forum-access{
+        border-bottom: 2px solid gray;
+    }*/
+    .paper .forum-list{
+        padding: 0;
+    }
+    .paper .forum-list li{
+        list-style: none;
+    }
+    .paper #frm-forum-discussion-forumForm{
+    text-align: left;
+}
+.paper #frm-forum-discussion-forumForm textarea{
+    width: 99%;
+}
+.paper #post{
+    width: 100%;
+}
+.paper .forum-navigation{
+    font-size: small;
+    margin-bottom: 15px;
+}
+.paper .forum-holder{
+    padding: 0 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed #000;
+}
+.paper .forum-holder dl{
+    width: 928px;
+    padding: 8px 0;
+}
+.paper .forum-holder dl dt{
+    display: inline-block;
+    width: 518px;
+    vertical-align: middle;
+    padding-left: 32px;
+}
+.paper .forum-holder dl dd{
+    margin-left: 0;
+    border-left: 1px solid white;
+    display: inline-block;
+    height: 40px;
+    vertical-align: middle;
+    text-align: center;
+    padding: 20px 5px 0 5px;
+}
+.paper .forum-holder:hover{
+    /*background: #cc9;*/
+    background: url("/images/paper/bg/forum_hover.png") no-repeat center right;
+}
+.paper .forum-divider{
+    height: 30px;
+    width: 900px;
+    background: url("/images/paper/bg/forum.png");
+    padding-top: 25px;
+    padding-left: 25px;
+}
+.paper .forum-sticky{
+    /*background: #533;*/
+    background: url("/images/paper/bg/forum_sticky.png") no-repeat left center !important;
+}
+.paper .forum-count{
+    display:inline-block;
+    width: 50px;
+    text-align: center;
+}
+.paper .forum-last-message{
+    display:inline-block;
+    width: 230px;
+    text-align: left !important;
+    /*border-right: 1px solid white;text-align: center;*/
+}
+.paper .forum-views{
+    width: 50px;
+}
+.paper .forum-holder dl:hover dd{
+    border-left-color: #000;
+}
 
  .paper menu{
     color: #fff;
@@ -299,16 +393,18 @@ body.paper{
 .paper menu div.block input[type=text],.paper menu div.block input[type=password]{
     width: 100px;
     background: transparent;
-    border: 1px solid black;
+    border:none;
+    border-bottom: 1px dashed black;
 }
 .paper menu div.block input[type=text]:hover,.paper menu div.block input[type=password]:hover,
 .paper menu div.block input[type=text]:active,.paper menu div.block input[type=password]:active{
-    border: 1px solid #543232;
+    border-bottom: 1px solid #543232;
 }
 .paper #frmLogin{
     margin: 5px;
     margin-top: 0;
     display: inline-block;
+    color: #000;
 }
 
 .paper ul.module-menu li{
@@ -388,7 +484,7 @@ body.paper{
 }
 .paper h1#location{
     text-align: center;
-    font-family: xirwena;
+    font-family: Papyrus;
 }
 
 .paper .action-public{

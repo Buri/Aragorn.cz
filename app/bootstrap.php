@@ -19,6 +19,7 @@ $configurator->addConfig(CFG_DIR . '/config.neon');
 $configurator->addConfig(CFG_DIR . '/config.local.neon');
 $container = $configurator->createContainer();
 $container->session->setExpiration('+ 1 year');
+$container->parameters['starttime'] = $_STARTTIME;
 
 if($container->parameters["lockdown"] == 'true'){
     require_once APP_DIR . "/templates/lockdown.html";

@@ -15,9 +15,9 @@ namespace Components{
     class LoginForm  extends \Nette\Application\UI\Form{
         public function build(){
             $this->getElementPrototype()->class = "logInForm";
-            $this->addText("username", "Nick:")
+            $this->addText("username", "Nick")
                     ->addRule(Form::FILLED);
-            $this->addPassword("password", "Heslo:")
+            $this->addPassword("password", "Heslo")
                     ->addRule(Form::FILLED);
             $this->addCheckbox('forever', "Trvalé přihlášení")
                     ->setAttribute('title', "Trvalé přihlášení");
