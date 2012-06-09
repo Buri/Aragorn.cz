@@ -9,6 +9,7 @@
 /* DARK skin */
 @import url("/css/skins/dark.css");
 @import url("/css/skins/paper.css");
+@import url("/css/skins/blue.css");
 
 .transition *{
     /*-moz-transition: all 1s linear ;

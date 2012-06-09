@@ -1,0 +1,1158 @@
+/*
+    Document   : screen.css
+    Created on : 8.7.2011, 14:20:20
+    Author     : Buri
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+.transition *{
+    -moz-transition: all 1s linear ;
+    -webkit-transition: all 1s linear ;
+    -ms-transition: all 1s linear ;
+    -o-transition: all 1s linear ;
+    transition: all 1s linear ;
+}
+
+@font-face{
+  font-family: 'galette';
+  src: url('/fonts/blue/galette-med.otf');
+}
+
+/* blue skin */
+body.blue{
+    background-color: #004560;
+    /*background: url('/images/blue/bg/bg.jpg') no-repeat center 0 fixed transparent;*/
+    background-image: url('/images/blue/bg.png');
+    background-repeat: repeat-y;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    font-family: Verdana, Arial, Helvetica;
+    font-size: 14px;
+}
+
+.blue div.holder{
+    /*background: url(http://s1.aragorn.cz/g/gallery/bg.jpg) repeat-y center;*/
+    /*background-color: #004560;*/
+    
+}
+.blue footer{
+/*background: url(http://s1.aragorn.cz/g/gallery/footer.jpg) no-repeat center;*
+margin-top: -2px;*/
+    /*display: block;
+    
+    clear: left;
+    top: 40px;
+    padding-left: 240px; 
+    width: 240px;*/
+}
+
+.blue .foot {
+    display: block
+    clear: left;
+    padding-left: 20px;
+}
+
+/* generic elements */
+
+/* generic classes */
+.hide{
+    display:none;
+}
+.offline{
+    background-color: red;
+    color: white;
+    float: right;
+    z-index: 10;
+    position: absolute;
+    top: 0px;
+    left: 250px;
+}
+.online{
+    background-color: lime;
+    color: #000;
+}
+
+
+/* bookmarks */
+.blue menu#bookmarks{
+    position:fixed;
+    top:-100px;
+    left:0px;
+    width: 235px;
+    border-bottom: 14px groove #ccc/*#FF8000*/;
+    overflow: auto;
+    -moz-transition: all 0.2s ease-in-out;
+    height: 100px;
+    z-index:10;
+}
+.blue menu#bookmarks:hover{
+    top:0px;
+    height: 100%;
+}
+
+.blue menu#bookmarks a{
+    /*display: inline-block;
+    float: left;*/
+}
+
+/* floating tips */
+.blue .floating-tip {
+    background-color: #333;
+    border: 1px solid #666;
+    padding: 5px 15px;
+    color: #dddddd;
+    font-weight: bold;
+    font-size: 11px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    opacity: 0.8;
+}
+
+/* connection status */
+#constat{
+    /*display: none;*/
+}
+#constat{
+    display: inline-block;
+    position: fixed;
+    left: 250px;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    border: 1px solid white;
+}
+
+/* selects */
+.blue .mc_display {
+	color: #333333;
+	font-size: 11px;
+	background-image: url(moochoose_select_bgs.png);
+	line-height: 20px;
+	vertical-align: middle;
+	display: inline-block;
+	text-align: left;
+	overflow: hidden;
+	white-space: nowrap;
+	cursor: default;
+	outline: none;
+	outline-style: none;
+/*	-moz-outline-style:none;*/
+}
+.blue .mc_display:hover {
+	background-position: 0 -20px;
+	color: #000000;
+}
+.blue .mc_display.active {
+	background-position: 0 -40px;
+	color: #000000;
+}
+.blue .mc_display .mc_opener {
+	background-image: url(moochoose_select_bgs.png);
+	background-position: -910px -60px;
+	height: 20px;
+	width: 30px;
+	position: absolute;
+}
+.blue .mc_display:hover .mc_opener {
+	background-position: -940px -60px;
+}
+.blue .mc_display.active .mc_opener {
+	background-position: -970px -60px;
+}
+.blue .mc_display .mc_options {
+	border: solid 1px #CCC;
+	margin-bottom: -1px;
+	display: none;
+	background-color: #FFF;
+}
+.blue .mc_display .mc_option {
+	display: block;
+	padding: 0 3px 0 11px;
+	margin: 0 3px;
+	border-bottom: solid 1px #e4e4e4;
+	font-size: 11px;
+	color: #333;
+	line-height: 19px;
+	text-align: left;
+	white-space: nowrap;
+	cursor: default;
+}
+.blue .mc_display .mc_option:hover, .blue .mc_display .mc_option.hover {
+	color: #000;
+	padding: 0 3px 0 11px;
+	border-bottom: solid 1px #CCC;
+	background-color: #F8F8F8;
+	background-image: url(moochoose_select_bgs.png);
+	background-position: 0 -60px;
+}
+.blue .mc_display .mc_option.active {
+	color: #003947;
+	border-bottom: solid 1px #b0cdd6;
+	font-weight: bold;
+	background-color: #d9e7ec;
+	background-image: url(moochoose_select_bgs.png);
+	background-position: 0 -80px;
+}
+
+/* Message Boxes */
+.blue .msgBox{
+	font-family:Arial, Helvetica, sans-serif;
+	opacity: 0;
+	position:absolute;
+	top:-1000px;
+	left:0px;
+	max-width: 250px;
+	min-width: 150px;
+	color:#aaa;
+	background: rgb(0, 0, 0); /* compatibility fallback */
+	background: rgba(0, 0, 0, 0.8);
+	padding: 10px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	-moz-box-shadow: 2px 2px 6px #666;
+	-webkit-box-shadow: 2px 2px 5px #bbb;
+	z-index:-1;
+}
+
+.blue .msgBoxImage{
+	width: 40px;
+	height: 40px;
+}
+
+.blue .msgBoxIcon{
+	float:left;
+	width: 40px;
+	height: 40px;
+	padding-right: 7px;
+}
+
+.blue .msgBoxTitle{
+	float:left;
+	color: #FFFFFF;
+}
+
+.blue .msgBoxContent{
+	float:left;
+	max-width: 80%;
+	font-size:12px;
+}
+
+.blue .msgBoxMessage{		float:left;}
+.blue .msgBoxLink{		color:#6699CC;}
+.blue .msgBoxLink:hover{	color:#FF9900;}
+
+.blue .msgEditable{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	width:250px;
+	background: rgb(0, 0, 0); /* compatibility fallback */
+	background: rgba(255, 255, 255, 0.1);
+	border:#000;
+	color:#FFF;
+}
+
+.blue .mBox.Core {
+	font-size:12px;
+	line-height:normal;
+}
+.blue .mBox.Core .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+}
+.blue .mBox.Core .mBoxContent,
+.blue .mBox.Core .mBoxTitle,
+.blue .mBox.Core .mBoxFooter {
+	padding:15px;
+/*	word-break: break-all;*/
+}
+.blue .mBox.Core.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/blue/mbox/mBox-Loader.gif') center center no-repeat;
+}
+/*** modal theme: default ***/
+
+.blue .mBox.Modal {
+	font-size:12px;
+	line-height:normal;
+        color: #000;
+}
+.blue .mBox.Modal .mBoxContainer {
+	background:#fff;
+	border:6px solid #fff;
+	-webkit-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	-moz-box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	box-shadow:0 0 10px rgba(0, 0, 0, 0.35);
+	/*-webkit-border-radius:5px;
+	-moz-border-radius:5px;*/
+	border-radius:5px;
+}
+.blue .mBox.Modal .mBoxContent {
+	background:#fff;
+	padding:15px;
+	border:1px solid #b0b0b0;
+/*	word-break:break-all;*/
+	-webkit-border-radius:2px;
+	-moz-border-radius:2px;
+	border-radius:2px;
+}
+.blue .mBox.Modal.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.blue .mBox.Modal.hasFooter .mBoxContent {
+	-webkit-border-bottom-left-radius:0;
+	-moz-border-radius-bottomleft:0;
+	border-bottom-left-radius:0;
+	-webkit-border-bottom-right-radius:0;
+	-moz-border-radius-bottomright:0;
+	border-bottom-right-radius:0;
+}
+.blue .mBox.Modal.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/blue/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.blue .mBox.Modal .mBoxTitle {
+	position:relative;
+	color:#707070;
+	font-size:14px;
+	text-shadow:0 1px 0 #fff;
+	padding: 7px 15px;
+	border:1px solid #b0b0b0;
+	border-bottom:0;
+	background-color:#f8f8f8;
+/*	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);*/
+/*	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);*/
+	/*filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);*/
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:2px;
+	-moz-border-radius-topleft:2px;
+	border-top-left-radius:2px;
+	-webkit-border-top-right-radius:2px;
+	-moz-border-radius-topright:2px;
+	border-top-right-radius:2px;
+}
+.blue .mBox.Modal .mBoxTitleContainer.mBoxDraggable {
+	cursor:move;
+}
+.blue .mBox.Modal .mBoxClose {
+	display:block;
+	width:13px;
+	height:13px;
+	padding:0px 0px 0px 0px;
+	position:absolute;
+	top:15px;
+	right:22px;
+	background-color:#fff;
+	border:1px solid #dadada;
+	-webkit-border-radius:10px;
+	-moz-border-radius:10px;
+	border-radius:10px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	-moz-box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+	box-shadow:inset 0 1px 1px rgba(0,0,0, 0.1), 0 1px 1px #fff;
+}
+.blue .mBox.Modal .mBoxClose div {
+	opacity:0.65;
+	width:7px;
+	height:7px;
+	position:absolute;
+	top:3px;
+	left:3px;
+	background:url('http://static.aragorn.cz/images/blue/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+}
+.blue .mBox.Modal .mBoxClose:hover {
+	border-color:#c0c0c0;
+}
+.blue .mBox.Modal .mBoxClose:hover div {
+	opacity:1;
+}
+.blue .mBox.Modal .mBoxClose:hover {
+	background-position:-17px -52px;
+}
+.blue .mBox.Modal .mBoxFooterContainer {
+	background-color:#f6f6f6;
+	border:1px solid #b0b0b0;
+	border-top:0;
+	padding:7px 15px;
+	-webkit-border-bottom-left-radius:2px;
+	-moz-border-radius-bottomleft:2px;
+	border-bottom-left-radius:2px;
+	-webkit-border-bottom-right-radius:2px;
+	-moz-border-radius-bottomright:2px;
+	border-bottom-right-radius:2px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.blue .mBox.Modal .mBoxFooter {
+
+}
+.blue .mBox.Modal .mBoxButtonContainer {
+	text-align:right;
+}
+.blue .mBox.Modal .mBoxButton {
+	margin-right:10px;
+}
+.blue .mBox.Modal .mBoxButtonLast {
+	margin-right:0px;
+}
+
+/*** modal: confirm ***/
+
+.blue .mBox.Modal.Confirm .mBoxContent {
+	color:#555555;
+	font-size:16px;
+	padding:30px 30px 30px 75px;
+	background:url('http://static.aragorn.cz/images/blue/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+}
+.blue .mBox.Modal.Confirm .mBoxButtonContainer {
+	text-align:center;
+}
+
+/*** notice theme: default ***/
+
+.blue .mBox.Notice {
+	font-size:16px;
+	line-height:normal;
+}
+.blue .mBox.Notice .mBoxContainer {
+	color:#fff;
+	text-shadow:0 -1px 1px #000;
+	padding:20px 30px;
+	cursor:pointer;
+	background-color:#000;
+	background:rgba(0, 0, 0, 0.85);
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+}
+.blue .mBox.Notice .mBoxContent {
+/*	word-break:break-all;*/
+}
+
+/*** notice icons ***/
+
+.blue .mBox.Notice .mBoxNoticeOk,
+.blue .mBox.Notice .mBoxNoticeSuccess,
+.blue .mBox.Notice .mBoxNoticeError,
+.blue .mBox.Notice .mBoxNoticeCancel,
+.blue .mBox.Notice .mBoxNoticeInfo,
+.blue .mBox.Notice .mBoxNoticeNotice,
+.blue .mBox.Notice .mBoxNoticeAttention {
+	padding-left:70px;
+	background-image:url('http://static.aragorn.cz/images/blue/mbox/mBox-Sprites.png');
+	background-repeat:no-repeat;
+}
+
+/*** notice: ok ***/
+
+.blue .mBox.Notice .mBoxNoticeOk,
+.blue .mBox.Notice .mBoxNoticeSuccess {
+	background-position:20px -187px;
+}
+
+/*** notice: error ***/
+
+.blue .mBox.Notice .mBoxNoticeError,
+.blue .mBox.Notice .mBoxNoticeCancel {
+	background-position:20px -487px;
+}
+
+/*** notice: info ***/
+
+.blue .mBox.Notice .mBoxNoticeInfo {
+	background-position:20px -787px;
+}
+
+/*** notice: notice, attention ***/
+
+.blue .mBox.Notice .mBoxNoticeNotice,
+.blue .mBox.Notice .mBoxNoticeAttention {
+	background-position:20px -1087px;
+}
+
+/*** tooltip theme: default ***/
+
+.blue .mBox.Tooltip {
+	font-size:11px;
+	line-height:normal;
+}
+.blue .mBox.Tooltip .mBoxContainer {
+	background:#fff;
+	border:1px solid #d6d6d6;
+	-webkit-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	box-shadow:0 0 4px rgba(0, 0, 0, 0.25);
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.blue .mBox.Tooltip .mBoxContent {
+	background:#fff;
+	color:#353535;
+	padding:5px 8px;
+/*	word-break:break-all;*/
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+}
+.blue .mBox.Tooltip.hasTitle .mBoxContent {
+	-webkit-border-top-left-radius:0;
+	-moz-border-radius-topleft:0;
+	border-top-left-radius:0;
+	-webkit-border-top-right-radius:0;
+	-moz-border-radius-topright:0;
+	border-top-right-radius:0;
+}
+.blue .mBox.Tooltip.mBoxLoading .mBoxContent {
+	min-height:11px;
+	background:url('http://static.aragorn.cz/images/blue/mbox/mBox-Loader.gif') center center no-repeat;
+}
+.blue .mBox.Tooltip .mBoxTitle {
+	color:#505050;
+	text-shadow:0 1px 0 #fff;
+	padding:5px 8px;
+	font-weight:bold;
+	border-bottom:1px solid #d6d6d6;
+	background-color:#f8f8f8;
+/*	background-image:-webkit-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-moz-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-ms-linear-gradient(top,#fdfdfd,#f4f4f4);
+	background-image:-o-linear-gradient(top,#fdfdfd,#f4f4f4);*/
+/*	background-image:linear-gradient(top,#fdfdfd,#f4f4f4);
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#fdfdfd,EndColorStr=#f4f4f4);*/
+	-webkit-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-moz-box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	box-shadow:inset 0 -1px 1px rgba(255, 255, 255, 0.8);
+	-webkit-border-top-left-radius:5px;
+	-moz-border-radius-topleft:5px;
+	border-top-left-radius:5px;
+	-webkit-border-top-right-radius:5px;
+	-moz-border-radius-topright:5px;
+	border-top-right-radius:5px;
+}
+.blue .mBox.Tooltip .mBoxPointer {
+	background:url('http://static.aragorn.cz/images/blue/mbox/mBoxTooltip-Sprites.png') no-repeat;
+}
+.blue .mBox.Tooltip .mBoxPointerTop {
+	width:17px;
+	height:9px;
+	background-position:0px -18px;
+}
+.blue .mBox.Tooltip .mBoxPointerBottom {
+	width:17px;
+	height:9px;
+	background-position:0px -28px;
+}
+.blue .mBox.Tooltip .mBoxPointerRight {
+	width:9px;
+	height:17px;
+	background-position:-10px 0px;
+}
+.blue .mBox.Tooltip .mBoxPointerLeft {
+	width:9px;
+	height:17px;
+	background-position:0px 0px;
+}
+.blue cite{
+    font-style: italic;
+    background-color: #ccd;
+    color: #333;
+    padding: 6px;
+    border: 1px dashed white;
+    display: block;
+}
+.blue cite > a.anchor {
+    color: #000;
+    background-color: #00F;
+}
+.blue div, .blue menu{
+    padding:0;
+    margin:0;
+}
+.blue a{
+    color: #004560;
+    text-decoration: none;
+}
+.blue img{
+    border: none;
+}
+.blue footer{
+    text-align: center;
+    font-size: small;
+    white-space: pre-line;
+    color: #FFF;
+    display: block;
+    clear: left;
+    float: left;
+    width: 100%;
+}
+.blue button{
+    font-family: Tahoma,Arial, Helvetica;
+}
+.blue .holder{
+    width: 100%;
+    display: inline-block;
+    text-align: left;
+}
+.blue .logo{
+    position:absolute;
+    left: 0px;
+    top: 10px;
+    width: 225px;
+    float:left;
+    display:inline-block;
+    /*margin-top: 50px;*/
+    padding: 5px;
+    
+    /*min-height: 500px;
+    padding: 12px 3px;
+    background: url(/images/blue/bg/content.png); */
+    margin-right: 0px;
+    clear: none;
+    background-color: #fff;
+    /*border-top-left-radius: 15px;*/
+}
+.blue .slide-left{
+    margin-left: -170px;
+}
+.blue #sidebar-left, .blue #sidebar-right{
+    /*z-index: 2;
+    position: fixed;*/
+}
+.blue .slide-left:hover{
+    margin-left: 0px;
+}
+.blue .leftmenu{
+    border:1px solid red;
+    float: left;
+    width:100px;
+    height: 400px;
+    
+}
+.blue .menu{
+    /*border-bottom: 1px solid white;*/
+    border-top: none;
+    text-align: center;
+}
+.blue .menu.main{
+    height: 34px;
+}
+.blue .menu.main *{
+    vertical-align: middle;
+}
+.blue #menu-den:hover{
+    color: #104560;
+    padding-left: 10px;
+}
+.blue #menu-forum:hover{
+    color: #104560;
+    padding-left: 10px;
+}
+.blue #menu-articles:hover{
+    color: #104560;
+    padding-left: 10px;
+}
+.blue #menu-gallery:hover{
+    color: #104560;
+    padding-left: 10px;
+}
+.blue #menu-aragorn:hover{
+    color: #104560;
+    padding-left: 10px;
+}
+.blue .content{
+    float: left;
+    padding-left: 10px;
+    padding-right: 20px;
+    padding-top: 50px;
+    padding-bottom: 5px;
+    position: relative;
+    left: 250px;
+    margin-top:0px;
+    min-height: 500px;
+    width: 75%;
+    color: #fff;
+    
+    clear: left;
+   /* background: url('/images/blue/bg/content.png');*/
+}
+.blue .menu.logo{
+    /*border-radius: 0 0 16px 16px; */
+    color: white;
+}
+.blue .menu.logo a{
+    color: black;
+    padding-left: 5px;
+    font-family: galette;
+    font-size: 18pt; 
+}
+.blue .menu .left{
+    /*float:left;*/
+}
+.blue .menu .right{
+    /*float: right;*/
+}
+.blue .left a, .blue .right a{
+    /*width:200px;*/
+    padding-left: 5px;
+    font-family: galette;
+    font-size: 18pt; 
+}
+.blue .menu.logo a{
+    display: block;
+}
+.blue .menu a.middle{
+    height: 100%;
+}
+.blue .hidden{
+    display:none;
+}
+.blue .pre{
+    white-space: pre-wrap;
+}
+.blue .lock{
+    padding-right: 20px;
+    background-image: url('/images/chatlock.png');
+    background-position: center right;
+    background-repeat: no-repeat;
+}
+
+.blue .contentLoading{
+    opacity:0.1;
+    background-image: url('/images/blue/bg/content.png');
+    background-color: #000;
+    -moz-transition: all .9s linear;
+}
+
+.blue .role-root, .blue .role-moderator, .blue .role-guest{
+    padding-right: 17px;
+}
+.blue .role-root{
+    color: #F6F;
+    background: url('/images/blue/link/admin.png') no-repeat right center;
+    background-size: 14px;
+}
+.blue .role-moderator{
+    color: #F66;
+    background: url('/images/blue/link/moderator.png') no-repeat right center;
+    background-size: 14px;
+}
+.blue .role-user{
+    color: #99c;
+}
+.blue .role-guest{
+    color: #333;
+}
+
+/* LogInForm style definition */
+.blue .logInForm{
+    display: inline;
+}
+.blue .logInForm *{
+    font-size: 12px;
+    display: inline;
+}
+.blue form#frm-logInForm.logInForm a{
+    padding: 0;
+}
+
+
+.blue #overlay{
+    background-image: url(/images/overlay.png) !important;
+}
+.blue #msgStatus{
+    border-radius:6px; 
+    padding: 0 6px;
+}
+.blue #msgStatus.sending{
+    background-color: #cc9;
+}
+.blue .menu.main a, .blue .main.menu{
+    vertical-align: middle;
+    color: #332;
+}
+.blue .main.menu{
+    text-align: left;
+    padding-left: 35px;
+    padding-top: 3px;
+    background: #ccd;
+    border-bottom: none;
+    height: 25px;
+}
+.blue .main.menu .float-right{
+    float:right; 
+    padding-right: 6px; 
+    margin-top:-3px;
+}
+.blue .main.menu .float-right img{
+    max-height: 23px; 
+}
+.blue .discussion{
+    padding: 15px 0;
+    margin-top: 15px;
+}
+.blue .post{
+    margin-top: 5px;/*
+    border: 1px solid white;
+    background-color: #0E4F69;
+    border-radius: 5px;*/
+}
+.blue .post.botline{
+    /*border-bottom: 1px solid white;
+    border-radius: 5px;*/
+}
+.blue .post .head{
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+    vertical-align: top;
+    padding: 2px 4px;
+}
+.blue .post .head img{
+    max-width: 90px;
+    max-height: 90px;
+}
+.blue .post .status{
+    margin-top: 15px;
+    border-top: 1px solid #ccc;
+    font-size: small;
+}
+.blue .post .post-body{
+    width: 80%;
+    display: inline-block;
+    padding: 5px;
+    padding-top: 0px;
+    min-height: 100px;
+    /*background-color: #fff;*/
+    border: 2px solid white;
+    border-radius: 5px;
+}
+
+.blue .post .post-info{
+    display: inline-block;
+    width: 100%;    
+    text-align: right;
+    font-size: small;
+}
+.blue .post .post-text{
+    white-space: pre-wrap;
+}
+.blue .post .post-info .button{
+    display:inline-block;
+    height: 18px;
+    width: 18px;
+    background-position: center;
+    background-size: 18px;
+}
+.blue .post .post-info a.alert{
+    background-image: url(/images/report.png);
+}
+.blue .post .post-info a.alert:hover{
+    background-image: url(/images/reporta.png);
+}
+.blue .post .post-info a.edit{
+    background-image: url(/images/edit.png);
+}
+.blue .post .post-info a.edit:hover{
+    background-image: url(/images/edita.png);
+}
+.blue .post .post-info a.delete{
+    background-image: url(/images/delete.png);
+}
+.blue .post .post-info a.delete:hover{
+    background-image: url(/images/deletea.png);
+}
+.blue .post .post-info a.cite{
+    background-image: url(/images/cite.png);
+}
+.blue .post .post-info a.cite:hover{
+    background-image: url(/images/citea.png);
+}
+
+.blue .newPost{
+    background: gray;
+    width: 99%;
+    padding: 6px;
+    /*left: 0;*
+    position: fixed;
+    bottom: -205px;
+    height: 220px;*/
+    text-align: center;
+    -moz-transition: all .2s linear;
+    border-radius: 6px 6px 0 0;
+    /*-moz-transition: bottom .2s linear;
+    -o-transition: bottom .2s linear;
+    -webkit-transition: bottom .2s linear;*/
+}
+.blue .slideinform{
+    bottom: 0;
+}
+.blue #frm-forum-discussion-forumForm{
+    text-align: left;
+}
+.blue #frm-forum-discussion-forumForm textarea{
+    width: 99%;
+}
+.blue #post{
+    width: 100%;
+}
+.blue .forum-navigation{
+    font-size: small;
+    margin-bottom: 15px;
+}
+.blue .forum-holder{
+    border:1px solid #ccc;
+    border-radius: 6px;
+    padding: 0 6px;
+    margin-bottom: 4px;
+}
+.blue .forum-holder:hover{
+    background: #FFEEDD;
+}
+.blue .forum-sticky{
+    background: #533;
+}
+.blue .forum-count{
+    float:right;display:inline-block;width: 40px; text-align: center;
+}
+.blue .forum-last-message{
+    float:right;display:inline-block;width: 130px;height: 100%;border-right: 1px solid white;text-align: center;
+}
+ .blue menu{
+    color: #004560;
+    background: #fff;
+}
+
+  
+.blue menu#sidebar-left{
+    position: absolute;
+    width: 225px;    
+    float:left;
+    left: 0px;
+    top: 160px;
+    display:inline-block;
+    padding: 5px;
+    /*min-height: 500px;
+    padding: 12px 3px;
+    background: url(/images/blue/bg/content.png); */
+    margin-right: 0px;
+    border-bottom-left-radius: 15px;
+    clear: left;
+}
+.blue menu a{
+    display:block;
+    /*color: #5a90fc;*/
+    padding: 5px;
+}
+.blue menu a:hover{
+    background-color: #FFEEDD;
+}
+.blue menu div.block a{
+    padding-left: 32px;
+}
+.blue menu a img{
+    max-width: 32px;
+    vertical-align: middle;
+}
+.blue menu div.block{
+    background-color: #fff;
+    /*margin: 5px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;*/
+}
+.blue menu div.block a.profile{
+    background: #CCC /*#FF8000*/;
+    /*background-image: -moz-linear-gradient(center top , #63656B 3%, #222324 90%);*/
+    padding:0;
+    /*margin: -5px;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: 5px;
+    color: #196bb7;
+    padding: 10px;*/
+    font-weight: bold;
+    text-align: center;
+}
+.blue menu div.block a.profile img{
+    max-width: 42px;
+    max-height: 54px;
+    border: 1px solid #C6C6C6;
+}
+
+.blue menu div.block p{
+    color: #004560;
+    margin-bottom: 0;
+}
+
+.blue menu div.block input[type=text],.blue menu div.block input[type=password]{
+    width: 94%;
+}
+.blue #frmLogin{
+    margin: 5px;
+}
+.blue .mooupload_error {
+  color: #FF0000;
+}
+
+.blue .mooupload_noerror {
+  color: #008000;
+}
+
+.blue .mooupload_btncontainer {
+  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
+  padding: 10px;
+}
+
+.blue .mooupload_btncontainer button {
+  /*border: 1px solid #C5C5C5;*/
+  padding: 2px 5px 3px 20px;
+  /*background-color: #F3F3F3;*/
+  font-size: 12px;
+  margin-right: 10px;
+  /*-webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;*/
+  width: 130px;
+  height: 60px;
+}
+
+.blue .mooupload_btncontainer button.addfile {
+  background: url(/images/blue/buttons/dropbox.png) center center no-repeat;
+  border: none;
+  vertical-align: middle;
+  height: 130px;
+}
+
+.blue .mooupload_btncontainer button.start {
+  background: #F3F3F3 url(/images/accept.png) 3px center no-repeat;
+}
+
+.blue .mooupload_btncontainer button:active {
+}
+
+.blue .mooupload_btncontainer div.progresscont {
+  display: none;
+  width: 100px;
+  height: 11px;
+  border: 1px solid #000;
+  float: right;
+  margin: 10px 80px 0 0;
+  background-color: #FFFFFF;
+}
+
+.blue .mooupload_progressbar {
+  text-align: center;
+  font-size: 8px;
+  display: block;
+  width: 0px;
+  height: 100%;
+}
+
+.blue .mooupload_off {
+  background: #FFF url(/images/progress_grey.gif) center left repeat-x;
+}
+
+.blue .mooupload_on {
+  background: #FFF url(/images/progress.gif) center left repeat-x;
+}
+
+.blue ul.module-menu li{
+        display: inline-block;
+        margin-left: 15px;
+    }
+.blue menu div.block p{
+    color:#004560;
+    padding: 5px;
+}
+/*
+	paginator
+*/
+
+
+.blue .paginator {
+    margin: 1em 0;
+    font-size: 90%;
+    text-align: center;
+}
+
+.blue .paginator a, .blue .paginator span {
+    margin-right: 0.1em;
+    padding: 0.2em 0.5em;
+    color: #fff;
+    background-color: #004560;
+    border: 1px solid #CCC;
+}
+
+.blue .paginator a {
+    border: 1px solid #9AAFE5;
+    text-decoration: none;
+    color: #cccccc;
+}
+.blue .paginator a:hover {
+    background: #ccc;
+    color:#333;
+}
+
+.blue .paginator span.button {
+    border: 1px solid #DDDDDD;
+}
+
+.blue .paginator .current {
+    background: #ccc /*#FF8000*/;
+    border: 1px solid #CCC;
+    color: #004560;
+    font-weight: bold;
+}
+.blue div.widget{
+        border: 1px solid gray;
+        border-radius: 1px;
+        padding: 6px;
+        float:left;
+        max-width:213px;
+        margin: 3px;
+    }
+    .blue div.widgetHead{
+        background: #716969;
+        color: #cfc;
+        margin: -6px -6px 3px -6px;
+        padding: 4px;
+    }
+    .blue div.widgetTitle{
+        display: inline-block;
+        cursor: move;
+    }
+    .blue .widgetMenuButton{
+        display: inline-block;
+        background: url(/images/blue/buttons/wheel-icon.png) center center no-repeat;
+        background-size: contain;
+        width: 24px;
+        height: 20px;
+        float: right;
+        border: 1px solid #999;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .blue h1#location{
+        text-align: center;
+    }
