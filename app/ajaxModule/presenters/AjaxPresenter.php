@@ -66,7 +66,8 @@ namespace ajaxModule{
         }
         
         public function actionDeleteforum($id = null, $param = null){
-            $forum = new \Components\ForumComponent();
+            $forum = new \Components\ForumComponent($this, 'tempForum');
+            $forum->setContext($this->context);
             if($forum->userIsAllowed('forum', 'delete', $id)){
                 $forum->deleteForum($id);
                 $this->template->data = "Forum smazáno.";
@@ -77,12 +78,14 @@ namespace ajaxModule{
         
         public function actionForumdeletepost($id){
             $this->template->data = "fail";
-            $forum = new \Components\ForumComponent();
+            $forum = new \Components\ForumComponent($this, 'tempForum');
+            $forum->setContext($this->context);
             if($forum->userIsAllowed('post', 'delete', $id)){
                 $forum = DB::forum_posts('id', $id);
                 $fid = $forum['id'];
                 $ftime = $forum['time'];
                 DB::forum_posts('id', $id)->delete();
+                DB::forum_posts_data('id', $id)->delete();
                 DB::forum_visit()->where('idforum = ? AND time() < ? AND iduser <> ?', array($fid, $ftime, \Nette\Environment::getUser()->getId()))
                         ->update(array('unread'=>new \NotORM_Literal("unread - 1")));
                 DB::forum_visit('unread < ?', 0)->update(array('unread'=>0));
@@ -94,7 +97,8 @@ namespace ajaxModule{
         }
         public function actionUpdateforumnoticeboard($id,$param,$description){
             $this->template->data = "fail";
-            $forum = new \Components\ForumComponent();
+            $forum = new \Components\ForumComponent($this, 'tempForum');
+            $forum->setContext($this->context);
             if($forum->userIsAllowed('forum', 'admin', $id)){
                 $this->template->data = "off";
                 $row = DB::forum_topic('id', $id);

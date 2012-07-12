@@ -45,6 +45,12 @@ namespace Components{
          */
         protected $lastVisit = 0;
 
+        /**
+         *
+         * @var NotORM
+         */
+        protected $db;
+
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
         }
@@ -66,6 +72,11 @@ namespace Components{
          */
         public function setUser(\Nette\Security\User $user){
             $this->user = $user;
+            return $this;
+        }
+
+        public function setDB(\NotORM $d) {
+            $this->db = $d;
             return $this;
         }
 
@@ -208,13 +219,24 @@ namespace Components{
             }
             // Find Tags
             $ts = $this->presenter->link('search:');
-            $out = preg_replace('/\#(([a-zA-Z0-9]|-|_){3,})/i', '<a href="'.$ts.'$1/">$0</a>', $text);
+            $out = preg_replace('/\#(([a-zA-Z0-9]|-|_){3,})/i', '<a href="'.$ts.'?type=tag&q=$1">$0</a>', $text);
 
             $out = self::parseBB($out);
 
-
             // Find users
-
+            $userPattern = '/@(([a-zA-Z0-9]|-|_){4,})/';
+            $matches = array();
+            preg_match_all($userPattern, $out, $matches);
+            $db = $this->db;
+            if(count($matches[0]) > 0){
+                foreach($matches[1] as $user){
+                    $ur = $db->users_profiles('urlfragment like ?', $user)->fetch();
+                    if(!$ur)
+                        continue;
+                    $uid = $ur['id'];
+                    $out = preg_replace('/@'.$user.'/', $this->presenter->userLink($uid), $out);
+                }
+            }
 
             if($cache)
                 $cache->save($text, $out);
@@ -226,9 +248,6 @@ namespace Components{
          * @return string
          */
         public static function parseBB($text){
-            
-            //dump($text);
-
             $bb = bbcode_create(array(
                 ''=>         array('type'=>BBCODE_TYPE_ROOT),
                 'i'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<i>',

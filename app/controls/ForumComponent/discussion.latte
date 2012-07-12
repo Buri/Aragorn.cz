@@ -9,6 +9,7 @@
     .dark .post-text cite{
         display: none;
         border-left: 10px solid #fff;
+        overflow: auto;
     }
     .dark .post-text cite.show{
         display: block;
@@ -36,7 +37,11 @@
     }
     .paper .post-text cite{
         display: none;
-        border-left: 10px solid #fff;
+        border-color: #CBA987;
+        border-top:none;
+        border-left: 10px solid #CBA987;
+        background-color: #d7c3ab;
+        overflow: auto;
     }
     .paper .post-text cite.show{
         display: block;
@@ -50,8 +55,8 @@
     width: 900px;
     margin-top: 5px;
     /*background-color: #333;
-    border-radius: 4px;*/
-    border-bottom: 1px dashed black;
+    border-radius: 4px;
+    border-bottom: 1px dashed black;*/
 }
 .paper .post.botline{
     /*border-bottom: 1px solid white;
@@ -70,7 +75,7 @@
 }
 .paper .post .status{
     margin-top: 15px;
-    border-top: 1px solid silver;
+    border-top: 1px dashed #000;
     font-size: small;
 }
 .paper .post .post-body{
@@ -135,15 +140,16 @@
     -o-transition: bottom .2s linear;
     -webkit-transition: bottom .2s linear;*/
 }
+.paper #frmforumForm-whisper{
+    width:857px;
+}
 .paper .no-new-post{
     font-style: italic;
 }
 .paper .slideinform{
     bottom: 0;
 }
-.paper .post cite{
-    overflow: auto;
-}
+
 .paper .post cite .post{
     white-space: normal;
 }
@@ -190,6 +196,7 @@
         </dt>
         <div class="post-body">
             <div class="post-info">
+                <a href="#" onclick="return false;" title="Permalink" style="font-weight:bold;">#</a>
                 {if $write}
                 <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
                 {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
@@ -266,11 +273,20 @@
             }.bind(el));
         }
     });
-        $$('#frmforumForm-post').addEvent('keydown', function(e){
+    $$('#frmforumForm-post').addEvents({
+        'keydown': function(e){
             if(e.key == 'enter' && e.shift){
                 e.stop();
                 $('post').click(); //.fireEvent('submit');
             }
-        });
+        },
+        'keypress':function(event){
+            //new Event(event).stop();
+            if(event.key == '@'){
+                console.log(event.key);
+            }
+            
+        }
+    });
     </script>
 {*/cache*}

@@ -214,7 +214,10 @@ namespace Components{
 
         public function createComponentDiscussion(){
             $c = new \Components\DiscussionComponent; //($this, $name, "hola");
-            return $c->setCache($this->context->cacheStorage)->setUser($this->context->user)->setLastVisit($this->lastVisit);
+            return $c->setCache($this->context->cacheStorage)
+                    ->setUser($this->context->user)
+                    ->setDB($this->context->database)
+                    ->setLastVisit($this->lastVisit);
         }
 
         public static function getIdByPath($path){
