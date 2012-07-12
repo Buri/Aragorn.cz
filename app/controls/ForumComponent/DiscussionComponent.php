@@ -141,6 +141,7 @@ namespace Components{
             $form->setDefaults(array(
                 'discussionid' => $this->forumId
             ));
+            $form->addText('whisper', 'Šeptat');
             $form->onSuccess[] = callback($this, 'addPost');
             return $form;
         }
@@ -191,12 +192,43 @@ namespace Components{
                 $this->getParent()->propagatePostDeletion($f['id']);
             }
         }
+
+        /**
+         *
+         * @param string $text
+         * @return string
+         */
+        public function parse($text){
+            $cache = $this->cache;
+            if(false && $cache){
+                $t = $cache->load($text);
+                if($t !== null){
+                    return $t;
+                }
+            }
+            // Find Tags
+            $ts = $this->presenter->link('search:');
+            $out = preg_replace('/\#(([a-zA-Z0-9]|-|_){3,})/i', '<a href="'.$ts.'$1/">$0</a>', $text);
+
+            $out = self::parseBB($out);
+
+
+            // Find users
+
+
+            if($cache)
+                $cache->save($text, $out);
+            return $out;
+        }
         /**
          *
          * @param string $text
          * @return string
          */
         public static function parseBB($text){
+            
+            //dump($text);
+
             $bb = bbcode_create(array(
                 ''=>         array('type'=>BBCODE_TYPE_ROOT),
                 'i'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<i>',
@@ -214,12 +246,14 @@ namespace Components{
                                 'childs'=>''),
                 'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,
                                 'open_tag'=>'<a class="citation" href="#{PARAM}">{CONTENT}</a>' .
-                                                     '<cite class="cite-msg-{PARAM}" data-msg="{PARAM}">', 'close_tag'=>'</cite>',
+                                                     '<cite class="cite-msg-{PARAM}" data-msg="{PARAM}">&quot;', 'close_tag'=>'&quot;</cite>',
                                 'childs'=>''),
                 'spoiler'=>       array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<div class="spoiler">', 'close_tag'=>'</div>'),
             ));
-            return bbcode_parse($bb, $text);
+            $bbout = bbcode_parse($bb, $text);
+
+            return $bbout;
         }
     }
 }

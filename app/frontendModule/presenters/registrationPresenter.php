@@ -130,7 +130,7 @@ namespace frontendModule{
                     "id" => 0,
                     "username" => $row["username"]
                 ));
-                $db->users_profiles()->insert(array(
+                $r = $db->users_profiles()->insert(array(
                     "id"=>0,
                     "password" => $row["password"],
                     "mail" => $row["mail"],
@@ -139,7 +139,7 @@ namespace frontendModule{
                     'urlfragment'=> \Utilities::string2url($row['username'])
                 ));
                 $db->users_prerferences()->insert(array(
-                    "id"=>0,
+                    "id"=> $r['id'],
                     "color" => "#fff"
                 ));
 

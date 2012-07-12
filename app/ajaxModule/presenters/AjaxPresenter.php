@@ -149,10 +149,10 @@ namespace ajaxModule{
             $this->template->data = "OK";
         }
 
-        public function actionForumGetSinglePost($postid){
+        public function actionForumGetSinglePost($id){
             $this->setView('forum-post');
-            $this->template->post = $this->context->database->forum_posts('id', $postid)->fetch();
-            $this->template->postd = $this->context->database->forum_posts_data('id', $postid)->fetch();
+            $this->template->post = $this->context->database->forum_posts('id', $id)->fetch();
+            $this->template->postd = $this->context->database->forum_posts_data('id', $id)->fetch();
         }
 
         public function actionLoadForumPost($postid){

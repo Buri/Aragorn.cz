@@ -47,6 +47,7 @@
 
     
 .paper .post{
+    width: 900px;
     margin-top: 5px;
     /*background-color: #333;
     border-radius: 4px;*/
@@ -73,19 +74,19 @@
     font-size: small;
 }
 .paper .post .post-body{
-    width: 709px;
+    width: 777px;
     display: inline-block;
     padding: 5px;
     padding-top: 0px;
 }
 .paper .post .post-info{
-    display: inline-block;
-    width: 700px;
+    /*display: inline-block;
+    width: 700px;*/
     text-align: right;
     font-size: small;
 }
 .paper .post .post-text{
-    white-space: pre-wrap;
+    white-space: pre-line;
 }
 .paper .post .post-info .button{
     display:inline-block;
@@ -140,6 +141,13 @@
 .paper .slideinform{
     bottom: 0;
 }
+.paper .post cite{
+    overflow: auto;
+}
+.paper .post cite .post{
+    white-space: normal;
+}
+
 </style>
 {if $write}
 <div class="newPost">
@@ -156,6 +164,7 @@
     <button type="button" style="" onclick="var p = prompt('Zadejte url obrázku:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});">Img</button>
     <br/>
     {input post}
+    Šeptání: {input whisper}
     <br/>
     {input send id=>'post'}
     {/form}
@@ -193,7 +202,7 @@
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
-            <span class="post-text">{!\Components\DiscussionComponent::parseBB(htmlspecialchars($post->forum_posts_data['post']))}</span>
+            <span class="post-text">{!$control->parse(htmlspecialchars($post->forum_posts_data['post']), $control->presenter->cache)}</span>
             <div class="status">{$control->presenter->userStatus($post['author'])}</div>
         </div>
         </dl>
@@ -244,12 +253,12 @@
         'click:relay(a.citation)':function(e){
             new Event(e).stop();
             var el = this.nextSibling;
-            console.log(el);
             $(el).toggleClass('show');
             if(!el.hasClass('show') || el.get('data-xhr-loaded')) return;
             var msgid = el.get('data-msg').substr(3);
+            if(msgid == '') return;
             AC.ajax('forumGetSinglePost', {
-                postid:msgid
+                id:msgid
             }, function(reply){
                 this.set('html', '');
                 this.set('data-xhr-loaded', true);

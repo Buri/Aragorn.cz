@@ -6,8 +6,8 @@
     <div class="post-body">
         <div class="post-info">
             <i>{date('d.m.Y H:i', $post['time'])}</i>
-        </div>
-        <span class="post-text">{!\Components\DiscussionComponent::parseBB(htmlspecialchars($postd['post']))}</span>
+        </div>{? $dis = new \Components\DiscussionComponent($control, 'tempDis');}
+        <span class="post-text">{!$dis->parse(htmlspecialchars($postd['post']))}</span>
         <div class="status">{$control->presenter->userStatus($post['author'])}</div>
     </div>
 </div>
