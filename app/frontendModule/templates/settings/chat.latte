@@ -135,7 +135,7 @@
                 $('ccolor').setStyle('background-color', c.hex);
             },
             onComplete:function(c){
-                AC.ajax('changechatcolor', {color:c.hex}, function(){
+                AC.ajax('settingsChatColorChange', {color:c.hex}, function(){
                     AC.message('Barva byla změněna');
                 });
                 //console.log(c.hex);

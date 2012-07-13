@@ -94,6 +94,10 @@
 .paper .post .post-text{
     white-space: pre-line;
 }
+.paper .post .post-text img{
+    max-width: 300px;
+    max-height: 300px;
+}
 .paper .post .post-info .button{
     display:inline-block;
     height: 18px;
@@ -203,8 +207,31 @@
 	padding-bottom: 12px; /* ie6 trash workaround */
 }
 
+.paper .spoiler{
+    width: 20px;
+    height: 20px;
+    background: #000;
+    color:transparent !important;
+    border-radius: 3px;
+    /*transition: .3s linear all;*/
+    /*-moz-transition: all .3s linear;*/
+}
+.paper .spoiler * {
+    visibility: hidden;
+}
+.paper .spoiler:hover, .paper .spoiler:active{
+    width: auto;
+    color:inherit !important;
+    background:transparent;
+}
+.paper .spoiler:hover *, .paper .spoiler:active *{
+    visibility: visible;
+}
 
 </style>
+<ul n:foreach="$flashes as $flash" class="flashes">
+    <li class="{$flash->type}">{$flash->message}</li>
+</ul>
 {if $write}
 <div class="newPost">
     {form forumForm}
@@ -217,11 +244,14 @@
     {*<button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[list]\n*', 'after':'\n[/list]', 'defaultMiddle':''});">Seznam</button>*}
     <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[spoiler]', 'after':'[/spoiler]', 'defaultMiddle':''});">Spoiler</button>
     <button type="button" style="" onclick="var p = prompt('Zadejte URL odkazu:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[url]', 'after':'[/url]', 'defaultMiddle':p});">URL</button>
-    <button type="button" style="" onclick="var p = prompt('Zadejte url obrázku:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});">Img</button>
-    <br/>
+    <button type="button" style="" onclick="var p = prompt('Zadejte url obrĂˇzku:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});">Img</button>
+    <button type="button" style="" onclick="var p = prompt('Zadejte url mp3 souboru:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[url=', 'after':'][/img]', 'defaultMiddle':p});">MP3</button>
+    <button type="button" style="" onclick="var p = prompt('Zadejte url z youtube:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[youtube]', 'after':'[/youtube]', 'defaultMiddle':p});">Youtube</button>
+    <a href="#" id="close-edit" style="display:none;">Zrušit editaci</a>
     {input post}
+    {if $allowWhisper}
     Šeptání: {input whisper}
-    <br/>
+    {/if}
     {input send id=>'post'}
     {/form}
 </div>
@@ -229,7 +259,7 @@
 <div class="no-new-post">Nemáte právo přispívat do této diskuze.</div>
 {/if}
 {*
-  * @todo: vyřešit kešování pro různé uživatele
+  * @todo: vyřešit kešování pro různé uivatele
   *}
 {*cache $id.'//'.$vp->getPaginator()->getPage(), tags => ['discussion/' . $id], expire=>'+ 20 minutes', sliding=>true *}
 {control vp}
@@ -248,12 +278,12 @@
             <div class="post-info">
                 <a href="#" onclick="return false;" title="Permalink" style="font-weight:bold;">#</a>
                 {if $write}
-                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvěk">&nbsp;</a>
+                <a href="#" class="alert button" title="Nahlásit nevhodný ppříspěvek">&nbsp;</a>
                 {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
                 <a href="#" class="edit button" title="Upravit příspěvek" data-id="{$post['id']}">&nbsp;</a>
                 <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
                 {/if}
-                <a href="#" class="cite button" title="Citovat příspěvěk">&nbsp;</a>
+                <a href="#" class="cite button" title="Citovat příspěvek">&nbsp;</a>
                 {*if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
                 {/if*}
                 {/if}
@@ -274,32 +304,35 @@
     $$('.discussion').removeEvents();
     $$('.discussion').addEvents({
         'click:relay(a.alert.button)':function(e){
-            new Event(e).stop();
+            e.stop();
             AC.message('Report', 'Send report');
             //console.log(this);
             return false;
         },
         'click:relay(a.cite.button)':function(e){
-            new Event(e).stop();
+            e.stop();
             var post = this.getParent().getParent().getParent().getParent();
-            console.log(post);
             var txt = '[cite=' + post.get('name') + ']' + post.getElement('dt').get('text').trim()  + ' - ' + post.getElement('i').get('text').trim() + '[/cite]\n';
             $('frmforumForm-post').insertAtCursor(txt, false).focus();
         },
         'click:relay(a.delete.button)':function(e){
-            new Event(e).stop();
+            e.stop();
             if(confirm('Opravdu chcete smazat tento příspěvek?')){
-                AC.ajax('forumdeletepost', { id:this.get('data-postid')}, function(html){
+                AC.ajax('forumPostDelete', { id:this.get('data-postid')}, function(html){
                     if(html[2].get('text') == 'ok')
                         AC.Ajax.reloadLocation();
                     else
-                        AC.message('Chyba', 'Smazání se nezdařilo. Máte příslušná oprávnění?');
+                        AC.message('Chyba', 'Smazání se nezdařilo.\nMáte příslušná oprávnění??');
                 });
             }
         },
         'click:relay(a.edit.button)':function(e){
-            new Event(e).stop();
+            e.stop();
             if($('frmforumForm-post').get('value').length && !confirm('Editací příspěvku ztratíte rozepsaný text.\nChcete pokračovat?')) return;
+            $('frmforumForm-action').set('value', 'edit' + this.get('data-id'));
+            $('close-edit').setStyle('display', 'inline');
+            $$('label[for=frmforumForm-post]')[0].set('text', 'Editace zprávy');
+            $('post').set('value', 'Provést editaci');
             AC.ajax('LoadForumPost', {
                 postid:this.get('data-id')
             }, function(reply){
@@ -308,7 +341,7 @@
             });
         },
         'click:relay(a.citation)':function(e){
-            new Event(e).stop();
+            e.stop();
             var el = this.nextSibling;
             $(el).toggleClass('show');
             if(!el.hasClass('show') || el.get('data-xhr-loaded')) return;
@@ -323,19 +356,20 @@
             }.bind(el));
         }
     });
+    $('close-edit').addEvent('click', function(e){
+        e.stop();
+        $('frmforumForm-action').set('value', 'add');
+        $('close-edit').setStyle('display', 'none');
+        $$('label[for=frmforumForm-post]')[0].set('text', 'Nová zpráva');
+        $('frmforumForm-post').set('value', '');
+        $('post').set('value', 'Přidat příspěvek');
+    });
     $$('#frmforumForm-post').addEvents({
         'keydown': function(e){
             if(e.key == 'enter' && e.shift){
                 e.stop();
-                $('post').click(); //.fireEvent('submit');
+                $('post').click();
             }
-        },
-        'keypress':function(event){
-            //new Event(event).stop();
-            /*if(event.key == '@'){
-                console.log(event.key);
-            }*/
-            
         }
     });
     window.addEvent('load', function(){

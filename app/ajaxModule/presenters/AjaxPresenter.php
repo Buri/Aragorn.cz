@@ -10,8 +10,8 @@ namespace ajaxModule{
         public function startup(){
             parent::startup();
             header("Content-type: application/xml");
-            header("Content-type: text/plain");
-            #header("Content-type: text/html");
+            //header("Content-type: text/plain");
+            header("Content-type: text/html");
             $this->node->setUser($this->context->user);
             $this->setView('default');
             $this->template->data = "";
@@ -42,6 +42,55 @@ namespace ajaxModule{
                 $this->getTemplate()->data = $e->getMessage();
             }
         }
+
+        /*
+         *
+         * SECTION USER
+         *
+         */
+        public function actionUserLookup($search)
+        {
+            $db = $this->context->database;
+            $this->setView('json');
+            header('Content-type: application/json');
+            $out = array();
+            foreach($db->users("username like ? ", $search . '%') as $user){
+                $name = $user['username'];
+                $p = $db->users_profiles('id', $user['id'])->fetch();
+                $out[] = array($p['urlfragment'], $name);
+            }
+            $this->template->out = json_encode($out);
+        }
+
+        /* SECTION SETTINGS */
+        public function actionSettingsChatColorChange($color = null){ //Changechatcolor
+            $this->context->database->users_preferences('id', $this->user->getId())->update(array("chatcolor"=>$color));
+            $p = $this->context->preferences->get($this->getUser()->getId());
+            $this->getUser()->getIdentity()->preferences = $p['preferences'];
+            $this->template->data = "OK";
+        }
+        public function actionSettíngsIconChange(){
+            $this->template->data = \frontendModule\settingsPresenter::changeIcon($_POST);
+        }
+
+
+
+        /*
+         *
+         * SECTION FORUM
+         *
+         */
+        public function actionForumThreadDelete($id = null, $param = null){
+            /*$forum = new \Components\ForumComponent($this, 'tempForum');
+            $forum->setContext($this->context);
+            if($forum->userIsAllowed('forum', 'delete', $id)){
+                $forum->deleteForum($id);
+                $this->template->data = "Forum smazĂˇno.";
+            }else{
+                $this->template->data = "NemĂˇte oprĂˇvnÄ›nĂ­ ke smazĂˇnĂ­ fora.";
+            }*/
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->Permissions);
+        }
         
         public function actionNewforum($id = null, $param = null){
             $parentid = 0;
@@ -53,44 +102,24 @@ namespace ajaxModule{
                 echo DB::forum_topic()->insert(array(
                     "name"=>$id,
                     "owner"=>\Nette\Environment::getUser()->getId(),
-                    "description" => "Nové forum",
+                    "description" => "NovĂ© forum",
                     "parent" => $parentid,
                     "urlfragment" => \Utilities::string2url($id),
                     "created" => time()
                 ));
-                $this->template->data = "Forum bylo založeno.";
+                $this->template->data = "Forum bylo zaloĹľeno.";
             }
             catch(\Exception $e){
                 $this->template->data = $e->getMessage();
             }
         }
         
-        public function actionDeleteforum($id = null, $param = null){
-            $forum = new \Components\ForumComponent($this, 'tempForum');
-            $forum->setContext($this->context);
-            if($forum->userIsAllowed('forum', 'delete', $id)){
-                $forum->deleteForum($id);
-                $this->template->data = "Forum smazáno.";
-            }else{
-                $this->template->data = "Nemáte oprávnění ke smazání fora.";
-            }
-        }
         
-        public function actionForumdeletepost($id){
+        public function actionForumPostDelete($id){
             $this->template->data = "fail";
-            $forum = new \Components\ForumComponent($this, 'tempForum');
-            $forum->setContext($this->context);
-            if($forum->userIsAllowed('post', 'delete', $id)){
-                $forum = DB::forum_posts('id', $id);
-                $fid = $forum['id'];
-                $ftime = $forum['time'];
-                DB::forum_posts('id', $id)->delete();
-                DB::forum_posts_data('id', $id)->delete();
-                DB::forum_visit()->where('idforum = ? AND time() < ? AND iduser <> ?', array($fid, $ftime, \Nette\Environment::getUser()->getId()))
-                        ->update(array('unread'=>new \NotORM_Literal("unread - 1")));
-                DB::forum_visit('unread < ?', 0)->update(array('unread'=>0));
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            if($model->post->setID($id)->delete())
                 $this->template->data = "ok";
-            }
         }
         public function actionWait($id = 1000){
             usleep($id);
@@ -105,10 +134,6 @@ namespace ajaxModule{
                 $row->update(array("noticeboard"=>$param, "description" => $description));
                 $this->template->data = "ok";
             }
-        }
-        
-        public function actionChangeicon(){
-            $this->template->data = \frontendModule\settingsPresenter::changeIcon($_POST);
         }
         
         public function actionFrontendupdatewidgetlist($list){
@@ -146,13 +171,6 @@ namespace ajaxModule{
             </div>";
         }
 
-        public function actionChangechatcolor($color = null){
-            $this->context->database->users_preferences('id', $this->user->getId())->update(array("chatcolor"=>$color));
-            $p = $this->context->preferences->get($this->getUser()->getId());
-            $this->getUser()->getIdentity()->preferences = $p['preferences'];
-            $this->template->data = "OK";
-        }
-
         public function actionForumGetSinglePost($id){
             $this->setView('forum-post');
             $this->template->post = $this->context->database->forum_posts('id', $id)->fetch();
@@ -163,20 +181,6 @@ namespace ajaxModule{
             $this->setView('forum-post-raw');
             $p = $this->context->database->forum_posts_data('id', $postid)->fetch();
             $this->template->data = $p['post'];
-        }
-
-        public function actionUserLookup($search)
-        {
-            $db = $this->context->database;
-            $this->setView('json');
-            header('Content-type: application/json');
-            $out = array();
-            foreach($db->users("username like ? ", $search . '%') as $user){
-                $name = $user['username'];
-                $p = $db->users_profiles('id', $user['id'])->fetch();
-                $out[] = array($p['urlfragment'], $name);
-            }
-            $this->template->out = json_encode($out);
         }
 
     }

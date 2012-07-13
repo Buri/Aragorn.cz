@@ -4,7 +4,6 @@ use Nette\Environment;
 
 class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthorizator
 {
-    private static $instance;
     /**
      *
      * @var Permissions
@@ -27,8 +26,12 @@ class UserAuthorizator extends Nette\Object implements Nette\Security\IAuthoriza
         /* root is allowed to do anything */
         
         if($role == 0 || Environment::getUser()->getId() == 0 || (is_array($role) && in_array(0, $role))) return true; 
-        
+
         /* Return final priviledge */
         return $this->permissions->get($resource, $privilege);
+    }
+
+    public function allowed($resource = self::ALL, $privilege = self::ALL){
+        return $this->isAllowed($this->permissions->getRoles(), $resource, $privilege);
     }
 }

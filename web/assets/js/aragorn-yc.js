@@ -1,5 +1,5 @@
 /*
- * Created by Jakub BuriĂˇnek
+ * Created by Jakub BuriÄ‚Ë‡nek
  * &copy; Aragorn.cz 2011
  *
  */
@@ -83,7 +83,7 @@ var AragornClient = new Class({
         t.on('SYSTEM_UPDATE_USERS_ONLINE', function(num){
             $$('#numUsrOnline').each(function(e){
                 e.set('text', num[0]);
-                e.getParent().set('title', 'Celkem připojení: ' + parseInt(num[1]));
+                e.getParent().set('title', 'Celkem pĹ™ipojenĂ­: ' + parseInt(num[1]));
             });
         });
         t.on('connect_failed', this.fn.global);
@@ -105,7 +105,10 @@ var AragornClient = new Class({
     Ajax:{
         transports:[],
         reloadLocation:function(){
-            History.push(location.href);
+            if(History.initialized == true)
+                History.push(location.href);
+            else
+                location.reload();
         },
         send:function(action, data, callback, method){
             var t = null;
@@ -251,7 +254,7 @@ var AragornClient = new Class({
     },
     inactivityOverlay:function(){
         var dialog = new MooDialog.Request('/ajax/loginui/', {
-            title:'PĹ™ihlĂˇĹˇenĂ­ vyprĹˇelo',
+            title:'PÄąâ„˘ihlÄ‚Ë‡ÄąË‡enÄ‚Â­ vyprÄąË‡elo',
             scroll:true,
             useEscKey:false
         });
@@ -279,7 +282,7 @@ var AragornClient = new Class({
                 overlayFadeDuration: 50,
                 content: 'Akce: ' + tree[1].get('text') + '<br/>Cena: ' + tree[2].get('text') + '&yen;<br/>',
                 buttons:[
-                    { title: 'ZruĹˇit' },
+                    { title: 'ZruÄąË‡it' },
                     { 
                         title: 'Potvrdit platbu',
                         event: function() {
@@ -314,7 +317,7 @@ window.addEvents({'domready': function(){
                 }, 30000);
                 AC.profileLinkTips.hide(e).show(e);
             }.bind(this), 'get');
-            return "Načítám...";
+            return "NaÄŤĂ­tĂˇm...";
         }
     });*/
     if(window.AUTHENTICATED && false){
@@ -325,7 +328,7 @@ window.addEvents({'domready': function(){
             fx:false
         });
         iddlebar.setPercentage(100)
-        iddlebar.parent.set('title', 'OdpoÄŤet neaktivity');
+        iddlebar.parent.set('title', 'Odpočet neaktivity');
         iddlebar.addEvent('change', function(p){
             this.bar.set('text', Math.round(60 * p / 100) + ' minut');
         });
@@ -333,7 +336,8 @@ window.addEvents({'domready': function(){
             this.increasePercentage(-1);
         }.bind(iddlebar), 1000);
     }
-    if(!Browser.ie && false){ // @todo fix doubleclick bug
+    History.initialized = false;
+    if(!Browser.ie){
         History.addEvent('change', function(url){
             if(!this.req)
                 this.req = new Request.HTML({
@@ -349,7 +353,7 @@ window.addEvents({'domready': function(){
                         //spinner.stopSpin();
                     },
                     onFailure:function(){
-                        AC.message('Chyba', 'StrĂˇnku se nepodaĹ™ilo naÄŤĂ­st.');
+                        AC.message('Chyba', 'StrÄ‚Ë‡nku se nepodaÄąâ„˘ilo naĂ„Ĺ¤Ä‚Â­st.');
                         location.href = url;
                     }
                 });
@@ -357,27 +361,22 @@ window.addEvents({'domready': function(){
         });
         if(!Browser.ie || location.href.indexOf('mistnost') == -1 )
             History.handleInitialState();
+        History.initialized = true;
         if($$('#content').length){
-            $(document.body).addEvent('click:relay(a.ajax)', function(event) {
-                event.stop();
-                if($(this).get('xhrrunning')){
-                    $(this).erase('xhrrunning');
-                }else{
-                    $(this).set('xhrrunning',true);
-                    return;
-                }
+            $(window).addEvent('click:relay(a.ajax)', function(event) {
+                event.preventDefault();
                 $('content').addClass('contentLoading');
                 //spinner.startSpin();
                 History.push(this.get('href'));
             });
         }
-        var fn = function(e){
+/*        var fn = function(e){
             if(e.type == 'change' || (e.type == 'keyup' && e.key == 'enter') || e.target.id == 'btnStatus'){
                 AC.ajax('statusupdate', {id:$('msgStatus').get('value')});
                 $('msgStatus').blur();
             }
         };
-        $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});
+        $$('#msgStatus,#btnStatus').addEvents({'keyup':fn, 'click':fn});*/
     }
 }/*,
 'resize':function(e){

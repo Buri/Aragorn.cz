@@ -91,7 +91,7 @@
 <script n:syntax="double">
     function deleteForum(id){
         if(confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?')){
-            AC.ajax('deleteforum', {id:id}, newForumCb);
+            AC.ajax('forumThreadDelete', {id:id}, newForumCb);
         }
     }
     function newForumCb(res, dom){

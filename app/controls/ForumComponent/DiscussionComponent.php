@@ -51,6 +51,9 @@ namespace Components{
          */
         protected $db;
 
+        /** @var bool */
+        public $allowWhisper = false;
+
         public function link($target, $args = array()){
             return $this->getPresenter()->link($target, $args);
         }
@@ -137,6 +140,7 @@ namespace Components{
                 $this->template->administrate = $adm || $user->isAllowed('discussion', 'admin');
             }
             $this->template->id = $url;
+            $this->template->allowWhisper = $this->allowWhisper;
             $this->template->render();
         }
 
@@ -149,8 +153,10 @@ namespace Components{
             $form->addTextArea('post', 'Nová zpráva')->addRule(\Nette\Application\UI\Form::FILLED);
             $form->addSubmit('send', 'Přidat příspěvek');
             $form->addHidden('discussionid');
+            $form->addHidden('action');
             $form->setDefaults(array(
-                'discussionid' => $this->forumId
+                'discussionid' => $this->forumId,
+                'action' => "add"
             ));
             $form->addText('whisper', 'Šeptat');
             $form->onSuccess[] = callback($this, 'addPost');
@@ -163,27 +169,41 @@ namespace Components{
          */
         public function addPost($form){
             $v = $form->getValues();
-            $url = $v['discussionid'];
-            $postdata = array(
-                "author"=>\Nette\Environment::getUser()->getId(),
-                "forum"=> $url,
-                "time"=>time()
-                );
-            $post = $v["post"];
-            unset($v["post"]);
-            $pst = DB::forum_posts()->insert($postdata);
-            DB::forum_posts_data()->insert(array('post'=>$post));
-            DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
-            //$this->parent->setLastAccess();
-            $cache = new \Nette\Caching\Cache($this->storage, 'Nette.Templating.Cache');
-            $u = DB::forum_topic('id', $url)->fetch();
-            $urlf = $u['urlfragment'];
-            $cache->clean(array(
-                \Nette\Caching\Cache::TAGS => array('discussion/'.$urlf),
-            ));
-            /* Propagate new post all the way up */
-            $this->getParent()->propagateNewPost($url, $pst['id']);
-            $this->redirect('this');
+            $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
+            
+            if($v['action'] == "add"){
+                $url = $v['discussionid'];
+                $postdata = array(
+                    "author"=>\Nette\Environment::getUser()->getId(),
+                    "forum"=> $url,
+                    "time"=>time()
+                    );
+                $post = $v["post"];
+                unset($v["post"]);
+                $pst = DB::forum_posts()->insert($postdata);
+                DB::forum_posts_data()->insert(array('post'=>$post));
+                DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
+                //$this->parent->setLastAccess();
+                $cache = new \Nette\Caching\Cache($this->storage, 'Nette.Templating.Cache');
+                $u = DB::forum_topic('id', $url)->fetch();
+                $urlf = $u['urlfragment'];
+                $cache->clean(array(
+                    \Nette\Caching\Cache::TAGS => array('discussion/'.$urlf),
+                ));
+                /* Propagate new post all the way up */
+                $this->getParent()->propagateNewPost($url, $pst['id']);
+                $this->redirect('this');
+            }else if(substr($v['action'], 0, 4) == "edit"){
+                $id = substr($v['action'], 4);
+                $v['id'] = $id;
+                if($model->post->setID($id)->edit($v)){
+                    $this->flashMessage('Editace OK');
+                    $this->redirect('this');
+                }
+                $this->flashMessage('Editace příspěvku selhala.');
+            }else{
+                $this->flashMessage('Chyba během zpracovávání příspěvku.');
+            }
         }
 
         /**
@@ -273,11 +293,15 @@ namespace Components{
                 'u'=>        array('type'=>BBCODE_TYPE_NOARG, 'open_tag'=>'<u>',
                                 'close_tag'=>'</u>'),
                 'url'=>      array('type'=>BBCODE_TYPE_OPTARG,
-                                'open_tag'=>'<a href="{PARAM}" title="Externí odkaz :: {PARAM}">', 'close_tag'=>'</a>',
+                                'open_tag'=>'<a href="{PARAM}" title="ExternĂ­ odkaz :: {PARAM}">', 'close_tag'=>'</a>',
                                 'default_arg'=>'{CONTENT}',
                                 'childs'=>'b,i,img'),
                 'img'=>      array('type'=>BBCODE_TYPE_NOARG,
-                                'open_tag'=>'<img src="', 'close_tag'=>'" class="ll" />',
+                                'open_tag'=>'<img data-src="', 'close_tag'=>'" class="ll" />',
+                                'childs'=>''),
+                'mp3'=>      array('type'=>BBCODE_TYPE_OPTARG,
+                                'open_tag'=>'<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0" width="165" height="38" id="niftyPlayer1" align=""><param name=movie value="/niftyplayer.swf?file={PARAM}&as=0"><param name=quality value=high><param name=bgcolor value=#FFFFFF><embed src="/niftyplayer.swf?file={PARAM}&as=0" quality=high bgcolor=#FFFFFF width="165" height="38" name="niftyPlayer1" align="" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed></object>',
+                                'close_tag'=>'',
                                 'childs'=>''),
                 'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,
                                 'open_tag'=>'<a class="citation" href="#{PARAM}">{CONTENT}</a>' .
@@ -285,9 +309,23 @@ namespace Components{
                                 'childs'=>''),
                 'spoiler'=>       array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<div class="spoiler">', 'close_tag'=>'</div>'),
-            ));
-            $bbout = bbcode_parse($bb, $text);
+                'youtube'=>       array('type'=>BBCODE_TYPE_NOARG,
+                                'open_tag'=>'<iframe width="560" height="315" src="', 'close_tag'=>'" frameborder="0" allowfullscreen></iframe>' . "\n"),
 
+            ));
+            
+            $bbout = bbcode_parse($bb, $text);
+            $matches = array();
+            $repl = "http://www.youtube.com/embed/";
+            $pattern = '/src="(?:(?:.*)youtube.com\/watch\?(?:.*)v=((?:[a-zA-Z0-9])+)[^"]+)/i';
+            preg_match_all($pattern, $bbout, $matches);
+            if(count($matches[0]) > 0){
+                foreach($matches[1] as $k => $m){
+                    $pat = '~' . preg_quote($matches[0][$k]) . '~i';
+                    $rep = 'src="'. $repl . $m;
+                    $bbout = preg_replace($pat, $rep, $bbout);
+                }
+            }
             return $bbout;
         }
     }

@@ -50,6 +50,22 @@ class Permissions extends Nette\Object{
     }
 
     /**
+     *
+     * @return array User Roles
+     */
+    public function getRoles(){
+        return $this->context->user->getRoles();
+    }
+
+    /**
+     *
+     * @return int User ID
+     */
+    public function getUID(){
+        return $this->context->user->getId();
+    }
+
+    /**
      * Write current storage into cache
      */
      private function updateCache(){
@@ -132,7 +148,7 @@ class Permissions extends Nette\Object{
         /* Permission has not been defined */
         if(empty($this->storage[$resource]))
             return false;
-        
+
         /* Access with exact permission */
         if(is_array($this->storage[$resource])){                                        
             return (!isset($this->storage[$resource][$priviledge]) ? (isset($this->storage[$resource]['_ALL']) ? $this->storage[$resource]['_ALL'] : false) : $this->storage[$resource][$priviledge]) ? true : false; /* If permission for operation is not set, it will try to use global permision for resource */
@@ -170,8 +186,6 @@ class Permissions extends Nette\Object{
     public function setOwner($resource){
         $this->storage[$resource] = array("_ALL" => true);
         $this->storage[$resource]['owner'] = true;
-    }
-    public function dump(){
-        dump($this->storage);
+        return $this;
     }
 }
