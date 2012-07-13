@@ -1,2 +1,11 @@
-
+{var $title = "Hledání"}
 {block content}
+{if count($results)}
+{foreach $results as $res}
+    {$res['id']}
+{/foreach}
+{else}
+    {if $q}
+    <i>Nic nenalezeno.</i>
+    {/if}
+{/if}

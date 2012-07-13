@@ -165,5 +165,19 @@ namespace ajaxModule{
             $this->template->data = $p['post'];
         }
 
+        public function actionUserLookup($search)
+        {
+            $db = $this->context->database;
+            $this->setView('json');
+            header('Content-type: application/json');
+            $out = array();
+            foreach($db->users("username like ? ", $search . '%') as $user){
+                $name = $user['username'];
+                $p = $db->users_profiles('id', $user['id'])->fetch();
+                $out[] = array($p['urlfragment'], $name);
+            }
+            $this->template->out = json_encode($out);
+        }
+
     }
 }

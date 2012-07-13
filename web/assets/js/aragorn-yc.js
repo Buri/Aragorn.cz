@@ -333,7 +333,7 @@ window.addEvents({'domready': function(){
             this.increasePercentage(-1);
         }.bind(iddlebar), 1000);
     }
-    if(!Browser.ie){
+    if(!Browser.ie && false){ // @todo fix doubleclick bug
         History.addEvent('change', function(url){
             if(!this.req)
                 this.req = new Request.HTML({

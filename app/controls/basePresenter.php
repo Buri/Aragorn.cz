@@ -273,4 +273,14 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $this->redirect(301, "dashboard:default");
     }
 
+    public function createComponentSearchForm($name){
+        $form = new \Nette\Application\UI\Form($this, $name);
+        $form->addText('q', 'Hledat')
+                ->addRule(Nette\Application\UI\Form::FILLED);
+        $form->addSubmit('search', 'Hledat');
+        $form->setAction($this->link('search:'));
+        $form->setMethod('get');
+        return $form;
+    }
+
 }

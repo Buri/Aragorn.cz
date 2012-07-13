@@ -65,11 +65,16 @@
             .paper div.block.how-to-start{
                 display:none;
             }
-            .paper div.block:nth-of-type(2),.paper div.block:nth-of-type(3),.paper div.block:nth-of-type(4){
+            .paper div.block:nth-of-type(2),.paper div.block:nth-of-type(3),.paper div.block:nth-of-type(4),.paper div.block:nth-of-type(5){
                 display: inline-block;
                 width: 470px;
                 vertical-align: middle;
                 text-align: center;
+            }
+            .paper div.block:nth-of-type(5){
+                right:365px;
+                top:12px;
+                position:absolute;
             }
             .paper ul.flashes li{
                 background: url("/assets/images/paper/bg/flash.gif") repeat-y left top;
@@ -160,6 +165,12 @@
                     <a href="" class="change-skin" data-skin="blue">Blue</a>
                     <a href="" class="change-skin" data-skin="light">Light</a>
                 </div>
+                <div class="block">
+                    {form searchForm}
+                    {input q}
+                    {input search}
+                    {/form}
+                </div>
    
             </menu>
             <div class="content" id="content">
@@ -190,6 +201,7 @@
             $endTime = $mtime[1] + $mtime[0];
             $pageGen = $endTime - $startTime
             }{substr($pageGen, 0, 5)}s
+            <a n:href="dashboard:stats" class="ajax">Další statisktika</a>
         </footer>
     </body>
     {include 'scripts.latte'}

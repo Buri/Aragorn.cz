@@ -34,6 +34,7 @@
         border-radius: 5px;
         background: #666;
         display: block;
+        color:#cc9;
     }
     .paper .post-text cite{
         display: none;
@@ -153,6 +154,55 @@
 .paper .post cite .post{
     white-space: normal;
 }
+
+
+/* CSS file for CwComplete (a small mootools-autocompleter) */
+
+/* Outer div (positioned absolute below the input field */
+.paper .cwCompleteOuter {
+	position: absolute;
+}
+
+/* UL inside the outer div */
+.paper ul.cwCompleteChoices {
+	list-style: none;
+	list-style-position: inside;
+	margin: 0;
+	padding: 1px; /* ie6 trash workaround */
+	z-index: 999;
+
+	width: 250px;
+	background: #2d2e2f;
+	opacity: 0.85;
+	-webkit-box-shadow: 2px 2px 7px #333; -moz-box-shadow: 2px 2px 7px #333;
+                border-radius: 0 0 4px 4px;
+}
+
+/* LIs (choices) inside the UL */
+.paper ul.cwCompleteChoices li {
+	display: block;
+	cursor: pointer;
+	padding: 5px;
+	margin: 5px;
+	text-align: left;
+	color: #f1f2f3;
+	font-size: 11px;
+}
+
+/* Style for hovered (selected) LIs */
+.paper ul.cwCompleteChoices li:hover,.cwCompleteChoicesHover {
+	text-decoration: underline;
+        background-color: #ff6600;
+}
+
+/* Style for outer div while loading values */
+.paper .cwCompleteLoading {
+	background: transparent no-repeat;
+	width: 112px;
+	height: 12px;
+	padding-bottom: 12px; /* ie6 trash workaround */
+}
+
 
 </style>
 {if $write}
@@ -282,11 +332,43 @@
         },
         'keypress':function(event){
             //new Event(event).stop();
-            if(event.key == '@'){
+            /*if(event.key == '@'){
                 console.log(event.key);
-            }
+            }*/
             
         }
+    });
+    window.addEvent('load', function(){
+        var cc = new CwAutocompleter( 'frmforumForm-post' /* ID of the input field */ ,
+            '/ajax/userLookup/', /* URL of backend ajax script */
+            {
+                setValuesOnChoose: false,
+                filter:function(text, event){
+                    var cpy = text;
+                    cpy = cpy.substring(0, $(event.target).getCaretPosition());
+                    var posAt = cpy.lastIndexOf('@'), out = '';
+                    if(posAt == -1)
+                        return null;
+                    out = text.substring(posAt + 1);
+                    if(out.indexOf(' ') == -1){
+                        return out;
+                    }else{
+                        var tmp = text.substring(0, $(event.target).getCaretPosition());
+                        if(tmp.lastIndexOf('@') > tmp.lastIndexOf(' '))
+                            return out.substring(0, out.indexOf(' '));
+                        else
+                            return null;
+                    }
+                        
+                },
+                inputMinLength:1,
+                onChoose: function(selection) {
+                    var t = $(this.textfield), tmp = t.value.substring(0, t.getCaretPosition())
+                    pos = tmp.lastIndexOf('@'), save = t.value;
+                    if(pos == -1) return;
+                    t.value = save.substring(0, pos) + '@' + selection.key + save.substring(t.getCaretPosition());
+                }
+        });
     });
     </script>
 {*/cache*}

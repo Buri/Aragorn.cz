@@ -192,7 +192,7 @@ namespace Components{
          */
         public function removePost($postid){
             /** @todo Check if user can delete post */
-            if(true){
+            if($this->parent->userIsAllowed('post', 'delete', $id)){
                 $p = DB::forum_posts('id', $postid)->fetch();
                 $f = DB::forum_topic('id', $p['forum'])->fetch();
                 $url = $f['urlfragment'];
@@ -219,7 +219,23 @@ namespace Components{
             }
             // Find Tags
             $ts = $this->presenter->link('search:');
-            $out = preg_replace('/\#(([a-zA-Z0-9]|-|_){3,})/i', '<a href="'.$ts.'?type=tag&q=$1">$0</a>', $text);
+            $tagPattern = '/\#(([a-zA-Z0-9]|-|_){3,})/i';
+            $matches = array();
+            preg_match_all($tagPattern, $text, $matches);
+            $out = $text;
+            if(count($matches[0]) > 0){
+                foreach($matches[1] as $tag){
+                    /*$ur = $db->users_profiles('urlfragment like ?', $user)->fetch();
+                    if(!$ur)
+                        continue;
+                    $uid = $ur['id'];*/
+                    //$out = preg_replace('/@'.$user.'/', $this->presenter->userLink($uid), $out);
+                    $out = preg_replace('/#'.$tag.'/', '<a href="'.$this->presenter->link('search:', '#' .$tag).'">$0</a>', $out);
+                }
+            }
+
+
+            //
 
             $out = self::parseBB($out);
 
@@ -234,7 +250,7 @@ namespace Components{
                     if(!$ur)
                         continue;
                     $uid = $ur['id'];
-                    $out = preg_replace('/@'.$user.'/', $this->presenter->userLink($uid), $out);
+                    $out = preg_replace('/@'.$user.'/', substr($this->presenter->userLink($uid), 0, -1), $out);
                 }
             }
 
