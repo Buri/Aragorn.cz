@@ -30,14 +30,9 @@
             window.addEvent('domready', function(){
                 /* Skin swap animation */
                 document.body.addEvent('click:relay(a.change-skin)', function(e){
-                    new Event(e).stop();
-                    if(this.get('data-relay')){
-                        this.set('data-relay', null);
-                        return;
-                    }
-                    this.set('data-relay', true);
+                    e.stop();
                     var b = document.body;
-                    b.addClass('transition');
+                    //b.addClass('transition');
                     b.removeClass(Cookie.read('skin'));
                     Cookie.write('skin', this.get('data-skin'));
                     b.addClass(this.get('data-skin'));
@@ -72,9 +67,26 @@
                 text-align: center;
             }
             .paper div.block:nth-of-type(5){
-                right:365px;
+                left:1020px;
                 top:12px;
                 position:absolute;
+            }
+            .paper div.block:nth-of-type(5) form#frm-searchForm{
+                background:url("/assets/images/paper/bg/search.png") no-repeat scroll -27px -40px transparent;
+                text-align: left;
+                height: 23px;
+            }
+            .paper div.block:nth-of-type(5) input[type=text]{
+                border:none;
+                width:149px;
+            }
+            .paper div.block:nth-of-type(5) input[type=submit]{
+                border: none;
+                color: transparent;
+                background: transparent;
+                margin-left: 3px;
+                width: 17px;
+                cursor: pointer;
             }
             .paper ul.flashes li{
                 background: url("/assets/images/paper/bg/flash.gif") repeat-y left top;
@@ -207,7 +219,7 @@
     {include 'scripts.latte'}
     <script>
         setTimeout(function(){
-            //$('nette-debug').dispose();
+            $('nette-debug').dispose();
         }, 500);
     </script>
 </html>

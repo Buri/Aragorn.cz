@@ -47,6 +47,7 @@ if($container->parameters['debug']['force'] === true){
     $configurator->setDebugMode(Nette\Config\Configurator::PRODUCTION);
     $application->catchExceptions = TRUE;
 }
+$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1", "83.208.197.163"));
 
 
 /* Setup cookies for later use */

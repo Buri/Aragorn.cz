@@ -69,7 +69,8 @@ namespace ajaxModule{
             $this->getUser()->getIdentity()->preferences = $p['preferences'];
             $this->template->data = "OK";
         }
-        public function actionSettíngsIconChange(){
+
+        public function actionSettingsIconChange(){
             $this->template->data = \frontendModule\settingsPresenter::changeIcon($_POST);
         }
 
