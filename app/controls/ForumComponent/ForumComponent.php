@@ -62,6 +62,7 @@ namespace Components{
             $this->template->noticeboard = "";
             $this->template->parent = $this;
             $nav = array();
+            $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
             if(isset($url) && $url != ""){
                 $p = DB::forum_topic('urlfragment', $url)->fetch();
                 if($p){
@@ -69,7 +70,6 @@ namespace Components{
                     $this->forumId = $fid;
                     $this->template->noticeboard = $p['noticeboard'];
                     $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
-                    $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
                     $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
                     $parent = $fid;
                     while($parent > 0){
@@ -81,17 +81,26 @@ namespace Components{
                     $this->template->info = $info;
                     $this->template->fid = $fid;
 
-                    $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
-                    $this->template->model = $model;
                     $this->template->moderators = $model->forum->setID($fid)->getModerators();
+
+                    $locked = $model->forum->isLocked();
+                    $this->template->locked = $model->forum->isLocked();
+                    if($locked)
+                        $this->presenter->flashMessage ('Forum je uzamčené');
+
+                    $model->forum->increaseViews();
                 }else{
                     $parent = 0;
                     $data = array();
+                    $model->forum->setID(-1);
+                    $this->getTemplate()->locked = false;
                 }
             }else{
                 $data = DB::forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
                 $this->template->newforum = $this->context->user->isAllowed('forum','create');
                 $parent = 0;
+                $model->forum->setID(-1);
+                $this->getTemplate()->locked = false;
             }
             if($this->handleUrl == null && $parent != -1){
                 $nav[] = array("name"=>"Diskuze", "url"=>"");
@@ -99,6 +108,7 @@ namespace Components{
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
             $this->setLastAccess();
+            $this->getTemplate()->model = $model;
         }
 
         /**

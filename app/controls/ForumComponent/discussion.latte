@@ -236,7 +236,8 @@
 <ul n:foreach="$flashes as $flash" class="flashes">
     <li class="{$flash->type}">{$flash->message}</li>
 </ul>
-{if $write}
+{if !$locked}
+{if $model->forum->isAllowed('write')}
 <div class="newPost">
     {form forumForm}
     <a href="#" onclick="/*$$('.newPost').toggleClass('slideinform');*/ return false;">{label post /}</a>
@@ -262,6 +263,7 @@
 </div>
 {else}
 <div class="no-new-post">Nemáte právo přispívat do této diskuze.</div>
+{/if}
 {/if}
 {*
   * @todo: vyřešit kešování pro různé uivatele
@@ -360,7 +362,7 @@
             }.bind(el));
         }
     });
-    $('close-edit').addEvent('click', function(e){
+    $$('#close-edit').addEvent('click', function(e){
         e.stop();
         $('frmforumForm-action').set('value', 'add');
         $('close-edit').setStyle('display', 'none');

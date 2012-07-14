@@ -103,7 +103,40 @@ namespace Components\Models{
 
         }
 
+        /**
+         *  Operations:
+         *   - read
+         *   - write
+         *   - create-topic
+         *   - admin
+         *
+         * @param string $operation
+         * @return bool
+         * @throws \Exception
+         */
         public function isAllowed($operation){
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+
+            $db = $this->database;
+            $model = new ForumControl($db, $this->authorizator);
+            $uid =  $this->authorizator->getPermissionsInstance()->getUID();
+
+            /* Load post metadata */
+            $topic = $db->forum_topic('id', $this->id)->fetch();
+            /* Fail if post doesnt exists*/
+            if($topic === null) throw new \Exception('Forum ID invalid');
+
+            /* Determine if user owns this post */
+            if($topic['owner'] == $uid){
+                $this->authorizator->getPermissionsInstance ()->setOwner ($this->permID);
+            }else{
+                /* Is user moderator? */
+                $mods = $model->forum->setID($this->id)->getModerators();
+                if(array_search("$uid", $mods) !== false)
+                        $this->authorizator->getPermissionsInstance ()->setResource ($this->permID, array('_ALL'=>true), true);
+            }
+            
+
             return $this->authorizator->allowed($this->permID, $operation);
         }
 
@@ -173,6 +206,45 @@ namespace Components\Models{
             return "ok";
 
         }
+
+        public function getViews() {
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+            $row = $this->database->forum_topic('id', $this->id); //->update(array('views' => new \NotORM_Literal('+ 1')));
+            return $row['views'];
+        }
+
+        /**
+         *
+         * @return \Components\Models\ForumModel
+         * @throws \Exception
+         */
+        public function increaseViews() {
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+            $this->database->forum_topic('id', $this->id)->update(array('views' => new \NotORM_Literal('views + 1')));
+            return $this;
+        }
+
+        /**
+         *
+         * @return boolean
+         * @throws \Exception
+         */
+        public function isLocked() {
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+            $locked = false;
+
+            $parent = $this->id;
+            do{
+                $f = $this->database->forum_topic('id', $parent)->fetch();
+                if($f['options'] & \Components\ForumComponent::LOCKED){
+                    $locked = true;
+                    break;
+                }
+                $parent = $f['parent'];
+            }while($parent > 0);
+            return $locked;
+        }
+
 
         public function propagateNewPost($postId){
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
@@ -258,6 +330,15 @@ namespace Components\Models{
             return $this;
         }
 
+        /**
+         * Operations
+         *  - edit
+         *  - delete
+         *
+         * @param string $operation
+         * @return bool
+         * @throws \Exception
+         */
         public function isAllowed($operation){
             if($this->id === null) throw new \Exception('ID of post is not defined.');
 
@@ -268,7 +349,7 @@ namespace Components\Models{
             /* Load post metadata */
             $post = $db->forum_posts('id', $this->id)->fetch();
             /* Fail if post doesnt exists*/
-            if($post === null) throw new Exception('Post ID invalid');
+            if($post === null) throw new \Exception('Post ID invalid');
 
             /* Determine if user owns this post */
             if($post['author'] == $uid){

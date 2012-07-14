@@ -83,7 +83,7 @@ var AragornClient = new Class({
         t.on('SYSTEM_UPDATE_USERS_ONLINE', function(num){
             $$('#numUsrOnline').each(function(e){
                 e.set('text', num[0]);
-                e.getParent().set('title', 'Celkem pĹ™ipojenĂ­: ' + parseInt(num[1]));
+                e.getParent().set('title', 'Celkem připojení: ' + parseInt(num[1]));
             });
         });
         t.on('connect_failed', this.fn.global);

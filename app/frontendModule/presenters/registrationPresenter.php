@@ -55,17 +55,17 @@ namespace frontendModule{
                         return true;
                     }, 'Emailová adresa je již obsazená.');
 
-            $form->addCheckbox('eula', 'Souhlasím s podmínkami.')
-                    ->addRule(Form::FILLED, 'Musíte souhlasit.');
+            /*$form->addCheckbox('eula', 'Souhlasím s podmínkami.')
+                    ->addRule(Form::FILLED, 'Musíte souhlasit.');*/
 
             $form->addText('spambot', 'Toto musíte vyplnit.')
                     ->addRule(Form::LENGTH, 'Špatně.', 0)
                     ->getControlPrototype()->class("hidden");
             $form['spambot']->getLabelPrototype()->class("hidden");
 
-            $form->addGroup('Povinné údaje')->add($form['username'],$form['password'],$form['mail'],$form['eula'],$form['spambot']);
+            $form->addGroup('Povinné údaje')->add($form['username'],$form['password'],$form['mail'],/*$form['eula'],*/$form['spambot']);
 
-            $form->addSubmit('save', 'Registrovat');
+            $form->addSubmit('save', 'Souhlasím s podmínkami, registrovat');
             $form->onSuccess[] = callback($this, 'processRegisterForm');
 
             $form->setAction($this->link("register"));

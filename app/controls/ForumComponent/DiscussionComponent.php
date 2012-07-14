@@ -51,6 +51,8 @@ namespace Components{
          */
         protected $db;
 
+        protected $locked = false;
+
         /** @var bool */
         public $allowWhisper = false;
 
@@ -100,46 +102,54 @@ namespace Components{
         public function render($url = null){
             #$this->redirect('this');
             $this->template->staticPath = $this->presenter->template->staticPath;
-            $user = $this->user;
             $this->template->setFile(__DIR__ . '/discussion.latte');
+            $db = $this->db;
 
-            $info = DB::forum_topic('urlfragment', $url)->fetch();
-            $opt = $info['options'];
+            $model = new \Components\Models\ForumControl($this->db, $this->presenter->context->authorizator);
 
-            //$visit = DB::forum_visit(array('idforum' => $info['id'], 'iduser' => $user->getId()))->select('time')->fetch();
+            $info = $db->forum_topic('urlfragment', $url)->fetch();
+
+            //$visit = $db->forum_visit(array('idforum' => $info['id'], 'iduser' => $user->getId()))->select('time')->fetch();
             $this->template->lastvisit = $this->lastVisit;
             
             $vp = new \VisualPaginator($this, 'vp');
             $paginator = $vp->getPaginator();
             $paginator->setItemsPerPage(20);
-            $paginator->setItemCount(DB::forum_posts('forum', $info['id'])->count());
+            $paginator->setItemCount($db->forum_posts('forum', $info['id'])->count());
             $this->template->vp = $vp;
-            //dump($this->getParent()->context->request);
+            
             if(isset($this->getParent()->getParent()->getRequest()->parameters["forum-discussion-vp-page"]))
                 $paginator->setPage($this->getParent()->getParent()->getRequest()->parameters["forum-discussion-vp-page"]);
 
             $this->forumId = $info['id'];
+            $model->forum->setID($this->forumId);
+
+            if(!$model->forum->isAllowed('read'))
+                $this->template->setFile(__DIR__ . '/discussion-denied.latte');
 
             $this->template->info = $info;
-            $this->template->read = false;
-            $this->template->write = false;
-            $this->template->administrate = false;
-
-            if($opt & ForumComponent::HAS_CUSTOM_PERMISSIONS){
+            $locked = $this->template->locked = $model->forum->isLocked();
+            
+            /*if($opt & ForumComponent::HAS_CUSTOM_PERMISSIONS){
                 // TODO: custom permissions in discussions
             }else{
-                $admins = DB::forum_moderator('forumid', $info['id']);
+                $admins = $db->forum_moderator('forumid', $info['id']);
                 $adms = array();
                 foreach($admins as $admin){
-                    $aname = DB::users('id', $admin['userid'])->fetch();
+                    $aname = $db->users('id', $admin['userid'])->fetch();
                     $adms[] = $aname['username'];
                 }
                 $adm = ($user->getId() == $info['owner']) || ($user->getIdentity() ? in_array($user->getIdentity()->name, $adms) : false);
                 $this->template->read = $adm ||$user->isAllowed('discussion', 'read');
                 $this->template->write = $adm || ($user->isAllowed('discussion', 'write') && !($info['options'] & ForumComponent::LOCKED));
                 $this->template->administrate = $adm || $user->isAllowed('discussion', 'admin');
-            }
+            }*/
+
+            if($locked)
+                $this->flashMessage ('Diskuze je uzamčená.');
+            
             $this->template->id = $url;
+            $this->template->model = $model;
             $this->template->allowWhisper = $this->allowWhisper;
             $this->template->render();
         }
@@ -170,6 +180,8 @@ namespace Components{
         public function addPost($form){
             $v = $form->getValues();
             $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
+
+            $db = $this->db;
             
             if($v['action'] == "add"){
                 $url = $v['discussionid'];
@@ -180,12 +192,12 @@ namespace Components{
                     );
                 $post = $v["post"];
                 unset($v["post"]);
-                $pst = DB::forum_posts()->insert($postdata);
-                DB::forum_posts_data()->insert(array('post'=>$post));
-                DB::forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
+                $pst = $db->forum_posts()->insert($postdata);
+                $db->forum_posts_data()->insert(array('post'=>$post));
+                $db->forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
                 //$this->parent->setLastAccess();
                 $cache = new \Nette\Caching\Cache($this->storage, 'Nette.Templating.Cache');
-                $u = DB::forum_topic('id', $url)->fetch();
+                $u = $db->forum_topic('id', $url)->fetch();
                 $urlf = $u['urlfragment'];
                 $cache->clean(array(
                     \Nette\Caching\Cache::TAGS => array('discussion/'.$urlf),
@@ -313,6 +325,16 @@ namespace Components{
                 }
             }
             return $bbout;
+        }
+
+        /**
+         *
+         * @param bool $lock
+         * @return \Components\DiscussionComponent
+         */
+        public function setLock($lock){
+            $this->locked = $lock;
+            return $this;
         }
     }
 }
