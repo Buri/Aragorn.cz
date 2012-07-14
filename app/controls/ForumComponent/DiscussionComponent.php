@@ -192,6 +192,8 @@ namespace Components{
                 ));
                 /* Propagate new post all the way up */
                 $this->getParent()->propagateNewPost($url, $pst['id']);
+                if($this->parent->getHU())
+                    $this->redirect('render!', $this->parent->getHU());
                 $this->redirect('this');
             }else if(substr($v['action'], 0, 4) == "edit"){
                 $id = substr($v['action'], 4);
@@ -203,24 +205,6 @@ namespace Components{
                 $this->flashMessage('Editace příspěvku selhala.');
             }else{
                 $this->flashMessage('Chyba během zpracovávání příspěvku.');
-            }
-        }
-
-        /**
-         *
-         * @param integer $postid
-         */
-        public function removePost($postid){
-            /** @todo Check if user can delete post */
-            if($this->parent->userIsAllowed('post', 'delete', $id)){
-                $p = DB::forum_posts('id', $postid)->fetch();
-                $f = DB::forum_topic('id', $p['forum'])->fetch();
-                $url = $f['urlfragment'];
-                $p->delete();
-                DB::forum_posts_data('id', $postid)->delete();
-                $cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\MemcachedStorage);
-                $cache->remove(array(\Nette\Caching\Cache::TAGS => array('discussion/'.$url)));
-                $this->getParent()->propagatePostDeletion($f['id']);
             }
         }
 
@@ -254,9 +238,7 @@ namespace Components{
                 }
             }
 
-
-            //
-
+            // Parse BB code
             $out = self::parseBB($out);
 
             // Find users
@@ -311,7 +293,11 @@ namespace Components{
                                 'open_tag'=>'<div class="spoiler">', 'close_tag'=>'</div>'),
                 'youtube'=>       array('type'=>BBCODE_TYPE_NOARG,
                                 'open_tag'=>'<iframe width="560" height="315" src="', 'close_tag'=>'" frameborder="0" allowfullscreen></iframe>' . "\n"),
-
+                'list'=>      array('type'=>BBCODE_TYPE_NOARG,
+                                'open_tag'=>'<ul class="normal-ul">', 'close_tag'=>'</ul>',
+                                'childs'=>'li'),
+                'li'=>      array('type'=>BBCODE_TYPE_NOARG,
+                                'open_tag'=>'<li>', 'close_tag'=>'</li>'),
             ));
             
             $bbout = bbcode_parse($bb, $text);

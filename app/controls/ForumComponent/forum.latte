@@ -1,6 +1,11 @@
 <div class="forum-navigation forum-divider"> Navigace:
 {for $i = count($n) - 1; $i >= 0; $i--}
-<a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>{if $i} &gt;&gt; {/if}
+{if $usePresenterLink}
+    <a href="{link this $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>
+    {else}
+    <a href="{link 'render', $n[$i]['url']}" class="ajax">{$n[$i]['name']}</a>
+    {/if}
+    {if $i} &gt;&gt; {/if}
 {/for}
 </div>
 {if $newforum}<a href="#" onclick="AC.prompt('Název nového fóra?', newForum); return false;">Založit nové forum</a>{/if}
@@ -69,7 +74,11 @@
     <li class="forum-holder{if $topic['sticky'] > 0} forum-sticky{/if}">{var $lastpost=$control->getLastPost($topic['id'])}
     <dl>
         <dt>
+            {if $usePresenterLink}
             <a href="{link $forum, $topic['urlfragment']}" class="ajax">{$topic['name']}</a>
+            {else}
+            <a href="{link 'render', $topic['urlfragment']}" class="ajax">{$topic['name']}</a>
+            {/if}
             {if $control->userIsAllowed('forum','delete', $topic['id'])}[<a href="" onclick="deleteForum({$topic['id']});return false;">x</a>]{/if}
             <br/>
             <em>{$topic['description']}</em> <br/>
@@ -77,7 +86,11 @@
             {var $subtopics = \frontendModule\forumPresenter::getSubtopics($topic['id'])}
             <div n:if="$subtopics->count()">Podtémata:
                 {foreach $subtopics as $subtopic}
-                    <a href="{link $forum, $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>{sep}, {/sep}
+                    {if $usePresenterLink}
+                <a href="{link $forum, $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>
+                    {else}
+                <a href="{link 'this:render!', $subtopic['urlfragment']}" class="ajax">{$subtopic['name']}</a>
+                    {/if}{sep}, {/sep}
                 {/foreach}
             </div>
         </dt>
@@ -89,17 +102,17 @@
     {/foreach}
 </ul>
 <script n:syntax="double">
-    function deleteForum(id){
-        if(confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?')){
-            AC.ajax('forumThreadDelete', {id:id}, newForumCb);
-        }
-    }
     function newForumCb(res, dom){
         AC.message('Nové forum', dom[0].get('html'));
         AC.Ajax.reloadLocation();
     }
+    function deleteForum(id){
+        AC.confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?', function(){
+            AC.ajax('forumThreadDelete', {id: id}, newForumCb);
+        });
+    }
     function newForum(name){
-        var ajax = new AC.ajax('newforum', {id:name,'param':{{$url}}}, newForumCb);
+        AC.ajax('forumThreadAdd', {id:name,'param':{{$url}}, prefix:{{$prefix}}}, newForumCb);
     }    
 </script>
 {if $discussion}

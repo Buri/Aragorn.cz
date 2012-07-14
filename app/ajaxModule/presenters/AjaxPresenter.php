@@ -81,7 +81,7 @@ namespace ajaxModule{
          * SECTION FORUM
          *
          */
-        public function actionForumThreadDelete($id = null, $param = null){
+        public function actionForumThreadDelete($id){
             /*$forum = new \Components\ForumComponent($this, 'tempForum');
             $forum->setContext($this->context);
             if($forum->userIsAllowed('forum', 'delete', $id)){
@@ -90,29 +90,13 @@ namespace ajaxModule{
             }else{
                 $this->template->data = "NemĂˇte oprĂˇvnÄ›nĂ­ ke smazĂˇnĂ­ fora.";
             }*/
-            $model = new \Components\Models\ForumControl($this->context->database, $this->context->Permissions);
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            $this->template->data = $model->forum->setID($id)->delete();
         }
         
-        public function actionNewforum($id = null, $param = null){
-            $parentid = 0;
-            if($param != ""){
-                $parent = DB::forum_topic('urlfragment', $param)->fetch();
-                $parentid = $parent['id'];
-            }
-            try{
-                echo DB::forum_topic()->insert(array(
-                    "name"=>$id,
-                    "owner"=>\Nette\Environment::getUser()->getId(),
-                    "description" => "NovĂ© forum",
-                    "parent" => $parentid,
-                    "urlfragment" => \Utilities::string2url($id),
-                    "created" => time()
-                ));
-                $this->template->data = "Forum bylo zaloĹľeno.";
-            }
-            catch(\Exception $e){
-                $this->template->data = $e->getMessage();
-            }
+        public function actionForumThreadAdd($id = null, $param = null, $prefix = ""){
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            $this->template->data = $model->forum->create($id, $param, $prefix);
         }
         
         
@@ -122,6 +106,21 @@ namespace ajaxModule{
             if($model->post->setID($id)->delete())
                 $this->template->data = "ok";
         }
+
+        public function actionForumPostGetSingle($id){
+            $this->setView('forum-post');
+            $this->template->post = $this->context->database->forum_posts('id', $id)->fetch();
+            $this->template->postd = $this->context->database->forum_posts_data('id', $id)->fetch();
+        }
+
+        public function actionForumPostGetRaw($postid){
+            $this->setView('forum-post-raw');
+            $p = $this->context->database->forum_posts_data('id', $postid)->fetch();
+            $this->template->data = $p['post'];
+        }
+
+
+
         public function actionWait($id = 1000){
             usleep($id);
         }
@@ -171,18 +170,5 @@ namespace ajaxModule{
                 </div>
             </div>";
         }
-
-        public function actionForumGetSinglePost($id){
-            $this->setView('forum-post');
-            $this->template->post = $this->context->database->forum_posts('id', $id)->fetch();
-            $this->template->postd = $this->context->database->forum_posts_data('id', $id)->fetch();
-        }
-
-        public function actionLoadForumPost($postid){
-            $this->setView('forum-post-raw');
-            $p = $this->context->database->forum_posts_data('id', $postid)->fetch();
-            $this->template->data = $p['post'];
-        }
-
     }
 }

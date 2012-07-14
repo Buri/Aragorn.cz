@@ -228,6 +228,10 @@
     visibility: visible;
 }
 
+.paper ul.normal-ul li{
+    list-style: square outside none;
+}
+
 </style>
 <ul n:foreach="$flashes as $flash" class="flashes">
     <li class="{$flash->type}">{$flash->message}</li>
@@ -241,12 +245,13 @@
     <button type="button" style="font-style: italic;" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[i]', 'after':'[/i]', 'defaultMiddle':''});">I</button>
     <button type="button" style="text-decoration: underline;" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[u]', 'after':'[/u]', 'defaultMiddle':''});">U</button>
     <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[cite]', 'after':'[/cite]', 'defaultMiddle':''});">" "</button>
-    {*<button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[list]\n*', 'after':'\n[/list]', 'defaultMiddle':''});">Seznam</button>*}
+    <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[list][*]', 'after':'[/*][/list]', 'defaultMiddle':''});">Seznam</button>
+    <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[*]', 'after':'[/*]', 'defaultMiddle':''});">*</button>
     <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[spoiler]', 'after':'[/spoiler]', 'defaultMiddle':''});">Spoiler</button>
-    <button type="button" style="" onclick="var p = prompt('Zadejte URL odkazu:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[url]', 'after':'[/url]', 'defaultMiddle':p});">URL</button>
-    <button type="button" style="" onclick="var p = prompt('Zadejte url obrĂˇzku:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});">Img</button>
-    <button type="button" style="" onclick="var p = prompt('Zadejte url mp3 souboru:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[url=', 'after':'][/img]', 'defaultMiddle':p});">MP3</button>
-    <button type="button" style="" onclick="var p = prompt('Zadejte url z youtube:'); if(p) $('frmforumForm-post').insertAroundCursor({'before':'[youtube]', 'after':'[/youtube]', 'defaultMiddle':p});">Youtube</button>
+    <button type="button" style="" onclick="AC.prompt('Zadejte URL odkazu:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[url]', 'after':'[/url]', 'defaultMiddle':p});});">URL</button>
+    <button type="button" style="" onclick="AC.prompt('Zadejte url obrázku:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});});">Img</button>
+    <button type="button" style="" onclick="AC.prompt('Zadejte url mp3 souboru:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[url=', 'after':'][/img]', 'defaultMiddle':p});});">MP3</button>
+    <button type="button" style="" onclick="AC.prompt('Zadejte url z youtube:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[youtube]', 'after':'[/youtube]', 'defaultMiddle':p});});">Youtube</button>
     <a href="#" id="close-edit" style="display:none;">Zrušit editaci</a>
     {input post}
     {if $allowWhisper}
@@ -333,10 +338,9 @@
             $('close-edit').setStyle('display', 'inline');
             $$('label[for=frmforumForm-post]')[0].set('text', 'Editace zprávy');
             $('post').set('value', 'Provést editaci');
-            AC.ajax('LoadForumPost', {
+            AC.ajax('forumPostGetRaw', {
                 postid:this.get('data-id')
             }, function(reply){
-                console.log(reply)
                 $('frmforumForm-post').set('value', reply[2].get('text'));
             });
         },
@@ -347,7 +351,7 @@
             if(!el.hasClass('show') || el.get('data-xhr-loaded')) return;
             var msgid = el.get('data-msg').substr(3);
             if(msgid == '') return;
-            AC.ajax('forumGetSinglePost', {
+            AC.ajax('forumPostGetSingle', {
                 id:msgid
             }, function(reply){
                 this.set('html', '');

@@ -19,6 +19,10 @@ namespace Components{
         private $context;
         private $cache;
         protected $lastVisit;
+        protected $handleUrl = null;
+        protected $prefix = "";
+
+        public $usePresenterLink = false;
 
         /**
          *
@@ -32,14 +36,24 @@ namespace Components{
             return $this;
         }
         
-        public function render($url){
-            $this->url = $url;
-            $this->prepare($url);
+        public function render($url, $prefix = ""){
+            if($this->handleUrl != null)
+                $this->url = $this->handleUrl;
+            else
+                $this->url = $url;
+            $this->prefix = $prefix;
+            $this->prepare($this->url);
             $p = $this->getPresenter();
             $this->template->forum = substr($p->name, strrpos($p->name, ':')+1).':';
-            $this->template->url = $url;
+            $this->template->prefix = $this->prefix;
+            $this->template->url = $this->url;
+            $this->template->usePresenterLink = $this->usePresenterLink;
             $this->template->setFile(__DIR__ . '/forum.latte');
             $this->template->render();
+        }
+
+        public function handlerender($url){
+            $this->handleUrl = $url;
         }
 
         protected function prepare($url){
@@ -57,7 +71,7 @@ namespace Components{
                 $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
                 $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
                 $parent = $fid;
-                while($parent){
+                while($parent > 0){
                     $p = DB::forum_topic('id', $parent)->fetch();
                     $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
                     $parent = $p['parent'];
@@ -69,7 +83,10 @@ namespace Components{
                 $data = DB::forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
                 $this->template->newforum = $this->context->user->isAllowed('forum','create');
             }
-            $nav[] = array("name"=>"Diskuze", "url"=>"");
+            if($this->handleUrl == null){
+                if($parent != -1)
+                    $nav[] = array("name"=>"Diskuze", "url"=>"");
+            }
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
             $this->setLastAccess();
@@ -127,7 +144,10 @@ namespace Components{
          * @return string
          */
         public function link($target, $args = array()){
-            return $this->getPresenter()->link($target, $args);
+            if($this->usePresenterLink)
+                return $this->getPresenter()->link($target, $args);
+            else
+                return parent::link($target, $args);
         }
 
         /**
@@ -177,23 +197,6 @@ namespace Components{
 
         public function propagatePostDeletion($forumId){
             
-        }
-
-        public static function deleteForum($id){
-            if($id == 0) return false;
-            $discussions = DB::forum_topic('parent', $id);
-            //echo $discussions;
-            foreach($discussions as $topic){
-                $tid = $topic['id'];
-                self::deleteForum($tid);
-                DB::forum_posts('forum', $tid)->delete();
-                DB::forum_moderator('forumid', $tid)->delete();
-                DB::forum_visit('idforum', $tid)->delete();
-                DB::forum_topic('id', $tid)->delete();
-            }
-            DB::forum_posts('forum', $id)->delete();
-            DB::forum_topic('id', $id)->delete();
-            return true;
         }
 
         public function setLastAccess(){
@@ -260,6 +263,10 @@ namespace Components{
                 return $user->isAllowed($resource.$target, $action);
             }
             return $user->isAllowed($resource, $action);
+        }
+
+        public function getHU(){
+            return $this->handleUrl;
         }
 
     }
