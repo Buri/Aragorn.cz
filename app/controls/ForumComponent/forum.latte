@@ -53,8 +53,8 @@
         </div>
         <div class="forum-moderators-list">
             Správci:
-            {!$control->presenter->userlink($info['owner'])}{foreach DB::forum_moderator('forumid', $fid) as $mod}{first},{/first}
-                {!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}
+            {*!$control->presenter->userlink($info['owner'])*}{foreach $moderators as $mod}{*first},{/first*}
+                {if $mod != 0}{!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}{/if}
             {/foreach}
         </div>
         <div class="forum-description">Popis: {$info['description']}</div>

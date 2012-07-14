@@ -93,7 +93,14 @@ namespace Components\Models{
             $out = array();
             foreach($this->database->forum_moderator('forumid', $this->id) as $mod)
                     $out[] = $mod['userid'];
+            $forum = $this->database->forum_topic('id', $this->id)->fetch();
+            $out[] = $forum['owner'];
+            if($forum['parent'] > 0){
+                $model = new ForumControl($this->database, $this->authorizator);
+                $out = array_unique(array_merge($out, $model->forum->setID($forum['parent'])->getModerators()));
+            }
             return $out;
+
         }
 
         public function isAllowed($operation){
@@ -104,15 +111,21 @@ namespace Components\Models{
             $db = $this->database;
 
             $parentid = 0;
-            if($parentUrl == -1){
-            }else{
-                if($parentUrl != ""){
+            $prepend = "";
+            if($parentUrl != -1){            
+                if($parentUrl != "" && $parentUrl !== 0){
                     $parent = $db->forum_topic('urlfragment', $parentUrl)->fetch();
+                    
                     if(!$parent) return 'Invalid parent thread.';
                     $parentid = $parent['id'];
+                    $prnt = array("parent" => $parentid);
+                    do{
+                        $prnt = $db->forum_topic('id', $prnt['parent'])->fetch();
+                        $prepend = $prnt['urlfragment'] . ":" . $prepend;
+                    }while($prnt['parent'] > 0);
                 }
 
-                $this->setID($parent);
+                $this->setID($parentid);
                 if(!$this->isAllowed('create'))
                     return "You are not allowed to create thread here.";
             }
@@ -123,7 +136,7 @@ namespace Components\Models{
                     "owner"=>  $this->authorizator->getPermissionsInstance()->getUID(),
                     "description" => "Nové forum",
                     "parent" => $parentid,
-                    "urlfragment" => \Utilities::string2url($prefix.$name),
+                    "urlfragment" => $prepend . \Utilities::string2url($prefix.$name),
                     "created" => time()
                 ));
                 $this->setID($row['id']);

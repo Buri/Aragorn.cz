@@ -64,28 +64,37 @@ namespace Components{
             $nav = array();
             if(isset($url) && $url != ""){
                 $p = DB::forum_topic('urlfragment', $url)->fetch();
-                $fid = $p['id'];
-                $this->forumId = $fid;
-                $this->template->noticeboard = $p['noticeboard'];
-                $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
-                $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
-                $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
-                $parent = $fid;
-                while($parent > 0){
-                    $p = DB::forum_topic('id', $parent)->fetch();
-                    $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
-                    $parent = $p['parent'];
+                if($p){
+                    $fid = $p['id'];
+                    $this->forumId = $fid;
+                    $this->template->noticeboard = $p['noticeboard'];
+                    $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
+                    $this->template->newforum = !(($p['options'] & self::SUBTOPIC_ALLOWED) & self::LOCKED) && $this->userIsAllowed('forum','create', $p['id']);
+                    $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
+                    $parent = $fid;
+                    while($parent > 0){
+                        $p = DB::forum_topic('id', $parent)->fetch();
+                        $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
+                        $parent = $p['parent'];
+                    }
+                    $info = DB::forum_topic('id', $fid)->fetch();
+                    $this->template->info = $info;
+                    $this->template->fid = $fid;
+
+                    $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
+                    $this->template->model = $model;
+                    $this->template->moderators = $model->forum->setID($fid)->getModerators();
+                }else{
+                    $parent = 0;
+                    $data = array();
                 }
-                $info = DB::forum_topic('id', $fid)->fetch();
-                $this->template->info = $info;
-                $this->template->fid = $fid;
             }else{
                 $data = DB::forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
                 $this->template->newforum = $this->context->user->isAllowed('forum','create');
+                $parent = 0;
             }
-            if($this->handleUrl == null){
-                if($parent != -1)
-                    $nav[] = array("name"=>"Diskuze", "url"=>"");
+            if($this->handleUrl == null && $parent != -1){
+                $nav[] = array("name"=>"Diskuze", "url"=>"");
             }
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
