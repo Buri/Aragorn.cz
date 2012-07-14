@@ -158,6 +158,10 @@
 .paper .post cite .post{
     white-space: normal;
 }
+.paper .post cite .post img{
+    max-height: 90px;
+    max-width: 90px;
+}
 
 
 /* CSS file for CwComplete (a small mootools-autocompleter) */
@@ -284,15 +288,13 @@
         <div class="post-body">
             <div class="post-info">
                 <a href="#" onclick="return false;" title="Permalink" style="font-weight:bold;">#</a>
-                {if $write}
-                <a href="#" class="alert button" title="Nahlásit nevhodný ppříspěvek">&nbsp;</a>
+                {if $model->forum->isAllowed('write')}
+                <a href="#" class="alert button" title="Nahlásit nevhodný příspěvek">&nbsp;</a>
                 {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
                 <a href="#" class="edit button" title="Upravit příspěvek" data-id="{$post['id']}">&nbsp;</a>
                 <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
                 {/if}
                 <a href="#" class="cite button" title="Citovat příspěvek">&nbsp;</a>
-                {*if $post['author'] == $user->getId() || $user->isAllowed('discussion', 'administrate')}
-                {/if*}
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
             </div>
