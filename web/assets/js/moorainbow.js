@@ -174,9 +174,9 @@ var MooRainbow = new Class({
 		}, this);
 		[this.element, this.layout].each(function(el) {
 			el.addEvents({
-				'click': function(e) { new Event(e).stop(); },
+				'click': function(e) { e.stop(); },
 				'keyup': function(e) {
-					e = new Event(e);
+					e = e;
 					if(e.key == 'esc' && this.visible) this.hide(this.layout);
 				}.bind(this)
 			}, this);
@@ -194,7 +194,7 @@ var MooRainbow = new Class({
 		});	
 		
 		this.layout.overlay2.addEvent('mousedown', function(e){
-			e = new Event(e);
+			e = e;
 			this.layout.cursor.setStyles({
 				'top': e.page.y - this.layout.overlay.getTop() - curH,
 				'left': e.page.x - this.layout.overlay.getLeft() - curW
@@ -240,7 +240,7 @@ var MooRainbow = new Class({
 		});	
 	
 		this.layout.slider.addEvent('mousedown', function(e){
-			e = new Event(e);
+			e = e;
 
 			this.layout.arrows.setStyle(
 				'top', e.page.y - this.layout.slider.getTop() + this.snippet('slider') - arwH

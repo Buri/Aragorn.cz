@@ -229,7 +229,7 @@ var CwAutocompleter = new Class({
 	// Text field key handler
 	keypressed: function(event)
 	{
-		var myevent = new Event(event);
+		var myevent = event; //new Event(event);
 		if (myevent.target.id === this.textfield.id) {
 			if (myevent.type == 'keyup') {
 				switch (myevent.key) {

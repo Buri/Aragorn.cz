@@ -237,12 +237,70 @@ var AragornClient = new Class({
     },
     message:function(title, message, options){
         this.notificationAudio.play();
-        return this.notimoo.show(Object.merge({title:title || '', message:message || ''}, options));
+        var msg = new SimpleModal(Object.merge({
+            
+        }, options));
+        msg.show({
+            title:title,
+            contents: message
+        });
+        return this;
+        //return this.notimoo.show(Object.merge({title:title || '', message:message || ''}, options));
     },
-    prompt:function(question, cb){
-        new MooDialog.Prompt(question, cb);
+    confirm:function(question, cb, options){
+        var msg = new SimpleModal(Object.merge({
+        }, options));
+        msg.show({
+            'title': 'Opravdu?',
+            "model":"confirm",
+            "callback": cb || function(){},
+            "contents":question
+        });
+        return this;
     },
-    info:function(){},
+    prompt:function(message, cb, options){
+        var msg = new SimpleModal(Object.merge({
+            onAppend:function(){
+                $('prompt-dialog-input').focus();
+                $('prompt-dialog-input').addEvent('keypress', function(e){
+                    if(e.key == 'enter'){
+                        $$('#simple-modal a.btn.primary')[0].click();
+                    }
+                });
+            }
+        }, options));
+        msg.show({
+            "model":"confirm",
+            "callback": function(){
+                var val = $('prompt-dialog-input').get('value');
+                if(typeOf(cb) == "function" && val.length > 0)
+                    cb(val);
+            },
+            title:'Dotaz:',
+            contents: message + '\n<input type="text" id="prompt-dialog-input" style="width:100%;display:block;" />'
+        });
+        return this;
+    },
+    info:function(message, options){
+        this.notificationAudio.play();
+        var msg = new SimpleModal(Object.merge({
+            hideHeader: true,
+            "onAppend":function(){
+                $("simple-modal").fade("hide");
+                setTimeout((function(){ $("simple-modal").fade("show")}), 200 );
+                var tw = new Fx.Tween($("simple-modal"),{
+                    duration: 1600,
+                    transition: 'bounce:out',
+                    link: 'cancel',
+                    property: 'top'
+                }).start(-400, 50);
+            }
+        }, options));
+        msg.show({
+            contents: message
+        });
+        return this;
+    },
     resetInactivity:function(timeout){
         if(this.inactive)
             clearTimeout(this.inactive);
@@ -353,7 +411,7 @@ window.addEvents({'domready': function(){
                         //spinner.stopSpin();
                     },
                     onFailure:function(){
-                        AC.message('Chyba', 'StrÄ‚Ë‡nku se nepodaÄąâ„˘ilo naĂ„Ĺ¤Ä‚Â­st.');
+                        AC.message('Chyba', 'Stránku se nepodařilo načíst.');
                         location.href = url;
                     }
                 });

@@ -67,9 +67,9 @@
                 text-align: center;
             }
             .paper div.block:nth-of-type(5){
-                left:1020px;
-                top:12px;
-                position:absolute;
+                left:720px;
+                top:-370px;
+                position: relative;
             }
             .paper div.block:nth-of-type(5) form#frm-searchForm{
                 background:url("/assets/images/paper/bg/search.png") no-repeat scroll -27px -40px transparent;
@@ -113,13 +113,13 @@
                     <a href="{$presenter->userLink($user->getId(), false)}" class="ajax profile" title="{$user->getIdentity()->username}" id="menu-user-profile">
                         <img src="{$presenter->userIcon()}" /> {$user->getIdentity()->username}
                     </a>
-                    <a href="{link settings:}" class="middle" title="Nastavení" id="menu-settings">
+                    <a href="{link settings:}" class="middle ajax" title="Nastavení" id="menu-settings">
                        {* <img src="{$staticPath}/images/settings.png" /> *} Nastavení
                     </a>
                     <a href="{link mail:}" class="middle ajax" title="Pošta" id="menu-post">
                         {*<img src="{$staticPath}/images/unread_mail.png" />*} Pošta
                     </a>
-                    <a href="{link notes:my}" class="middle" id="menu-notes" title="Osobní poznámky">
+                    <a href="{link notes:my}" class="middle ajax" id="menu-notes" title="Osobní poznámky">
                         {*<img src="{$staticPath}/images/rs.png" />*} Poznámky
                     </a>
                     {if $user->isAllowed('admin')}
@@ -183,7 +183,6 @@
                     {input search}
                     {/form}
                 </div>
-   
             </menu>
             <div class="content" id="content">
                 <h1 id="location">{$title}</h1>
@@ -219,7 +218,7 @@
     {include 'scripts.latte'}
     <script>
         setTimeout(function(){
-            $('nette-debug').dispose();
+            $$('#nette-debug').dispose();
         }, 500);
     </script>
 </html>
