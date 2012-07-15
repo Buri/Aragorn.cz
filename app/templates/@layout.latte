@@ -28,31 +28,14 @@
 <!DOCTYPE html>
 <html lang="cs" xml:lang="cs" xmlns="http://www.w3.org/1999/xhtml">
     <head>
-        {include 'head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.css" />
+        {include 'head.latte'}
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
-            window.addEvent('domready', function(){
-                /* Skin swap animation */
-                document.body.addEvent('click:relay(a.change-skin)', function(e){
-                    e.stop();
-                    var b = document.body;
-                    //b.addClass('transition');
-                    b.removeClass(Cookie.read('skin'));
-                    Cookie.write('skin', this.get('data-skin'));
-                    b.addClass(this.get('data-skin'));
-                    setTimeout(function(){
-                        document.body.removeClass('transition');
-                    }, 3000);
-                });
-                new FloatingTips('div#constat',{
-                    position:'bottom',
-                    center:false
-                });                
-            });
         </script>
         <style type="text/css">
             @font-face{ font-family: "xirwena";src: url("/assets/fonts/paper/xirwena.ttf") format('truetype');}
+            @font-face{ font-family: "distink";src: url("/assets/fonts/paper/dir.otf") format('truetype');}
             .paper div.block:nth-of-type(2){
                 display:none !important;
             }
@@ -98,13 +81,29 @@
                 list-style: none;
                 padding: 5px 5px 5px 20px;
             }
+            .paper menu#bookmarks{
+                background: url('/assets/images/paper/bg/paper.jpg');
+                color: #000;
+                border-color: #e3cc89;
+            }
+            .paper menu#bookmarks:hover{
+                /*border-color: red ;*/
+            }
+            .paper menu#bookmarks a{
+                color: #000;
+                display:block;
+            }
+            .paper menu#bookmarks a.new-message{
+                color: red;
+                display:block;
+            }
         </style>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
-    <body class="{empty($_COOKIE['skin']) ? 'dark' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ' runac'}">
+    <body class="{empty($_COOKIE['skin']) ? 'paper' : $_COOKIE['skin']}{$isLogedIn ? ' runac' : ' runac'}">
         {if $user->isLoggedIn()}
         <menu id="bookmarks">
-            <a n:for="$i = 0; $i < 20; $i++" href="#">Záložka {$i}</a>
+            <a n:foreach="$bookmarks as $bm" href="{$bm['link']}">{$bm['title']}{$bm['new'] > 0 ? ' <span class="new-bookmark>(' . $bm['new'] . ')</span>' : ''}</a>
         </menu>{/if}
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         <div class="holder">
@@ -177,9 +176,9 @@
                 </div>
                 <div class="block">
                     <a href="" class="profile">Skiny</a>
-                    <a href="" class="change-skin" data-skin="dark">Dark</a>
                     <a href="" class="change-skin" data-skin="paper">Paper</a>
                     <a href="" class="change-skin" data-skin="blue">Blue</a>
+                    <a href="" class="change-skin" data-skin="dark">Dark</a>
                     <a href="" class="change-skin" data-skin="light">Light</a>
                 </div>
                 <div class="block">

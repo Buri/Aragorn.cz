@@ -357,8 +357,23 @@ var AragornClient = new Class({
     profileLinkTips:null
 }), AC = new AragornClient(), spinner = null;
 
-window.addEvents({'domready': function(){
+window.addEvents({'load': function(){
     new LazyLoad({elements:'img.ll'});
+    document.body.addEvent('click:relay(a.change-skin)', function(e){
+        e.stop();
+        var b = document.body;
+        //b.addClass('transition');
+        b.removeClass(Cookie.read('skin'));
+        Cookie.write('skin', this.get('data-skin'));
+        b.addClass(this.get('data-skin'));
+        setTimeout(function(){
+            document.body.removeClass('transition');
+        }, 3000);
+    });
+    new FloatingTips('div#constat',{
+        position:'bottom',
+        center:false
+    });
    /* AC.profileLinkTips = new FloatingTips($$('a.user-link'), {
         html:true,
         position:'right',

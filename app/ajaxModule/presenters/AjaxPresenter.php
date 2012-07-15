@@ -118,22 +118,36 @@ namespace ajaxModule{
             $p = $this->context->database->forum_posts_data('id', $postid)->fetch();
             $this->template->data = $p['post'];
         }
+        public function actionForumOptionsUpdate($id,$noticeboard,$description){
+            $this->template->data = "fail";
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            if($model->forum->setID($id)->isAllowed('admin')){
+                $this->template->data = "off";
+                $row = $this->context->database->forum_topic('id', $id);
+                $row->update(array("noticeboard"=>$noticeboard, "description" => $description));
+                $this->template->data = "ok";
+            }
+        }
+        public function actionForumBookmarkToggle($id){
+            $this->template->data = "fail";
+
+            if(!$this->user->isLoggedIn()){
+                return;
+            }
+
+            if($this->context->database->forum_visit(array(
+                "iduser" => $this->user->getId(),
+                "idforum" => $id
+                    ))->update(array(
+                "bookmark" => new \NotORM_Literal("!bookmark")
+            )) !== false)
+                $this->template->data = "ok";
+        }
 
 
 
         public function actionWait($id = 1000){
             usleep($id);
-        }
-        public function actionUpdateforumnoticeboard($id,$param,$description){
-            $this->template->data = "fail";
-            $forum = new \Components\ForumComponent($this, 'tempForum');
-            $forum->setContext($this->context);
-            if($forum->userIsAllowed('forum', 'admin', $id)){
-                $this->template->data = "off";
-                $row = DB::forum_topic('id', $id);
-                $row->update(array("noticeboard"=>$param, "description" => $description));
-                $this->template->data = "ok";
-            }
         }
         
         public function actionFrontendupdatewidgetlist($list){

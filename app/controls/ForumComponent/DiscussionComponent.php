@@ -315,7 +315,7 @@ namespace Components{
             $bbout = bbcode_parse($bb, $text);
             $matches = array();
             $repl = "http://www.youtube.com/embed/";
-            $pattern = '/src="(?:(?:.*)youtube.com\/watch\?(?:.*)v=((?:[a-zA-Z0-9])+)[^"]+)/i';
+            $pattern = '/src="(?:(?:.*)youtube.com\/watch\?(?:.*)v=((?:[a-zA-Z0-9]|_)+)[^"]+)/i';
             preg_match_all($pattern, $bbout, $matches);
             if(count($matches[0]) > 0){
                 foreach($matches[1] as $k => $m){

@@ -3,8 +3,13 @@
         background: url("/assets/images/paper/bg/forum_noticeboard.gif") repeat-y scroll center top transparent;
         margin-bottom: 10px;
     }
-    #forum-head-inner > div {
+    .paper #forum-head-inner > div {
         margin-top: -10px;
+    }
+    .paper #forum-noticeboard-editor, .paper #forum-description-editor{
+        display: block;
+        width: 100%;
+        height: 100px;
     }
 </style>
 <div class="forum-navigation forum-divider"> Navigace:
@@ -21,7 +26,7 @@
 <div id="forum-head">
     <div class="forum-head-bg">
         <div id="forum-head-inner" style="text-align: left;">
-            <a href="#" id="forum-bookmark-toggle">Záložka</a>
+            {if $isLoggedIn}<a href="#" id="forum-bookmark-toggle">Záložka</a>{/if}
             <a href="#" id="forum-surveys-toggle" onclick="return showEl('forum-surveys');">Ankety</a>
             <a href="#" id="forum-stats-toggle" onclick="return showEl('forum-stats');">Statistiky</a>
         {if $model->forum->isAllowed('admin')}
@@ -29,10 +34,13 @@
             <div id="forum-admin">
                 <div>Přidání a odebrání správců</div>
                 <div>Přístup do diskuze</div>
-                <div>Obecné vlastnosti
+                <div>
+                    <div>Obecné vlastnosti</div>
+                    Nástěnka:
                     <textarea id="forum-noticeboard-editor">{$noticeboard}</textarea>
+                    Popis:
                     <textarea id="forum-description-editor">{$info['description']}</textarea>
-                    <button onclick="AC.ajax('updateforumnoticeboard', { id:{$fid}, param:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ AC.message('Hotovo'); AC.Ajax.reloadLocation(); }, 'get');">Uložit změny</button>
+                    <button onclick="AC.ajax('forumOptionsUpdate', { id:{$fid}, noticeboard:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ /*AC.message('Hotovo');*/ AC.Ajax.reloadLocation(); });">Uložit změny</button>
                 </div>
                 <div>přesunutí/smazání/export/uzamčení diskuze</div>
             </div>
@@ -111,8 +119,10 @@
 </ul>
 <script n:syntax="double">
     function newForumCb(res, dom){
+        if(res[2].get('text') == 'ok')
+            AC.Ajax.reloadLocation();
+        else
         AC.message('Nové forum', dom[0].get('html'));
-        AC.Ajax.reloadLocation();
     }
     function deleteForum(id){
         AC.confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?', function(){
@@ -130,6 +140,16 @@
     }
     window.addEvent('domready', function(){
         $$('#forum-head-inner div[id]').slide('hide');
+        $$('#forum-bookmark-toggle').addEvent('click', function(e){
+            e.stop();
+            AC.ajax('forumBookmarkToggle',
+            {
+                'id':{{if isset($fid)}}{{$fid}}{{else}}-1{{/if}}
+            },
+            function(res){
+                AC.bookmarks.update();
+            });
+        });
     });
 </script>
 {if $discussion}

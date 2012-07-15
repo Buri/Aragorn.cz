@@ -65,6 +65,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $t->node = $this->node;
         $t->startTime = $this->context->parameters['starttime'];
         $t->db = $this->context->database;
+        $t->bookmarks = $this->getBookmarks();
         /* Fix invalid links generation */
         #$this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
     }
@@ -293,6 +294,18 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $form->setAction($this->link('search:'));
         $form->setMethod('get');
         return $form;
+    }
+
+    public function getBookmarks(){
+        if(!$this->user->isLoggedIn()) return array();
+        
+        $db = $this->context->database;
+        $bookmarks = array();
+        foreach($db->forum_visit(array('iduser' => $this->user->getId(), 'bookmark' => 1)) as $bookmark){
+            //{var $b = $db->forum_topic('id', $bm['idforum'])->fetch()} n:href="forum $b['urlfragment']">{$b['name']}</a>
+
+        }
+        return $bookmarks;
     }
 
 }

@@ -1,6 +1,15 @@
-    {foreach array('mootools-more-1.4.0.1', 'socket.io.min', 'lazyload','floatingtips', 'moorainbow', 'powertools', 'floatingtips',
-    'simple-modal', 'cwcomplete', 'aragorn-yc')
+<script type="text/javascript">
+    window.addEvent('load', function(){
+    {foreach array(/*'mootools-more-1.4.0.1', 'socket.io.min', 'lazyload-yc', 'moorainbow-yc', 'powertools-yc', 'floatingtips-yc',
+    'simple-modal-yc', 'cwcomplete-yc',*/ '__minified-0.1', 'aragorn')
     as $script}
-    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{$script}.js"></script>
+        document.head.grab(new Element('script', {
+            src:"{!$staticPath}/js/" +{$script} + ".js",
+            type:'text/javascript',
+            charset:'utf-8'
+        }));
+    {*<script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{$script}.js"></script>*}
     {/foreach}
+    });
     {* 'moochoose-1.0.2-yc', 'overlay', 'moogressbar', 'mif.tree', *}
+</script>

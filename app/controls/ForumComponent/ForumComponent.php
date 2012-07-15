@@ -109,6 +109,7 @@ namespace Components{
             $this->getTemplate()->n = $nav;
             $this->setLastAccess();
             $this->getTemplate()->model = $model;
+            $this->template->isLoggedIn = $this->presenter->getUser()->isLoggedIn();
         }
 
         /**

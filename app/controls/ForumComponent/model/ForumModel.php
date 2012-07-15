@@ -173,12 +173,12 @@ namespace Components\Models{
                     "created" => time()
                 ));
                 $this->setID($row['id']);
-                return "OK";
+                return "ok";
             }
             catch(\Exception $e){
                 return $e->getMessage();
             }
-            return "OK";
+            return "ok";
         }
 
         public function delete(){
