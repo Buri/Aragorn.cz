@@ -234,11 +234,22 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }else{
                 $ips = array();
             }
-            if(array_search($_SERVER['REMOTE_ADDR'], $ips) === false){
-                $ips[] = $_SERVER['REMOTE_ADDR'];
-                rewind($fp);
-                fwrite($fp, implode(';', $ips));
+            $out = array();
+            $found = false;
+            foreach($ips as $ip){
+                //if(array_search(, $ips) === false){
+                $ipa = explode('=', $ip);
+                if($ipa[0] == $_SERVER['REMOTE_ADDR']){
+                    $found = true;
+                    $ipa[1] = $ipa[1] + 1;
+                }
+                $out[] = implode('=', $ipa);
             }
+            if(!$found){
+                $out[] = $_SERVER['REMOTE_ADDR'] . "=" . 1;
+            }
+            rewind($fp);
+            fwrite($fp, implode(';', $out));
             fclose($fp);
             $sid = $this->node->userlogin($user->getId(), $this->context->Permissions, $user);
             setCookie('sid', $sid, 0, '/');

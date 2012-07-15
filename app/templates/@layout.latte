@@ -10,13 +10,18 @@
  *}
 {if $ajax}
 <script type="text/javascript">document.title='{!$title} | Aragorn.cz';
-    {foreach $flashes as $flash}
-    AC.flashMessage({$flash->message}, {$flash->type}});
-    {/foreach}
-    {if $forceReload}/*$$('.ajax').removeClass('ajax');*/
+    {*foreach $flashes as $flash}
+    AC.message({$flash->message}, {$flash->type}});
+    {/foreach*}
+    {if $forceReload}
         location.reload();
     {/if}
 </script>
+<ul n:if="count($flashes)" class="flashes">
+    {foreach $flashes as $flash}
+    <li>{$flash->message}</li>
+    {/foreach}
+</ul>
 <h1 id="location">{$title}</h1>
 {include #content}
 {else}
@@ -196,9 +201,9 @@
         </div>
         <div style="display:none;">
             <audio id="audioNotification" preload="full">
-                <source src="{!$staticPath}/sound/global.ogg" />
-                <source src="{!$staticPath}/sound/global.mp3" />
-                <source src="{!$staticPath}/sound/global.wav" />
+                <source src="{!$staticPath}/sound/beep.ogg" />
+                <source src="{!$staticPath}/sound/beep.mp3" />
+                <source src="{!$staticPath}/sound/beep.wav" />
             </audio>
         </div>
         <footer>

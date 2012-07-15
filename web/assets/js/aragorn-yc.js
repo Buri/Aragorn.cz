@@ -245,7 +245,6 @@ var AragornClient = new Class({
             contents: message
         });
         return this;
-        //return this.notimoo.show(Object.merge({title:title || '', message:message || ''}, options));
     },
     confirm:function(question, cb, options){
         var msg = new SimpleModal(Object.merge({

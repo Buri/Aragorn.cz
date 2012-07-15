@@ -326,14 +326,14 @@
         },
         'click:relay(a.delete.button)':function(e){
             e.stop();
-            if(confirm('Opravdu chcete smazat tento příspěvek?')){
+            AC.confirm('Opravdu chcete smazat tento příspěvek?', function(){
                 AC.ajax('forumPostDelete', { id:this.get('data-postid')}, function(html){
                     if(html[2].get('text') == 'ok')
                         AC.Ajax.reloadLocation();
                     else
                         AC.message('Chyba', 'Smazání se nezdařilo.\nMáte příslušná oprávnění??');
                 });
-            }
+            }.bind(this));
         },
         'click:relay(a.edit.button)':function(e){
             e.stop();

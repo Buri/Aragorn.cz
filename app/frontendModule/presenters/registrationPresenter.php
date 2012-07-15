@@ -20,23 +20,35 @@ namespace frontendModule{
         protected $config;
 
         public function startup(){
-            $bans = DB::bans('ip', $_SERVER['REMOTE_ADDR'])->where('expires > ?', time());
             $this->template->banned = false;
             $this->template->reg = $this->getContext()->parameters['registration'];
             $this->config = $this->getContext()->parameters;
-            foreach($bans as $ban){
+
+            $bans = $this->context->database->bans('ip LIKE ?', '%'.$_SERVER['REMOTE_ADDR'].'%')->where('expires > ?', time());
+            if(count($bans) > 0){
                 $this->template->banned = true;
+            }else{
+                $hosts = file(CFG_DIR . '/blacklist/host');
+                $ip = $_SERVER['REMOTE_ADDR'];
+                $hostname = gethostbyaddr($ip);
+                foreach($hosts as $host){
+                    if(preg_match("/$host/i", $ip) > 0 || preg_match("/$host/i", $hostname) > 0){
+                        $this->template->banned = true;
+                        break;
+                    }
+                }
             }
             parent::startup();
         }
 
         public function createComponentRegisterForm() {
+            $db = $this->context->database;
             $form = new Form;
             #$form->addProtection('Cross Site Request Forgery!');
             $form->addText('username', 'Přezdívka: ')
                     ->addRule(Form::FILLED, 'Musíte vyplnit uživatelské jméno!')
-                    ->addRule(function (\Nette\Forms\Controls\TextInput $user){
-                        if(count(db::users()->where("username LIKE ? OR urlfragment = ?", array($user->getValue(), \Utilities::string2url($user->getValue()))))){
+                    ->addRule(function (\Nette\Forms\Controls\TextInput $user) use($db){
+                        if(count($db->users()->where("username LIKE ? OR urlfragment = ?", array($user->getValue(), \Utilities::string2url($user->getValue()))))){
                             return false;
                         }
                         return true;
@@ -44,16 +56,28 @@ namespace frontendModule{
 
             $form->addPassword('password', 'Heslo')
                     ->addRule(Form::FILLED, 'Musíte vyplnit heslo.')
-                    ->addRule(Form::LENGTH, 'Heslo je příliš krátké.');
+                    ->addRule(Form::MIN_LENGTH, 'Heslo je příliš krátké.', 6);
 
             $form->addText('mail', 'E-mail')
                     ->addRule(Form::EMAIL, 'Email není validní!')
-                    ->addRule(function(\Nette\Forms\Controls\TextInput $mail){
-                        if(count(db::users_profiles()->where("mail LIKE ?", $mail->getValue()))){
+                    ->addRule(function(\Nette\Forms\Controls\TextInput $mail) use ($db) {
+                        if(count($db->users_profiles()->where("mail LIKE ?", $mail->getValue()))){
                             return false;
                         }
                         return true;
-                    }, 'Emailová adresa je již obsazená.');
+                    }, 'Emailová adresa je již obsazená.')
+                    ->addRule(function(\Nette\Forms\Controls\TextInput $mail){
+                        $val  = $mail->getValue();
+                        $blacklist = file(CFG_DIR . '/blacklist/mail');
+                        foreach($blacklist as $entry){
+                            $entry = trim($entry);
+                            //dump("/$entry/i ~ $val ? " . (preg_match("/$entry/i", $val) ? 'yes' : 'no'));
+                            if(preg_match("/$entry/i", $val)){
+                                return false;
+                            }
+                        }
+                        return false;
+                    }, "Vaše mailová adresa je na blacklistu.");
 
             /*$form->addCheckbox('eula', 'Souhlasím s podmínkami.')
                     ->addRule(Form::FILLED, 'Musíte souhlasit.');*/
@@ -80,8 +104,8 @@ namespace frontendModule{
             $data["password"] = sha1($data["password"]);
             unset($data['eula']);
             unset($data['spambot']);
-            if(!DB::registration()->where("token = ?", $data["token"])->count()){
-                DB::registration()->insert($data);
+            if(!$this->context->database->registration()->where("token = ?", $data["token"])->count()){
+                $this->context->database->registration()->insert($data);
             }
             $this->getTemplate()->mail = $data["mail"];
             $this->redirect(301, "mail", serialize(array("mail"=> $data["mail"], "token" => $data["token"])));
@@ -121,7 +145,7 @@ namespace frontendModule{
                     $row = $r;
                     break;
                 }
-                if(DB::users()->where("username LIKE ?", $row["username"])->count() || DB::users()->where("mail = ?", $row["mail"])->count()){
+                if($this->context->database->users()->where("username LIKE ?", $row["username"])->count() || DB::users()->where("mail = ?", $row["mail"])->count()){
                     $this->getTemplate()->message = "Uživatelské jméno/mail je již obsazen. Je nám líto.";
                     $reg->delete();
                     return false;

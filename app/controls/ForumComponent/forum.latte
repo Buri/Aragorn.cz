@@ -1,6 +1,10 @@
 <style>
     .paper #forum-head{
         background: url("/assets/images/paper/bg/forum_noticeboard.gif") repeat-y scroll center top transparent;
+        margin-bottom: 10px;
+    }
+    #forum-head-inner > div {
+        margin-top: -10px;
     }
 </style>
 <div class="forum-navigation forum-divider"> Navigace:
@@ -16,12 +20,12 @@
 {if isset($fid) }
 <div id="forum-head">
     <div class="forum-head-bg">
-        <div style="text-align: left;">
+        <div id="forum-head-inner" style="text-align: left;">
             <a href="#" id="forum-bookmark-toggle">Záložka</a>
-            <a href="#" id="forum-surveys-toggle">Ankety</a>
-            <a href="#" id="forum-stats-toggle">Statistiky</a>
+            <a href="#" id="forum-surveys-toggle" onclick="return showEl('forum-surveys');">Ankety</a>
+            <a href="#" id="forum-stats-toggle" onclick="return showEl('forum-stats');">Statistiky</a>
         {if $model->forum->isAllowed('admin')}
-            <a href="#" id="forum-admin-toggle" onclick="hideAll();$('forum-admin').slide('toggle');return false;">Administrace</a>
+            <a href="#" id="forum-admin-toggle" onclick="return showEl('forum-admin');">Administrace</a>
             <div id="forum-admin">
                 <div>Přidání a odebrání správců</div>
                 <div>Přístup do diskuze</div>
@@ -117,7 +121,16 @@
     }
     function newForum(name){
         AC.ajax('forumThreadAdd', {id:name,'param':{{$url}}, prefix:{{$prefix}}}, newForumCb);
-    }    
+    }
+    function showEl(id){
+        $$('#forum-head-inner div[id]').slide('out');
+        if(parseInt($$('#' + id).getParent().getStyle('height')) == 0)
+            $$('#' + id).slide('in');
+        return false;
+    }
+    window.addEvent('domready', function(){
+        $$('#forum-head-inner div[id]').slide('hide');
+    });
 </script>
 {if $discussion}
 {control discussion,$url}
