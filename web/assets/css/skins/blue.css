@@ -22,8 +22,8 @@
 /* blue skin */
 body.blue{
     background-color: #004560;
-    /*background: url('/images/blue/bg/bg.jpg') no-repeat center 0 fixed transparent;*/
-    background-image: url('/images/blue/bg.png');
+    /*background: url('/i/blue/bg/bg.jpg') no-repeat center 0 fixed transparent;*/
+    background-image: url('/i/blue/bg.png');
     background-repeat: repeat-y;
     text-align: center;
     margin: 0;
@@ -267,7 +267,7 @@ body.blue{
 }
 .blue .mBox.Core.mBoxLoading .mBoxContent {
 	min-height:11px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Loader.gif') center center no-repeat;
 }
 /*** modal theme: default ***/
 
@@ -316,7 +316,7 @@ body.blue{
 }
 .blue .mBox.Modal.mBoxLoading .mBoxContent {
 	min-height:11px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Loader.gif') center center no-repeat;
 }
 .blue .mBox.Modal .mBoxTitle {
 	position:relative;
@@ -370,7 +370,7 @@ body.blue{
 	position:absolute;
 	top:3px;
 	left:3px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
 }
 .blue .mBox.Modal .mBoxClose:hover {
 	border-color:#c0c0c0;
@@ -415,7 +415,7 @@ body.blue{
 	color:#555555;
 	font-size:16px;
 	padding:30px 30px 30px 75px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
 }
 .blue .mBox.Modal.Confirm .mBoxButtonContainer {
 	text-align:center;
@@ -452,7 +452,7 @@ body.blue{
 .blue .mBox.Notice .mBoxNoticeNotice,
 .blue .mBox.Notice .mBoxNoticeAttention {
 	padding-left:70px;
-	background-image:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png');
+	background-image:url('http://static.aragorn.cz/i/dark/mbox/mBox-Sprites.png');
 	background-repeat:no-repeat;
 }
 
@@ -518,7 +518,7 @@ body.blue{
 }
 .blue .mBox.Tooltip.mBoxLoading .mBoxContent {
 	min-height:11px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Loader.gif') center center no-repeat;
 }
 .blue .mBox.Tooltip .mBoxTitle {
 	color:#505050;
@@ -544,7 +544,7 @@ body.blue{
 	border-top-right-radius:5px;
 }
 .blue .mBox.Tooltip .mBoxPointer {
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
 }
 .blue .mBox.Tooltip .mBoxPointerTop {
 	width:17px;
@@ -623,7 +623,7 @@ body.blue{
     
     /*min-height: 500px;
     padding: 12px 3px;
-    background: url(/images/blue/bg/content.png); */
+    background: url(/i/blue/bg/content.png); */
     margin-right: 0px;
     clear: none;
     background-color: #fff;
@@ -698,7 +698,7 @@ body.blue{
     min-width: 400px;
     color: #fff;    
     clear: left;
-   /* background: url('/images/blue/bg/content.png');*/
+   /* background: url('/i/blue/bg/content.png');*/
 }
 .blue .menu.logo{
     /*border-radius: 0 0 16px 16px; */
@@ -736,14 +736,14 @@ body.blue{
 }
 .blue .lock{
     padding-right: 20px;
-    background-image: url('/images/chatlock.png');
+    background-image: url('/i/chatlock.png');
     background-position: center right;
     background-repeat: no-repeat;
 }
 
 .blue .contentLoading{
     opacity:0.1;
-    /*background-image: url('/images/blue/bg/content.png');*/    
+    /*background-image: url('/i/blue/bg/content.png');*/
     background-color: #004560;
     -moz-transition: all .9s linear;
 }
@@ -753,12 +753,12 @@ body.blue{
 }
 .blue .role-root{
     color: #F6F;
-    background: url('/images/dark/link/admin.png') no-repeat right center;
+    background: url('/i/dark/link/admin.png') no-repeat right center;
     background-size: 14px;
 }
 .blue .role-moderator{
     color: #F66;
-    background: url('/images/dark/link/moderator.png') no-repeat right center;
+    background: url('/i/dark/link/moderator.png') no-repeat right center;
     background-size: 14px;
 }
 .blue .role-user{
@@ -782,7 +782,7 @@ body.blue{
 
 
 .blue #overlay{
-    background-image: url(/images/overlay.png) !important;
+    background-image: url(/i/overlay.png) !important;
 }
 .blue #msgStatus{
     border-radius:6px; 
@@ -869,32 +869,32 @@ body.blue{
     background-size: 18px;
 }
 .blue .post .post-info a.alert{
-    background-image: url(/images/blue/report.png);
+    background-image: url(/i/blue/report.png);
     text-decoration: none;
 }
 .blue .post .post-info a.alert:hover{
-    background-image: url(/images/reporta.png);
+    background-image: url(/i/reporta.png);
 }
 .blue .post .post-info a.edit{
-    background-image: url(/images/blue/edit.png);
+    background-image: url(/i/blue/edit.png);
     text-decoration: none;
 }
 .blue .post .post-info a.edit:hover{
-    background-image: url(/images/edita.png);
+    background-image: url(/i/edita.png);
 }
 .blue .post .post-info a.delete{
-    background-image: url(/images/blue/delete.png);
+    background-image: url(/i/blue/delete.png);
     text-decoration: none;
 }
 .blue .post .post-info a.delete:hover{
-    background-image: url(/images/deletea.png);
+    background-image: url(/i/deletea.png);
 }
 .blue .post .post-info a.cite{
-    background-image: url(/images/blue/cite.png);
+    background-image: url(/i/blue/cite.png);
     text-decoration: none;
 }
 .blue .post .post-info a.cite:hover{
-    background-image: url(/images/citea.png);
+    background-image: url(/i/citea.png);
 }
 
 .blue .newPost{
@@ -1030,7 +1030,7 @@ body.blue{
     padding: 5px;
     /*min-height: 500px;
     padding: 12px 3px;
-    background: url(/images/blue/bg/content.png); */
+    background: url(/i/blue/bg/content.png); */
     margin-right: 0px;
     border-bottom-left-radius: 15px;
     clear: left;
@@ -1095,7 +1095,7 @@ body.blue{
 }
 
 .blue .mooupload_btncontainer {
-  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
+  /*background: #DFDFDF url({{!$staticPath}}/i/upload.png) center right no-repeat; */
   padding: 10px;
 }
 
@@ -1113,14 +1113,14 @@ body.blue{
 }
 
 .blue .mooupload_btncontainer button.addfile {
-  background: url(/images/dark/buttons/dropbox.png) center center no-repeat;
+  background: url(/i/dark/buttons/dropbox.png) center center no-repeat;
   border: none;
   vertical-align: middle;
   height: 130px;
 }
 
 .blue .mooupload_btncontainer button.start {
-  background: #F3F3F3 url(/images/accept.png) 3px center no-repeat;
+  background: #F3F3F3 url(/i/accept.png) 3px center no-repeat;
 }
 
 .blue .mooupload_btncontainer button:active {
@@ -1145,11 +1145,11 @@ body.blue{
 }
 
 .blue .mooupload_off {
-  background: #FFF url(/images/progress_grey.gif) center left repeat-x;
+  background: #FFF url(/i/progress_grey.gif) center left repeat-x;
 }
 
 .blue .mooupload_on {
-  background: #FFF url(/images/progress.gif) center left repeat-x;
+  background: #FFF url(/i/progress.gif) center left repeat-x;
 }
 
 .blue ul.module-menu li{
@@ -1219,7 +1219,7 @@ body.blue{
     }
     .blue .widgetMenuButton{
         display: inline-block;
-        background: url(/images/dark/buttons/wheel-icon.png) center center no-repeat;
+        background: url(/i/dark/buttons/wheel-icon.png) center center no-repeat;
         background-size: contain;
         width: 24px;
         height: 20px;

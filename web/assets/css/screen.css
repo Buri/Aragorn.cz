@@ -7,17 +7,9 @@
 */
 
 /* DARK skin */
-@import url("/css/skins/dark.css");
+/*@import url("/css/skins/dark.css");*/
 @import url("/css/skins/paper.css");
-@import url("/css/skins/blue.css");
-
-.transition *{
-    /*-moz-transition: all 1s linear ;
-    -webkit-transition: all 1s linear ;
-    -ms-transition: all 1s linear ;
-    -o-transition: all 1s linear ;
-    transition: all 1s linear ;*/
-}
+/*@import url("/css/skins/blue.css");*/
 
 /* generic classes */
 .hide{
@@ -90,7 +82,7 @@
   background: -moz-radial-gradient(circle, #ffffff, #291a49);
   background: -ms-radial-gradient(circle, #ffffff, #291a49);
 }
-.simple-modal {
+#simple-modal.simple-modal {
   /* Style rewrite */
 
   width: 600px;
@@ -117,12 +109,12 @@
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
 }
-.simple-modal .simple-modal-header {
+#simple-modal.simple-modal .simple-modal-header {
   padding: 5px 15px;
   margin: 0;
   border-bottom: 1px solid #EEEEEE;
 }
-.simple-modal .simple-modal-header h1 {
+#simple-modal.simple-modal .simple-modal-header h1 {
   margin: 0;
   color: #404040;
   font-size: 18px;
@@ -130,7 +122,7 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   line-height: 36px;
 }
-.simple-modal a.close {
+#simple-modal.simple-modal a.close {
   position: absolute;
   right: 15px;
   top: 15px;
@@ -141,15 +133,15 @@
   line-height: 10px;
   text-decoration: none;
 }
-.simple-modal a.close:hover {
+#simple-modal.simple-modal a.close:hover {
   color: #444;
 }
-.simple-modal .simple-modal-body {
+#simple-modal.simple-modal .simple-modal-body {
   padding: 15px;
   /* Extra style */
 
 }
-.simple-modal .simple-modal-body div.contents {
+#simple-modal.simple-modal .simple-modal-body div.contents {
   overflow: hidden;
 }
 .simple-modal .simple-modal-body p {
@@ -158,11 +150,11 @@
   color: #606060;
   line-height: 18px;
 }
-.simple-modal .simple-modal-body p img {
+#simple-modal.simple-modal .simple-modal-body p img {
   display: block;
   margin: 0 auto 10px auto;
 }
-.simple-modal .simple-modal-footer {
+#simple-modal.simple-modal .simple-modal-footer {
   display: block;
   background-color: #F5F5F5;
   padding: 14px 15px 15px;
@@ -177,7 +169,7 @@
   margin-bottom: 0;
   text-align: center;
 }
-.simple-modal .simple-modal-footer a.btn {
+#simple-modal.simple-modal .simple-modal-footer a.btn {
   text-decoration: none;
   cursor: pointer;
   display: inline-block;
@@ -194,25 +186,25 @@
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
 }
-.simple-modal .simple-modal-footer a.btn.primary {
+#simple-modal.simple-modal .simple-modal-footer a.btn.primary {
   color: #FFF;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
   background-color: #999;
   background-repeat: repeat-x;
   margin-right: 15px;
 }
-.simple-modal .simple-modal-footer a.btn.primary:hover {
+#simple-modal.simple-modal .simple-modal-footer a.btn.primary:hover {
   border: 1px solid #444;
   background-color: #444;
 }
-.simple-modal .simple-modal-footer a.btn.secondary {
+#simple-modal.simple-modal .simple-modal-footer a.btn.secondary {
   padding: 5px 2px 6px;
 }
 .simple-modal .simple-modal-footer a.btn.secondary:hover {
   color: #999;
 }
 /* Draggable style */
-.simple-modal.draggable .simple-modal-header:hover {
+#simple-modal.simple-modal.draggable .simple-modal-header:hover {
   cursor: move;
   background-color: #f8f8f8;
   -webkit-border-top-left-radius: 6px;
@@ -223,21 +215,21 @@
   border-top-right-radius: 6px;
 }
 /* Loading style */
-.simple-modal.loading .simple-modal-body {
+#simple-modal.simple-modal.loading .simple-modal-body {
   min-height: 60px;
-  background: transparent url("/images/loader.gif") no-repeat center center;
+  background: transparent url("/i/loader.gif") no-repeat center center;
 }
-.simple-modal.loading .simple-modal-body div.contents {
+#simple-modal.simple-modal.loading .simple-modal-body div.contents {
   display: none;
 }
-.simple-modal.loading .close, .simple-modal.loading .simple-modal-header, .simple-modal.loading .simple-modal-footer {
-  display: none;
-}
-/* Hide header */
-.simple-modal.hide-header .simple-modal-header {
+#simple-modal.simple-modal.loading .close, .simple-modal.loading .simple-modal-header, .simple-modal.loading .simple-modal-footer {
   display: none;
 }
 /* Hide header */
-.simple-modal.hide-footer .simple-modal-footer {
+#simple-modal.simple-modal.hide-header .simple-modal-header {
+  display: none;
+}
+/* Hide header */
+#simple-modal.simple-modal.hide-footer .simple-modal-footer {
   display: none;
 }

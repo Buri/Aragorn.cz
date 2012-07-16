@@ -9,8 +9,8 @@
 /* DARK skin */
 body.dark{
     background-color: #000;
-    /*background: url('/images/dark/bg/bg.jpg') no-repeat center 0 fixed transparent;*/
-    background: url('/images/dark/bg/bg.png') no-repeat center top black;
+    /*background: url('/i/dark/bg/bg.jpg') no-repeat center 0 fixed transparent;*/
+    background: url('/i/dark/bg/bg.png') no-repeat center top black;
     text-align: center;
     margin: 0;
     padding: 0;
@@ -206,7 +206,7 @@ margin-top: -2px;*/
 }
 .dark .mBox.Core.mBoxLoading .mBoxContent {
 	min-height:11px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Loader.gif') center center no-repeat;
 }
 /*** modal theme: default ***/
 
@@ -255,7 +255,7 @@ margin-top: -2px;*/
 }
 .dark .mBox.Modal.mBoxLoading .mBoxContent {
 	min-height:11px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Loader.gif') center center no-repeat;
 }
 .dark .mBox.Modal .mBoxTitle {
 	position:relative;
@@ -309,7 +309,7 @@ margin-top: -2px;*/
 	position:absolute;
 	top:3px;
 	left:3px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Sprites.png') 0px 0px no-repeat;
 }
 .dark .mBox.Modal .mBoxClose:hover {
 	border-color:#c0c0c0;
@@ -354,7 +354,7 @@ margin-top: -2px;*/
 	color:#555555;
 	font-size:16px;
 	padding:30px 30px 30px 75px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Sprites.png') #fff 20px -1078px no-repeat;
 }
 .dark .mBox.Modal.Confirm .mBoxButtonContainer {
 	text-align:center;
@@ -391,7 +391,7 @@ margin-top: -2px;*/
 .dark .mBox.Notice .mBoxNoticeNotice,
 .dark .mBox.Notice .mBoxNoticeAttention {
 	padding-left:70px;
-	background-image:url('http://static.aragorn.cz/images/dark/mbox/mBox-Sprites.png');
+	background-image:url('http://static.aragorn.cz/i/dark/mbox/mBox-Sprites.png');
 	background-repeat:no-repeat;
 }
 
@@ -457,7 +457,7 @@ margin-top: -2px;*/
 }
 .dark .mBox.Tooltip.mBoxLoading .mBoxContent {
 	min-height:11px;
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBox-Loader.gif') center center no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBox-Loader.gif') center center no-repeat;
 }
 .dark .mBox.Tooltip .mBoxTitle {
 	color:#505050;
@@ -483,7 +483,7 @@ margin-top: -2px;*/
 	border-top-right-radius:5px;
 }
 .dark .mBox.Tooltip .mBoxPointer {
-	background:url('http://static.aragorn.cz/images/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
+	background:url('http://static.aragorn.cz/i/dark/mbox/mBoxTooltip-Sprites.png') no-repeat;
 }
 .dark .mBox.Tooltip .mBoxPointerTop {
 	width:17px;
@@ -574,19 +574,19 @@ margin-top: -2px;*/
     vertical-align: middle;
 }
 .dark #menu-den:hover{
-    background: url('/images/dark/bg/logo.png') no-repeat 0 -188px;
+    background: url('/i/dark/bg/logo.png') no-repeat 0 -188px;
 }
 .dark #menu-forum:hover{
-    background: url('/images/dark/bg/logo.png') no-repeat 0 -276px;
+    background: url('/i/dark/bg/logo.png') no-repeat 0 -276px;
 }
 .dark #menu-articles:hover{
-    background: url('/images/dark/bg/logo.png') no-repeat right -292px;
+    background: url('/i/dark/bg/logo.png') no-repeat right -292px;
 }
 .dark #menu-gallery:hover{
-    background: url('/images/dark/bg/logo.png') no-repeat right -181px;
+    background: url('/i/dark/bg/logo.png') no-repeat right -181px;
 }
 .dark #menu-aragorn:hover{
-    background: url('/images/dark/bg/logo.png') no-repeat center -460px;
+    background: url('/i/dark/bg/logo.png') no-repeat center -460px;
 }
 .dark .content{
     padding: 6px;
@@ -594,11 +594,11 @@ margin-top: -2px;*/
     color: #fff;
     float:left;
     width: 832px;
-   /* background: url('/images/dark/bg/content.png');*/
+   /* background: url('/i/dark/bg/content.png');*/
 }
 .dark .menu.logo{
     /*border-radius: 0 0 16px 16px; */
-    background: url(/images/dark/bg/logo.png) no-repeat scroll center top transparent;
+    background: url(/i/dark/bg/logo.png) no-repeat scroll center top transparent;
 }
 .dark .menu.logo a{
     color: transparent;
@@ -632,14 +632,14 @@ margin-top: -2px;*/
 }
 .dark .lock{
     padding-right: 20px;
-    background-image: url('/images/chatlock.png');
+    background-image: url('/i/chatlock.png');
     background-position: center right;
     background-repeat: no-repeat;
 }
 
 .dark .contentLoading{
     opacity:0.1;
-    background-image: url('/images/dark/bg/content.png');
+    background-image: url('/i/dark/bg/content.png');
     background-color: #000;
     -moz-transition: all .9s linear;
 }
@@ -649,12 +649,12 @@ margin-top: -2px;*/
 }
 .dark .role-root{
     color: #F6F;
-    background: url('/images/dark/link/admin.png') no-repeat right center;
+    background: url('/i/dark/link/admin.png') no-repeat right center;
     background-size: 14px;
 }
 .dark .role-moderator{
     color: #F66;
-    background: url('/images/dark/link/moderator.png') no-repeat right center;
+    background: url('/i/dark/link/moderator.png') no-repeat right center;
     background-size: 14px;
 }
 .dark .role-user{
@@ -678,7 +678,7 @@ margin-top: -2px;*/
 
 
 .dark #overlay{
-    background-image: url(/images/overlay.png) !important;
+    background-image: url(/i/overlay.png) !important;
 }
 .dark #msgStatus{
     border-radius:6px; 
@@ -761,28 +761,28 @@ margin-top: -2px;*/
     background-size: 18px;
 }
 .dark .post .post-info a.alert{
-    background-image: url(/images/report.png);
+    background-image: url(/i/report.png);
 }
 .dark .post .post-info a.alert:hover{
-    background-image: url(/images/reporta.png);
+    background-image: url(/i/reporta.png);
 }
 .dark .post .post-info a.edit{
-    background-image: url(/images/edit.png);
+    background-image: url(/i/edit.png);
 }
 .dark .post .post-info a.edit:hover{
-    background-image: url(/images/edita.png);
+    background-image: url(/i/edita.png);
 }
 .dark .post .post-info a.delete{
-    background-image: url(/images/delete.png);
+    background-image: url(/i/delete.png);
 }
 .dark .post .post-info a.delete:hover{
-    background-image: url(/images/deletea.png);
+    background-image: url(/i/deletea.png);
 }
 .dark .post .post-info a.cite{
-    background-image: url(/images/cite.png);
+    background-image: url(/i/cite.png);
 }
 .dark .post .post-info a.cite:hover{
-    background-image: url(/images/citea.png);
+    background-image: url(/i/citea.png);
 }
 
 .dark .newPost{
@@ -846,7 +846,7 @@ margin-top: -2px;*/
     padding: 2px;
     /*min-height: 500px;
     padding: 12px 3px;
-    background: url(/images/dark/bg/content.png); */
+    background: url(/i/dark/bg/content.png); */
     margin-right: 0px;
 }
 .dark menu a{
@@ -909,7 +909,7 @@ margin-top: -2px;*/
 }
 
 .dark .mooupload_btncontainer {
-  /*background: #DFDFDF url({{!$staticPath}}/images/upload.png) center right no-repeat; */
+  /*background: #DFDFDF url({{!$staticPath}}/i/upload.png) center right no-repeat; */
   padding: 10px;
 }
 
@@ -927,14 +927,14 @@ margin-top: -2px;*/
 }
 
 .dark .mooupload_btncontainer button.addfile {
-  background: url(/images/dark/buttons/dropbox.png) center center no-repeat;
+  background: url(/i/dark/buttons/dropbox.png) center center no-repeat;
   border: none;
   vertical-align: middle;
   height: 130px;
 }
 
 .dark .mooupload_btncontainer button.start {
-  background: #F3F3F3 url(/images/accept.png) 3px center no-repeat;
+  background: #F3F3F3 url(/i/accept.png) 3px center no-repeat;
 }
 
 .dark .mooupload_btncontainer button:active {
@@ -959,11 +959,11 @@ margin-top: -2px;*/
 }
 
 .dark .mooupload_off {
-  background: #FFF url(/images/progress_grey.gif) center left repeat-x;
+  background: #FFF url(/i/progress_grey.gif) center left repeat-x;
 }
 
 .dark .mooupload_on {
-  background: #FFF url(/images/progress.gif) center left repeat-x;
+  background: #FFF url(/i/progress.gif) center left repeat-x;
 }
 
 .dark ul.module-menu li{
@@ -1032,7 +1032,7 @@ margin-top: -2px;*/
 }
 .dark .widgetMenuButton{
     display: inline-block;
-    background: url(/images/dark/buttons/wheel-icon.png) center center no-repeat;
+    background: url(/i/dark/buttons/wheel-icon.png) center center no-repeat;
     background-size: contain;
     width: 24px;
     height: 20px;
@@ -1080,7 +1080,7 @@ margin-top: -2px;*/
 	width: 172px;
 	height: 135px;
 	padding: 14px;
-	background: url("/images/dark/bg/datepicker.png") no-repeat;
+	background: url("/i/dark/bg/datepicker.png") no-repeat;
 }
 
 /* header
@@ -1111,7 +1111,7 @@ margin-top: -2px;*/
 	width: 12px;
 	height: 12px;
 	top: 2px;
-	background-image: url("/images/dark/buttons/datepicker.png");
+	background-image: url("/i/dark/buttons/datepicker.png");
 	background-position: left top;
 	background-repeat: no-repeat;
 }
@@ -1326,3 +1326,52 @@ margin-top: -2px;*/
 .dark .datepicker td {
 	padding: 0;
 }
+    .dark #editorial p{
+        white-space: pre-line;
+    }
+    .dark #top-picks{
+        display: inline-block;
+        width: 300px;
+        float: right;
+        border:0px solid #333;
+        background: #333;
+        min-height: 200px;
+        padding: 1px;
+        margin: 10px;
+    }
+    .dark #top-picks .pick{
+        display: inline-block;
+        width: 292px;
+        background: #222;
+        border: 1px solid #333;
+        padding: 3px;
+    }
+    .dark #top-picks .pick a.title{
+        display: block;
+        margin: 0px;
+        padding: 5px;
+        background-image: -moz-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -webkit-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -o-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+        background-image: -ms-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
+    }
+    .dark #top-picks .pick div.detail{
+        width: 232px;
+        display: inline-block;
+        padding: 5px;
+        font-size: small;
+        overflow: hidden;
+        height: 60px;
+        line-height: 20px;
+    }
+    .dark #top-picks .pick div.detail div{
+        white-space: pre-line;
+        -moz-transition: all .3s linear;
+        -webkit-transition: all .3s linear;
+        -o-transition: all .3s linear;
+        -ms-transition: all .3s linear;
+        transition: all .3s linear;
+    }
+    .dark #top-picks .pick div.detail div:hover{
+        margin-top: -62px;
+    }
