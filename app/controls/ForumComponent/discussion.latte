@@ -47,8 +47,9 @@
     .paper .post-text cite.show{
         display: block;
     }
-    .paper .unread{
-        background-color: #999;
+    .paper .unread {
+        border-left: 4px solid #f78618;
+        margin-left: -4px;
     }
 
     
@@ -59,9 +60,10 @@
     border-radius: 4px;
     border-bottom: 1px dashed black;*/
 }
-.paper .post.botline{
-    /*border-bottom: 1px solid white;
-    border-radius: 5px;*/
+.paper .post.botline {
+  border-bottom: 1px dotted;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
 }
 .paper .post .head{
     display: inline-block;
@@ -262,7 +264,7 @@
     {if $allowWhisper}
     Šeptání: {input whisper}
     {/if}
-    {input send id=>'post'}
+    {input sendbtn id=>'post'}
     {/form}
 </div>
 {else}
@@ -275,11 +277,12 @@
 {*cache $id.'//'.$vp->getPaginator()->getPage(), tags => ['discussion/' . $id], expire=>'+ 20 minutes', sliding=>true *}
 {control vp}
 <ul class="discussion">
-    {var $posts = DB::forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($vp->getPaginator()->getLength(), $vp->getPaginator()->getOffset())}
+    {var $db=$presenter->context->database;$len = max($vp->getPaginator()->getLength(), 0); $posts = $db->forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($len, $vp->getPaginator()->getOffset())}
     {if count($posts)}
     {foreach $posts as $post}
     <li class="post{sep} botline{/sep}{if $post['time'] > intval($lastvisit)} unread{/if}" name="msg{$post['id']}">
         <dl>
+            {*? dump($iterator)*}
         <a name="msg{$post['id']}" />
         <dt class="head">
             {!$control->presenter->userLink($post['author'], true)}
@@ -297,8 +300,8 @@
                 <a href="#" class="cite button" title="Citovat příspěvek">&nbsp;</a>
                 {/if}
                 <i>{date('d.m.Y H:i', $post['time'])}</i>
-            </div>
-            <span class="post-text">{!$control->parse(htmlspecialchars($post->forum_posts_data['post']), $control->presenter->cache)}</span>
+            </div>{var $pdata = $db->forum_posts_data('id', $post['id'])->fetch()}
+            <span class="post-text">{!$control->parse(htmlspecialchars($pdata['post']), $control->presenter->cache)}</span>
             <div class="status">{$control->presenter->userStatus($post['author'])}</div>
         </div>
         </dl>
@@ -371,6 +374,7 @@
         $('frmforumForm-post').set('value', '');
         $('post').set('value', 'Přidat příspěvek');
     });
+    $$('#frmforumForm-post').removeEvents('submit');
     $$('#frmforumForm-post').addEvents({
         'keydown': function(e){
             if(e.key == 'enter' && e.shift){
@@ -379,6 +383,21 @@
             }
         }
     });
+    $$('#frm-forum-discussion-forumForm').addEvents({'submit': function(e){
+        e.stop();
+        //console.log(this);
+        //AC.ajax('forumPostAdd', { vals:this.get('values')});
+        new Form.Request(this, $('content'),
+        {
+            onSuccess:function(res, rep){
+                $(res).set('html', 'Odeslání OK, obnovuji příspěvky...');
+                AC.Ajax.reloadLocation();
+
+            }
+        }
+        ).send();
+    }});
+
     window.addEvent('ac-ready', function(){
         var cc = new CwAutocompleter( 'frmforumForm-post' /* ID of the input field */ ,
             '/ajax/userLookup/', /* URL of backend ajax script */

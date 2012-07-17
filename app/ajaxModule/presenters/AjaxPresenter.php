@@ -99,7 +99,7 @@ namespace ajaxModule{
             $this->template->data = $model->forum->create($id, $param, $prefix);
         }
         
-        
+
         public function actionForumPostDelete($id){
             $this->template->data = "fail";
             $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator, $this->context->cacheStorage);

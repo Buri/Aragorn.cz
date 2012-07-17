@@ -529,12 +529,30 @@ namespace Components\Models{
             return $this->authorizator->allowed($this->permID, $operation);
         }
 
-        public function add(\Nette\ArrayHash $post){
-            if($this->id === null) throw new \Exception('ID of post is not defined.');
-
-            $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
+        public function add(/*\Nette\ArrayHash*/ $vals){
             $uid =  $this->authorizator->getPermissionsInstance()->getUID();
+            $db = $this->database;
 
+
+            $url = $vals['discussionid'];
+            $postdata = array(
+                "author"=>$uid,
+                "forum"=> $url,
+                "time"=>time()
+                );
+            $post = $vals["post"];
+            unset($vals["post"]);
+
+            $pst = $db->forum_posts()->insert($postdata);
+            if(!$pst) return null;
+            $p2 = $db->forum_posts_data()->insert(array('post'=>$post));
+            if(!$p2) return null;
+
+            $u = $db->forum_topic('id', $url)->fetch();
+            $this->cache->clean(array(
+                \Nette\Caching\Cache::TAGS => array('forum/'.$url),
+            ));
+            return $pst['id'];
         }
 
         public function edit(\Nette\ArrayHash $post){

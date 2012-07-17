@@ -161,7 +161,7 @@ namespace Components{
         public function createComponentForumForm(){
             $form = new \Nette\Application\UI\Form;
             $form->addTextArea('post', 'Nová zpráva')->addRule(\Nette\Application\UI\Form::FILLED);
-            $form->addSubmit('send', 'Přidat příspěvek');
+            $form->addSubmit('sendbtn', 'Přidat příspěvek');
             $form->addHidden('discussionid');
             $form->addHidden('action');
             $form->setDefaults(array(
@@ -180,30 +180,15 @@ namespace Components{
         public function addPost($form){
             $v = $form->getValues();
             $model = new \Components\Models\ForumControl($this->db, $this->presenter->context->authorizator, $this->presenter->context->cacheStorage);
-
-            $db = $this->db;
             
             if($v['action'] == "add"){
                 $url = $v['discussionid'];
-                $postdata = array(
-                    "author"=>\Nette\Environment::getUser()->getId(),
-                    "forum"=> $url,
-                    "time"=>time()
-                    );
-                $post = $v["post"];
-                unset($v["post"]);
-                $pst = $db->forum_posts()->insert($postdata);
-                $db->forum_posts_data()->insert(array('post'=>$post));
-                $db->forum_visit('idforum', $this->postdata['forum'])->update(array('unread'=>new \NotORM_Literal('unread + 1')));
-                //$this->parent->setLastAccess();
-                $cache = new \Nette\Caching\Cache($this->storage, 'Nette.Templating.Cache');
-                $u = $db->forum_topic('id', $url)->fetch();
-                $urlf = $u['urlfragment'];
-                $cache->clean(array(
-                    \Nette\Caching\Cache::TAGS => array('discussion/'.$urlf),
-                ));
-                /* Propagate new post all the way up */
-                $model->forum->setID($url)->propagateNewPost($pst['id']);
+                $id = $model->post->add($v);
+                if($id === null){
+                    $this->flashMessage("Nepodařilo se přidat příspěvek.");
+                }else{
+                    $model->forum->setID($url)->propagateNewPost($id);
+                }
                 if($this->parent->getHU())
                     $this->redirect('render!', $this->parent->getHU());
                 $this->redirect('this');
