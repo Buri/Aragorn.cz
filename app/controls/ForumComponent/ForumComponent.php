@@ -89,7 +89,7 @@ namespace Components{
                     if($locked)
                         $this->presenter->flashMessage ('Forum je uzamčené');
 
-                    $model->forum->increaseViews();
+                    //$model->forum->increaseViews();
                 }else{
                     $parent = 0;
                     $data = array();
@@ -108,7 +108,7 @@ namespace Components{
             }
             $this->getTemplate()->topics = $data;
             $this->getTemplate()->n = $nav;
-            $this->setLastAccess();
+            $this->lastVisit = $model->forum->setLastVisit();
             $this->getTemplate()->model = $model;
             $this->template->isLoggedIn = $this->presenter->getUser()->isLoggedIn();
         }
@@ -149,10 +149,10 @@ namespace Components{
          * @return array
          */
         public function getPostCount($forum){
-            $c = DB::forum_topic('id', $forum)->select('postcount as count')->fetch();
-            //echo $c;
+            $db = $this->context->database;
+            $c = $db->forum_topic('id', $forum)->select('postcount as count')->fetch();
             if($this->context->user->isLoggedIn())
-                $u = DB::forum_visit('idforum = ? AND iduser = ?', array($forum, $this->context->user->getId()))->fetch();
+                $u = $db->forum_visit('idforum = ? AND iduser = ?', array($forum, $this->context->user->getId()))->fetch();
             else
                 $u = array('unread' =>0);
             return array('total' => $c['count'], 'unread' => $u == null ? (int)$c['count'] : (int)$u['unread']);
@@ -193,9 +193,10 @@ namespace Components{
             ));*/
             $parent = $forumId;
             $ids = array();
+            $db = $this->context->database;
             do{
                 $ids[] = $parent;
-                $f = DB::forum_topic('id', $parent);
+                $f = $db->forum_topic('id', $parent);
                 $f->update(array(
                     "postcount" => new \NotORM_Literal('postcount + 1'),
                     "lastpost" => $postId
@@ -207,7 +208,7 @@ namespace Components{
                 $parent = intval($f['parent']);
             }while($parent != 0 && $parent != -1 );
             /* And clear top level forum cache */
-            DB::forum_visit('idforum',  $ids)->update(array(
+            $db->forum_visit('idforum',  $ids)->update(array(
               //  "time" => new \NotORM_Literal('unix_timestamp()'),
                 "unread" => new \NotORM_Literal('unread + 1')
             ));
@@ -220,22 +221,7 @@ namespace Components{
             
         }
 
-        public function setLastAccess(){
-            #dump('Setting last access');
-            $user = $this->context->user;
-            $db = DB::forum_topic('urlfragment', $this->url)->fetch();
-            if($db['id'] && $user->getId() != null){
-                $r = DB::forum_visit(array('iduser' => $user->getId(), 'idforum' => $db['id']))->fetch();
-                $this->lastVisit = $r['time'];
-              #  dump($r['time'] . '-'.time());
-                DB::forum_visit()->insert_update(
-                        array('iduser'=>$user->getId(), 'idforum'=>$db['id']),
-                        array('time'=>time(), 'unread'=>0),
-                        array('time'=>time(), 'unread'=>0)
-                    );
-            }
-        }
-
+        
         public function createComponentDiscussion(){
             $c = new \Components\DiscussionComponent; //($this, $name, "hola");
             return $c->setCache($this->context->cacheStorage)

@@ -281,6 +281,29 @@ namespace Components\Models{
             return $locked;
         }
 
+        public function setLastVisit($time = null){
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+            if($time === null) $time = time();
+
+            $lastVisit = 0;
+            if($this->isAllowed('read')){
+                $db = $this->database;
+                $uid = $this->authorizator->getPermissionsInstance()->getUID();
+                $key = array('iduser' => $uid, 'idforum' => intval($this->id));
+                $val = array('time'=>$time, 'unread'=>0);
+
+                $r = $db->forum_visit($key)->fetch();
+                $lastVisit = $r['time'];
+                $db->forum_visit()->insert_update(
+                        $key,
+                        $val,
+                        $val
+                    );
+                $this->increaseViews();
+                return $lastVisit;
+           }
+        }
+
 
         public function propagateNewPost($postId){
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
