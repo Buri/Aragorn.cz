@@ -76,7 +76,7 @@ namespace frontendModule{
                                 return false;
                             }
                         }
-                        return false;
+                        return true;
                     }, "Vaše mailová adresa je na blacklistu.");
 
             /*$form->addCheckbox('eula', 'Souhlasím s podmínkami.')

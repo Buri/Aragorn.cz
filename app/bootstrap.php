@@ -32,7 +32,7 @@ $application = $container->application;
 Nette\Diagnostics\Debugger::$strictMode = TRUE;
 Nette\Diagnostics\Debugger::$logDirectory = WWW_DIR . '/../log';
 
-if($container->parameters['debug']['force'] === true){
+if(false && $container->parameters['debug']['force'] === true){
     #$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1"));
     $configurator->setDebugMode(Nette\Config\Configurator::DEVELOPMENT);
     $application->catchExceptions = FALSE;
@@ -47,7 +47,7 @@ if($container->parameters['debug']['force'] === true){
     $configurator->setDebugMode(Nette\Config\Configurator::PRODUCTION);
     $application->catchExceptions = TRUE;
 }
-$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1", "83.208.197.163"));
+//$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1", "83.208.197.163"));
 
 
 /* Setup cookies for later use */

@@ -1,56 +1,5 @@
 {$title='Úvodníky'}
 {block content}
-<style>
-    .dark #editorial p{
-        white-space: pre-line;
-    }
-    .dark #top-picks{
-        display: inline-block;
-        width: 300px;
-        float: right;
-        border:0px solid #333;
-        background: #333;
-        min-height: 200px;
-        padding: 1px;
-        margin: 10px;
-    }
-    .dark #top-picks .pick{
-        display: inline-block;
-        width: 292px;
-        background: #222;
-        border: 1px solid #333;
-        padding: 3px;
-    }
-    .dark #top-picks .pick a.title{
-        display: block;
-        margin: 0px;
-        padding: 5px;
-        background-image: -moz-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
-        background-image: -webkit-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
-        background-image: -o-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
-        background-image: -ms-linear-gradient(top, rgb(99,101,107) 3%, rgb(34,35,36) 90%);
-    }
-    .dark #top-picks .pick div.detail{
-        width: 232px;
-        display: inline-block;
-        padding: 5px;
-        font-size: small;
-        overflow: hidden;
-        height: 60px;
-        line-height: 20px;
-    }
-    .dark #top-picks .pick div.detail div{
-        white-space: pre-line;
-        -moz-transition: all .3s linear;
-        -webkit-transition: all .3s linear;
-        -o-transition: all .3s linear;
-        -ms-transition: all .3s linear;
-        transition: all .3s linear;
-    }
-    .dark #top-picks .pick div.detail div:hover{
-        margin-top: -62px;
-    }
-</style>
 {if $user->isLoggedIn()}
 <div id="editorial">
     <div id="top-picks">

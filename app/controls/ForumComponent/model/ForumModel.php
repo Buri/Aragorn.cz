@@ -37,12 +37,19 @@ namespace Components\Models{
 
         /**
          *
+         * @var \Nette\Caching\IStorage
+         */
+        protected $storage;
+
+        /**
+         *
          * @param \NotORM $db
          */
-        public function __construct(\NotORM $db, \UserAuthorizator $perms){
+        public function __construct(\NotORM $db, \UserAuthorizator $perms, \Nette\Caching\IStorage $storage){
             $this->database = $db;
-            $this->forum = new ForumModel($db, $perms);
-            $this->post = new PostModel($db, $perms);
+            $this->storage = $storage;
+            $this->forum = new ForumModel($db, $perms, $storage);
+            $this->post = new PostModel($db, $perms, $storage);
             $this->authorizator = $perms;
         }
 
@@ -64,13 +71,16 @@ namespace Components\Models{
         protected $id = null;
         protected $permID = "";
 
+        protected $cache;
+
         /**
          *
          * @param \NotORM $db
          */
-        public function __construct(\NotORM $db, \UserAuthorizator $perms){
+        public function __construct(\NotORM $db, \UserAuthorizator $perms, \Nette\Caching\IStorage $storage){
             $this->database = $db;
             $this->authorizator = $perms;
+            $this->cache = new \Nette\Caching\Cache($storage, 'forum-model');
         }
 
         /**
@@ -90,14 +100,29 @@ namespace Components\Models{
         public function getModerators(){
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
 
-            $out = array();
-            foreach($this->database->forum_moderator('forumid', $this->id) as $mod)
-                    $out[] = $mod['userid'];
-            $forum = $this->database->forum_topic('id', $this->id)->fetch();
-            $out[] = $forum['owner'];
-            if($forum['parent'] > 0){
-                $model = new ForumControl($this->database, $this->authorizator);
-                $out = array_unique(array_merge($out, $model->forum->setID($forum['parent'])->getModerators()));
+            $ckey = 'forum-moderators-' + $this->id;
+            $out = $this->cache->load($ckey);
+            if($out === null){
+                $db = $this->database;
+                $id = $this->id;
+                foreach($db->forum_moderator('forumid', $id) as $mod){
+                        $out[] = $mod['userid'];
+                }
+                $forum = $db->forum_topic('id', $id)->fetch();
+                $out[] = $forum['owner'];
+                if($forum['parent'] > 0){
+                    $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
+                    $out = array_unique(array_merge($out, $model->forum->setID($forum['parent'])->getModerators()));
+                }
+                $tags = array();
+                do{
+                    $tags[] = "forum-moderators-" . $forum['id'];
+                    $forum = $db->forum_topic('id', $forum['parent'])->fetch();
+                }while($forum['parent'] > 0);
+                $this->cache->save($ckey,
+                        $out,
+                        array('tags' => $tags)
+                        );
             }
             return $out;
 
@@ -117,25 +142,36 @@ namespace Components\Models{
         public function isAllowed($operation){
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
 
-            $db = $this->database;
-            $model = new ForumControl($db, $this->authorizator);
-            $uid =  $this->authorizator->getPermissionsInstance()->getUID();
+            $perm = $this->authorizator->getPermissionsInstance();
 
-            /* Load post metadata */
-            $topic = $db->forum_topic('id', $this->id)->fetch();
-            /* Fail if post doesnt exists*/
-            if($topic === null) throw new \Exception('Forum ID invalid');
+            if(!$perm->hasPermissionSet($this->permID)){
+                //dump('Perm lookup');
+                $db = $this->database;
+                $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
+                $uid =  $perm->getUID();
 
-            /* Determine if user owns this post */
-            if($topic['owner'] == $uid){
-                $this->authorizator->getPermissionsInstance ()->setOwner ($this->permID);
-            }else{
-                /* Is user moderator? */
-                $mods = $model->forum->setID($this->id)->getModerators();
-                if(array_search("$uid", $mods) !== false)
-                        $this->authorizator->getPermissionsInstance ()->setResource ($this->permID, array('_ALL'=>true), true);
+                /* Load post metadata */
+                $topic = $db->forum_topic('id', $this->id)->fetch();
+                /* Fail if post doesnt exists*/
+                if($topic === null) throw new \Exception('Forum ID invalid');
+
+                /* Determine if user owns this post */
+                if($topic['owner'] == $uid){
+                    $perm->setOwner ($this->permID);
+                }else{
+                    /* Is user moderator? */
+                    $mods = $model->forum->setID($this->id)->getModerators();
+                    if(array_search("$uid", $mods) !== false)
+                            $perm->setResource ($this->permID, array('_ALL'=>true), true);
+                }
+
+                if(!$perm->hasPermissionSet($this->permID)){
+                    //dump('Perm not found.');
+                    $perm->setResource($this->permID, array(
+                        $operation => false
+                    ));
+                }
             }
-            
 
             return $this->authorizator->allowed($this->permID, $operation);
         }
@@ -187,7 +223,7 @@ namespace Components\Models{
             $db = $this->database;
 
             $discussions = $db->forum_topic('parent', $this->id);
-            $model = new ForumControl($this->database, $this->authorizator);
+            $model = new ForumControl($this->database, $this->authorizator, $this->cache->getStorage());
 
             foreach($discussions as $topic){
                 $tid = $topic['id'];
@@ -314,9 +350,16 @@ namespace Components\Models{
          * @var string Permission identifier
          */
         protected $permID;
-        public function __construct(\NotORM $db, \UserAuthorizator $perms){
+
+        /**
+         *
+         * @var \Nette\Caching\Cache
+         */
+        protected  $cache;
+        public function __construct(\NotORM $db, \UserAuthorizator $perms, \Nette\Caching\IStorage $storage){
             $this->database = $db;
             $this->authorizator = $perms;
+            $this->cache = new \Nette\Caching\Cache($storage, 'post-model');
         }
 
         /**
@@ -343,7 +386,7 @@ namespace Components\Models{
             if($this->id === null) throw new \Exception('ID of post is not defined.');
 
             $db = $this->database;
-            $model = new ForumControl($db, $this->authorizator);
+            $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
             $uid =  $this->authorizator->getPermissionsInstance()->getUID();
 
             /* Load post metadata */
@@ -366,7 +409,7 @@ namespace Components\Models{
         public function add(\Nette\ArrayHash $post){
             if($this->id === null) throw new \Exception('ID of post is not defined.');
 
-            $model = new ForumControl($db, $this->authorizator);
+            $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
             $uid =  $this->authorizator->getPermissionsInstance()->getUID();
 
         }
@@ -425,7 +468,7 @@ namespace Components\Models{
             $db->forum_posts_data('id', $this->id)->delete();
 
 
-            $model = new ForumControl($db, $this->authorizator);
+            $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
             $model->forum->setID($post['forum'])->propagateDeletePost();
 
             return true;

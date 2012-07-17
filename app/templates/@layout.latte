@@ -10,16 +10,13 @@
  *}
 {if $ajax}
 <script type="text/javascript">document.title='{!$title} | Aragorn.cz';
-    {*foreach $flashes as $flash}
-    AC.message({$flash->message}, {$flash->type}});
-    {/foreach*}
     {if $forceReload}
         location.reload();
     {/if}
 </script>
 <ul n:if="count($flashes)" class="flashes">
     {foreach $flashes as $flash}
-    <li>{$flash->message}</li>
+    <li class="{$flash->type}">{$flash->message}</li>
     {/foreach}
 </ul>
 <h1 id="location">{$title}</h1>
@@ -28,75 +25,17 @@
 <!DOCTYPE html>
 <html lang="cs" xml:lang="cs" xmlns="http://www.w3.org/1999/xhtml">
     <head>
+        {* Cache generated urls *}
+        {cache}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.css" />
         {include 'head.latte'}
+        {/cache}
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
         </script>
         <style type="text/css">
             @font-face{ font-family: "xirwena";src: url("/assets/fonts/paper/xirwena.ttf") format('truetype');}
             @font-face{ font-family: "distink";src: url("/assets/fonts/paper/dir.otf") format('truetype');}
-            .paper div.block:nth-of-type(2){
-                display:none !important;
-            }
-            .paper div.block:nth-of-type(3){
-                margin-top: 330px;
-            }
-            .paper div.block:nth-of-type(4){
-                margin-top: 330px;
-            }
-            .paper div.block.how-to-start{
-                display:none;
-            }
-            .paper div.block:nth-of-type(2),.paper div.block:nth-of-type(3),.paper div.block:nth-of-type(4),.paper div.block:nth-of-type(5){
-                display: inline-block;
-                width: 470px;
-                vertical-align: middle;
-                text-align: center;
-            }
-            .paper div.block:nth-of-type(5){
-                left:720px;
-                top:-370px;
-                position: relative;
-            }
-            .paper div.block:nth-of-type(5) form#frm-searchForm{
-                background:url("/assets/images/paper/bg/search.png") no-repeat scroll -27px -40px transparent;
-                text-align: left;
-                height: 23px;
-            }
-            .paper div.block:nth-of-type(5) input[type=text]{
-                border:none;
-                width:149px;
-            }
-            .paper div.block:nth-of-type(5) input[type=submit]{
-                border: none;
-                color: transparent;
-                background: transparent;
-                margin-left: 3px;
-                width: 17px;
-                cursor: pointer;
-            }
-            .paper ul.flashes li{
-                background: url("/assets/images/paper/bg/flash.gif") repeat-y left top;
-                list-style: none;
-                padding: 5px 5px 5px 20px;
-            }
-            .paper menu#bookmarks{
-                background: url('/assets/images/paper/bg/paper.jpg');
-                color: #000;
-                border-color: #e3cc89;
-            }
-            .paper menu#bookmarks:hover{
-                /*border-color: red ;*/
-            }
-            .paper menu#bookmarks a{
-                color: #000;
-                display:block;
-            }
-            .paper menu#bookmarks a.new-message{
-                color: red;
-                display:block;
-            }
         </style>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
@@ -107,34 +46,42 @@
         </menu>{/if}
         <div id="constat" title="Connection status: offline" class="offline">&infin;</div>
         <div class="holder">
+            {* Cache Logo links *}
+            {cache}
             {include 'logo.latte'}
+            {/cache}
             <menu id="sidebar-left">
                 <div class="block">
                     {if $user->isLoggedIn()}
-                    <!--DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
+                    {*DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
                     <input id="msgStatus" value="{$presenter->userStatus()}" type="text" placeholder="ZprĂˇva stavu" />
-                    <input type="button" id="btnStatus" value=">" />-->
+                    <input type="button" id="btnStatus" value=">" />*}
                     <a href="{$presenter->userLink($user->getId(), false)}" class="ajax profile" title="{$user->getIdentity()->username}" id="menu-user-profile">
                         <img src="{$presenter->userIcon()}" /> {$user->getIdentity()->username}
                     </a>
+                    {* Cache links and user icons *}
+                    {cache}
                     <a href="{link settings:}" class="middle ajax" title="Nastavení" id="menu-settings">
-                       {* <img src="{$staticPath}/images/settings.png" /> *} Nastavení
+                       Nastavení
                     </a>
                     <a href="{link mail:}" class="middle ajax" title="Pošta" id="menu-post">
-                        {*<img src="{$staticPath}/images/unread_mail.png" />*} Pošta
+                        Pošta
                     </a>
                     <a href="{link notes:my}" class="middle ajax" id="menu-notes" title="Osobní poznámky">
-                        {*<img src="{$staticPath}/images/rs.png" />*} Poznámky
+                        Poznámky
                     </a>
+                    {/cache}
                     {if $user->isAllowed('admin')}
                     <a href="{link :admin:dashboard:}" class="middle" id="menu-admin" title="Redakční systém">
-                        {*<img src="{$staticPath}/images/rs.png" /> *} RS
+                        RS
                     </a>
                     {/if}
                     <a href="{plink dashboard:logout}" class="middle" title="Odhlásit" id="menu-logout">
-                        {*<img src="{$staticPath}/images/logout.png" />*} Odhlásit
+                        Odhlásit
                     </a>
                     {else}
+                    {* Cache log-in form *}
+                    {cache}
                     <a href="#" class="profile">Přihlášení</a>
                     <div id="frmLogin">
                             {form logInForm}
@@ -146,6 +93,7 @@
                             <a href="{link registration:recoverpassword}" class="middle ajax">Zapomenuté heslo</a>
                             {/form logInForm}
                     </div>
+                    {/cache}
                     {/if}
                 </div>
                 <div class="block">
@@ -166,6 +114,8 @@
                        {* <img src="{$staticPath}/images/users-icon.png" />*}
                         Lidé (<span id="numUsrOnline">{$node->getNumberOfUsersOnline()}</span>)
                     </a>
+                    {* Another link caching *}
+                    {cache}
                     <a href="{link calendar:}" class="middle ajax" id="menu-calendar">
                       {*  <img src="{$staticPath}/images/dark/menu/calendar.png" />*} Kalendář
                     </a>
@@ -173,6 +123,7 @@
                      {*   <img src="{$staticPath}/images/help-icon.png" />*} Nápověda
                     </a>
                     <div id="iddlebar"></div>
+                    {/cache}
                 </div>
                 <div class="block">
                     <a href="" class="profile">Skiny</a>
@@ -181,12 +132,15 @@
                     <a href="" class="change-skin" data-skin="dark">Dark</a>
                     <a href="" class="change-skin" data-skin="light">Light</a>
                 </div>
+                {* Cache search form *}
+                {cache}
                 <div class="block">
                     {form searchForm}
                     {input q}
                     {input search}
                     {/form}
                 </div>
+                {/cache}
             </menu>
             <div class="content" id="content">
                 <h1 id="location">{$title}</h1>
@@ -198,6 +152,8 @@
                 {include #content}
             </div>
         </div>
+        {* Cache sound paths *}
+        {cache}
         <div style="display:none;">
             <audio id="audioNotification" preload="full">
                 <source src="{!$staticPath}/sound/beep.ogg" />
@@ -205,6 +161,7 @@
                 <source src="{!$staticPath}/sound/beep.wav" />
             </audio>
         </div>
+        {/cache}
         <footer>
             <!--Provozovatel Aragorn.cz nezodpovídá za příspěvky čtenářů, uživatelů či přispěvatelů.
             Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
@@ -219,11 +176,10 @@
             <a n:href="dashboard:stats" class="ajax">Další statisktika</a>
         </footer>
     </body>
+    {* Cache script paths. Probably unnescessary, but still. *}
+    {cache null, files => 'scripts.latte'}
     {include 'scripts.latte'}
-    <script>
-        setTimeout(function(){
-            $$('#nette-debug').dispose();
-        }, 500);
-    </script>
+    {/cache}
+<script>//setTimeout(function(){ $$('#nette-debug').dispose();}, 300);</script>
 </html>
 {/if}

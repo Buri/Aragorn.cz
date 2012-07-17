@@ -1,15 +1,17 @@
+{if true}{* Using deffered loading of scripts *}
 <script type="text/javascript">
     window.addEvent('load', function(){
-    {foreach array(/*'mootools-more-1.4.0.1', 'socket.io.min', 'lazyload-yc', 'moorainbow-yc', 'powertools-yc', 'floatingtips-yc',
-    'simple-modal-yc', 'cwcomplete-yc',*/ '__minified-0.1', 'aragorn')
-    as $script}
-        document.head.grab(new Element('script', {
-            src:"{!$staticPath}/js/" +{$script} + ".js",
-            type:'text/javascript',
-            charset:'utf-8'
-        }));
-    {*<script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{$script}.js"></script>*}
-    {/foreach}
+        {? echo json_encode(array( '__minified-0.1', 'aragorn'))}.each(function(script){
+            document.head.grab(new Element('script', {
+                src:"{!$staticPath}/js/" + script + ".js",
+                type:'text/javascript',
+                charset:'utf-8'
+            }));
+        });
     });
-    {* 'moochoose-1.0.2-yc', 'overlay', 'moogressbar', 'mif.tree', *}
 </script>
+{else}
+    {foreach array( '__minified-0.1', 'aragorn') as $script}
+    <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{!$script}.js"></script>
+    {/foreach}
+{/if}

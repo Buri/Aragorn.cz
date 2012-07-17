@@ -111,6 +111,7 @@ class Permissions extends Nette\Object{
      * Force fetching permissions from db
      */
     public function forceReload(){
+        //dump("Force reload");
         /** @var Nette\User */
         $user = $this->context->user;
         /** @var array */
@@ -145,6 +146,9 @@ class Permissions extends Nette\Object{
         /* Required to use noncached permissions */
         if($forceReload) 
             $this->forceReload ();
+
+        //dump($this->storage);
+
         /* Permission has not been defined */
         if(empty($this->storage[$resource]))
             return false;
@@ -177,6 +181,7 @@ class Permissions extends Nette\Object{
         if(!$this->hasPermissionSet($resource) || $override){
             $this->storage[$resource] = $permissions;
         }
+        $this->updateCache();
     }
 
     /**
@@ -186,6 +191,7 @@ class Permissions extends Nette\Object{
     public function setOwner($resource){
         $this->storage[$resource] = array("_ALL" => true);
         $this->storage[$resource]['owner'] = true;
+        $this->updateCache();
         return $this;
     }
 }

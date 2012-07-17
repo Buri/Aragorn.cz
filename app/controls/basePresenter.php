@@ -37,9 +37,9 @@ class BasePresenter extends Nette\Application\UI\Presenter{
      */
     public function startup(){
         parent::startup();
-
+        
         /* Panely */
-        if($this->context->parameters['debug']['force'] === true) { // dev only
+        if(false && $this->context->parameters['debug']['force'] === true) { // dev only
             // service conflict with @nette.mail
             Nette\Mail\Message::$defaultMailer = new \Schmutzka\Diagnostics\DumpMail($this->getContext()->session);
             \Nette\Diagnostics\Debugger::addPanel(new \Schmutzka\Panels\DumpMail($this->getContext()->session));
@@ -93,13 +93,17 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         if($id == null) $id =$this->context->user->getId();
         if($id == null) return false;
         $c = $this->getCache(false);        // Set global cache
-        $cname = 'user-link' . $id . ($html ? '-html' : '');
+        $cname = 'user-link-' . $id . ($html ? '-html' : '');
+        //dump($cname);
         $link = $c->load($cname);
         if($link !== null){
+            //dump("cached link");
             $this->getCache();
             return $link;    
         }
-        $u = DB::users('id', $id)->fetch();
+        //dump("uncached link");
+        $db = $this->context->database;
+        $u = $db->users('id', $id)->fetch();
         $v = $u->users_profiles()->fetch();
         $n = $v['urlfragment'];
         $link = $this->link('users:view', $n);
@@ -118,7 +122,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
                 default:
                     $role = 'role-guest';
             }
-            return "<a href=\"".$link."\" class=\"$role ajax user-link\" data-profile=\"$n\">".$u['username']."</a>\n";
+            $link = "<a href=\"".$link."\" class=\"$role ajax user-link\" data-profile=\"$n\">".$u['username']."</a>\n";
         }
         $c->save($cname, $link);
         $this->getCache(true);      // Reset back to local cache
@@ -126,14 +130,14 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     }
     
     public function userStatus($id = null){
-        if($id == null) $id = \Nette\Environment::getUser()->getId ();
-        $u = DB::users_profiles('id', $id)->fetch();
+        if($id == null) $id = $this->getUser()->getId ();
+        $u = $this->context->database->users_profiles('id', $id)->fetch();
         return $u['status'];
     }
     
     public function userIcon($id = null){
-        if($id == null) $id = \Nette\Environment::getUser()->getId ();
-        $i = DB::users_profiles('id', $id)->fetch();
+        if($id == null) $id = $this->getUser()->getId ();
+        $i = $this->context->database->users_profiles('id', $id)->fetch();
         if($i['icon'])
             $ic = $i['icon'];
         else
@@ -144,11 +148,12 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     public static $UP_ICON = 1, $UP_STATUS = 2, $UP_ACTIVITY = 4, $UP_LOCATION = 8;
     private $userpath;
     public function userProfile(array $user, $format = 11, $other = array("class"=>"", "id"=>"")){
+        $db = $this->context->database;
         if(!empty($user['id']) && $user['id'] != "0"){
             if(isset($user['name'])){
-                $u = DB::users('username', $user['name'])->fetch();
+                $u = $db->users('username', $user['name'])->fetch();
             }elseif(isset($user['mail'])){
-                $u = DB::users_profiles('mail', $user['mail'])->fetch();
+                $u = $db->users_profiles('mail', $user['mail'])->fetch();
             }else{
                 throw new Exception("Bad format for user query.");
             }
@@ -176,7 +181,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             // Query node.js here
         }
         if($format & self::$UP_STATUS){
-            $i = DB::users_profiles($user['id'])->fetch();
+            $i = $db->users_profiles($user['id'])->fetch();
             $profile .= "<span class=\"profilestatus\">".htmlspecialchars($i['status'])."</span>\n";
         }
         
@@ -219,7 +224,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }else{
                 $user->setExpiration('+ 60 minutes', true, true);
             }
-            DB::users_profiles('id', $user->getId())->update(array('login'=>time()));
+            $this->context->database->users_profiles('id', $user->getId())->update(array('login'=>time()));
             $path = 'safe://' . APP_DIR . '/../db/user_ip_addresses/' . $user->getId() . '.txt';
             if(!file_exists($path)){
                 $fp = fopen($path, 'w');

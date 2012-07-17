@@ -62,22 +62,23 @@ namespace Components{
             $this->template->noticeboard = "";
             $this->template->parent = $this;
             $nav = array();
-            $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator, $this->context->cacheStorage);
+            $db = $this->context->database;
             if(isset($url) && $url != ""){
-                $p = DB::forum_topic('urlfragment', $url)->fetch();
+                $p = $db->forum_topic('urlfragment', $url)->fetch();
                 if($p){
                     $fid = $p['id'];
                     $this->forumId = $fid;
                     $this->template->noticeboard = $p['noticeboard'];
                     $this->template->discussion = !(($p['options'] & self::POSTS_ALLOWED) & self::LOCKED);
-                    $data = DB::forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
+                    $data = $db->forum_topic('parent', $p['id'])->order('sticky DESC', 'name ASC');
                     $parent = $fid;
                     while($parent > 0){
-                        $p = DB::forum_topic('id', $parent)->fetch();
+                        $p = $db->forum_topic('id', $parent)->fetch();
                         $nav[] = array("url" => $p["urlfragment"], "name"=> $p["name"]);
                         $parent = $p['parent'];
                     }
-                    $info = DB::forum_topic('id', $fid)->fetch();
+                    $info = $db->forum_topic('id', $fid)->fetch();
                     $this->template->info = $info;
                     $this->template->fid = $fid;
 
@@ -96,7 +97,7 @@ namespace Components{
                     $this->getTemplate()->locked = false;
                 }
             }else{
-                $data = DB::forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
+                $data = $db->forum_topic('parent', 0)->order('sticky DESC', 'name ASC');
                 $this->template->newforum = $this->context->user->isAllowed('forum','create');
                 $parent = 0;
                 $model->forum->setID(-1);

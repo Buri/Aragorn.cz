@@ -105,7 +105,7 @@ namespace Components{
             $this->template->setFile(__DIR__ . '/discussion.latte');
             $db = $this->db;
 
-            $model = new \Components\Models\ForumControl($this->db, $this->presenter->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->db, $this->presenter->context->authorizator, $this->presenter->context->cacheStorage);
 
             $info = $db->forum_topic('urlfragment', $url)->fetch();
 
@@ -179,7 +179,7 @@ namespace Components{
          */
         public function addPost($form){
             $v = $form->getValues();
-            $model = new \Components\Models\ForumControl($this->presenter->context->database, $this->presenter->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->db, $this->presenter->context->authorizator, $this->presenter->context->cacheStorage);
 
             $db = $this->db;
             
@@ -227,14 +227,14 @@ namespace Components{
          */
         public function parse($text){
             $cache = $this->cache;
-            if(false && $cache){
+            if($cache){
                 $t = $cache->load($text);
                 if($t !== null){
+                    //dump("Cached post");
                     return $t;
                 }
             }
             // Find Tags
-            $ts = $this->presenter->link('search:');
             $tagPattern = '/\#(([a-zA-Z0-9]|-|_){3,})/i';
             $matches = array();
             preg_match_all($tagPattern, $text, $matches);
@@ -270,6 +270,7 @@ namespace Components{
 
             if($cache)
                 $cache->save($text, $out);
+            //dump("Generated post.");
             return $out;
         }
         /**
@@ -291,7 +292,7 @@ namespace Components{
                                 'default_arg'=>'{CONTENT}',
                                 'childs'=>'b,i,img'),
                 'img'=>      array('type'=>BBCODE_TYPE_NOARG,
-                                'open_tag'=>'<img data-src="', 'close_tag'=>'" class="ll" />',
+                                'open_tag'=>'<img src="', 'close_tag'=>'" class="ll" />',
                                 'childs'=>''),
                 'mp3'=>      array('type'=>BBCODE_TYPE_OPTARG,
                                 'open_tag'=>'<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0" width="165" height="38" id="niftyPlayer1" align=""><param name=movie value="/niftyplayer.swf?file={PARAM}&as=0"><param name=quality value=high><param name=bgcolor value=#FFFFFF><embed src="/niftyplayer.swf?file={PARAM}&as=0" quality=high bgcolor=#FFFFFF width="165" height="38" name="niftyPlayer1" align="" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed></object>',

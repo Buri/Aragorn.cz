@@ -90,19 +90,19 @@ namespace ajaxModule{
             }else{
                 $this->template->data = "NemĂˇte oprĂˇvnÄ›nĂ­ ke smazĂˇnĂ­ fora.";
             }*/
-            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator, $this->context->cacheStorage);
             $this->template->data = $model->forum->setID($id)->delete();
         }
         
         public function actionForumThreadAdd($id = null, $param = null, $prefix = ""){
-            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator, $this->context->cacheStorage);
             $this->template->data = $model->forum->create($id, $param, $prefix);
         }
         
         
         public function actionForumPostDelete($id){
             $this->template->data = "fail";
-            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator, $this->context->cacheStorage);
             if($model->post->setID($id)->delete())
                 $this->template->data = "ok";
         }
@@ -120,7 +120,7 @@ namespace ajaxModule{
         }
         public function actionForumOptionsUpdate($id,$noticeboard,$description){
             $this->template->data = "fail";
-            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator);
+            $model = new \Components\Models\ForumControl($this->context->database, $this->context->authorizator, $this->context->cacheStorage);
             if($model->forum->setID($id)->isAllowed('admin')){
                 $this->template->data = "off";
                 $row = $this->context->database->forum_topic('id', $id);

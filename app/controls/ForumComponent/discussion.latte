@@ -106,28 +106,28 @@
     background-size: 18px;
 }
 .paper .post .post-info a.alert{
-    background-image: url("/assets/images/report.png");
+    background-image: url("/assets/i/report.png");
 }
 .paper .post .post-info a.alert:hover{
-    background-image: url("/assets/images/reporta.png");
+    background-image: url("/assets/i/reporta.png");
 }
 .paper .post .post-info a.edit{
-    background-image: url("/assets/images/edit.png");
+    background-image: url("/assets/i/edit.png");
 }
 .paper .post .post-info a.edit:hover{
-    background-image: url("/assets/images/edita.png");
+    background-image: url("/assets/i/edita.png");
 }
 .paper .post .post-info a.delete{
-    background-image: url("/assets/images/delete.png");
+    background-image: url("/assets/i/delete.png");
 }
 .paper .post .post-info a.delete:hover{
-    background-image: url("/assets/images/deletea.png");
+    background-image: url("/assets/i/deletea.png");
 }
 .paper .post .post-info a.cite{
-    background-image: url("/assets/images/cite.png");
+    background-image: url("/assets/i/cite.png");
 }
 .paper .post .post-info a.cite:hover{
-    background-image: url("/assets/images/citea.png");
+    background-image: url("/assets/i/citea.png");
 }
 
 .paper .newPost{
@@ -314,8 +314,7 @@
     $$('.discussion').addEvents({
         'click:relay(a.alert.button)':function(e){
             e.stop();
-            AC.message('Report', 'Send report');
-            //console.log(this);
+            AC.message('Report', 'This functionality is not avaible yet.');
             return false;
         },
         'click:relay(a.cite.button)':function(e){
@@ -380,7 +379,7 @@
             }
         }
     });
-    window.addEvent('load', function(){
+    window.addEvent('ac-ready', function(){
         var cc = new CwAutocompleter( 'frmforumForm-post' /* ID of the input field */ ,
             '/ajax/userLookup/', /* URL of backend ajax script */
             {

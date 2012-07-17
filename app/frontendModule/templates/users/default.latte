@@ -42,7 +42,7 @@
         width: 100%;
     }
     .paper thead {
-        background: url("/assets/images/paper/bg/forum.png");
+        background: url("/assets/i/paper/bg/forum.png");
         padding: 2px;
         height: 65px;
     }
@@ -69,47 +69,10 @@
             </a>
             {!$control->presenter->userLink($user)}
         </dt>
-        <dd><img src="{$staticPath}/images/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></dd>
+        <dd><img src="{$staticPath}/i/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></dd>
         <dd>{!$profile['login']|date:'H:i'}</dd>
     </dl>
 </li>
 {/foreach}
 </ul>
- {*<table id="mytable" cellspacing="0">
-    <thead>
-    <tr><th></th><th>Uživatel</th><th>Poslední přihlášení</th><th>Stav</th></tr>
-    </thead>
-    <tbody>
-{foreach $users as $user}
-<tr class="proflie-list-item{if $iterator->odd} table-tr-odd{/if}">{var $profile=$presenter->getUserProfile($user['id'])}
-    <td><a href="{$control->presenter->userLink($user,false)}">
-            <img src="{$control->presenter->userIcon($user)}" class="proflile-list-icon" />
-        </a>
-    </td>
-    <td>{!$control->presenter->userLink($user)}</td>
-    <td>{!$profile['login']|date:'H:i'}</td>
-    <td><img src="{$staticPath}/images/{$node->isUserOnline($user['id']) ? 'on' : 'off'}line.png" width="30" /></td>
-</tr>
-{/foreach}
-    </tbody>
-</table>*}
-<script n:syntax="double">
-    var myTable;
-    window.addEvent('domready', function(){
-/*        myTable = new HtmlTable($('mytable'), {sortable: true});
-        myTable.view = {start:0, offset:3};
-        myTable.addEvent('sort', function(body){
-            var els = body.getElements('tr');
-            els.removeClass('hide');
-            var i = 0;
-            els.each(function(el){
-                if(!(i >= this.view.start && i < this.view.start + this.view.offset)){
-                    el.addClass('hide');
-                }
-                i++;
-            }.bind(this));
-        });
-        myTable.fireEvent('sort', myTable.body)*/
-    });
-    
-</script>
+ 

@@ -1,6 +1,6 @@
 <style>
     .paper #forum-head{
-        background: url("/assets/images/paper/bg/forum_noticeboard.gif") repeat-y scroll center top transparent;
+        background: url("/assets/i/paper/bg/forum_noticeboard.gif") repeat-y scroll center top transparent;
         margin-bottom: 10px;
     }
     .paper #forum-head-inner > div {
@@ -118,19 +118,24 @@
     {/foreach}
 </ul>
 <script n:syntax="double">
-    function newForumCb(res, dom){
-        if(res[2].get('text') == 'ok')
-            AC.Ajax.reloadLocation();
-        else
-        AC.message('Nové forum', dom[0].get('html'));
-    }
     function deleteForum(id){
         AC.confirm('Opravdu chcete smazat toto forum, všechna podfóra a jejich příspěvky?', function(){
-            AC.ajax('forumThreadDelete', {id: id}, newForumCb);
+            AC.ajax('forumThreadDelete', {id: id}, function(res, dom){
+                if(res[2].get('text') == 'ok')
+                    AC.Ajax.reloadLocation();
+                else
+                    AC.message('Smazání vlákna', dom[0].get('html'));
+            });
         });
     }
     function newForum(name){
-        AC.ajax('forumThreadAdd', {id:name,'param':{{$url}}, prefix:{{$prefix}}}, newForumCb);
+        AC.ajax('forumThreadAdd', {id:name,'param':{{$url}}, prefix:{{$prefix}}}, function(res, dom){
+            console.log(res);
+            if(res[2].get('text') == 'ok')
+                AC.Ajax.reloadLocation();
+            else
+                AC.message('Nové forum', dom[0].get('html'));
+        });
     }
     function showEl(id){
         $$('#forum-head-inner div[id]').slide('out');
@@ -138,19 +143,21 @@
             $$('#' + id).slide('in');
         return false;
     }
-    window.addEvent('domready', function(){
+    {{if isset($fid)}}
+    window.addEvent('ac-ready', function(){
         $$('#forum-head-inner div[id]').slide('hide');
         $$('#forum-bookmark-toggle').addEvent('click', function(e){
             e.stop();
             AC.ajax('forumBookmarkToggle',
             {
-                'id':{{if isset($fid)}}{{$fid}}{{else}}-1{{/if}}
+                'id':{{$fid}}
             },
             function(res){
                 AC.bookmarks.update();
             });
         });
     });
+    {{/if}}
 </script>
 {if $discussion}
 {control discussion,$url}

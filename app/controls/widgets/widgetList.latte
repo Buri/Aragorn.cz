@@ -6,7 +6,7 @@
 {if $userLoggedIn}
 {* <a href="{plink settings:widgets}" class="ajax">Přidat widgety</a> *}
 <script>
-    window.addEvent('domready', function(){
+    window.addEvent('ac-ready', function(){
         if(window.widgets)
             delete window.widgets;
         window.widgets = {
