@@ -288,9 +288,9 @@
         <div class="post-body">
             <div class="post-info">
                 <a href="#" onclick="return false;" title="Permalink" style="font-weight:bold;">#</a>
-                {if $model->forum->isAllowed('write')}
+                {if !$locked && $model->forum->isAllowed('write')}
                 <a href="#" class="alert button" title="Nahlásit nevhodný příspěvek">&nbsp;</a>
-                {if $control->parent->userIsAllowed('forum-post', 'edit', $post['id']) || $control->parent->userIsAllowed('forum', 'admin', $control->parent->template->fid)}
+                {if !$locked && $model->post->setID($post['id'])->IsAllowed('edit')}
                 <a href="#" class="edit button" title="Upravit příspěvek" data-id="{$post['id']}">&nbsp;</a>
                 <a href="#" data-postid="{$post['id']}" class="delete button" title="Smazat příspěvek">&nbsp;</a>
                 {/if}

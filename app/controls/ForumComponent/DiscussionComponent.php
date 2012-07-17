@@ -203,7 +203,7 @@ namespace Components{
                     \Nette\Caching\Cache::TAGS => array('discussion/'.$urlf),
                 ));
                 /* Propagate new post all the way up */
-                $this->getParent()->propagateNewPost($url, $pst['id']);
+                $model->forum->setID($url)->propagateNewPost($pst['id']);
                 if($this->parent->getHU())
                     $this->redirect('render!', $this->parent->getHU());
                 $this->redirect('this');

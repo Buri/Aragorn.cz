@@ -53,6 +53,11 @@ namespace Components\Models{
             $this->authorizator = $perms;
         }
 
+        public function __clone(){
+            $this->forum = clone $this->forum;
+            $this->post = clone $this->post;
+        }
+
     }
 
     class ForumModel extends \Nette\Object{
@@ -72,6 +77,8 @@ namespace Components\Models{
         protected $permID = "";
 
         protected $cache;
+
+        public $userlink;
 
         /**
          *
@@ -305,36 +312,126 @@ namespace Components\Models{
         }
 
 
+        public function getLastPost(){
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+
+            $forum = $this->id;
+            $ckey = 'forum-last-post-' . $forum;
+            $out = $this->cache->load($ckey);
+
+            
+            if($out === null){
+                $db = $this->database;
+
+                $p = $db->forum_topic('id', $forum)->fetch();
+                $pid = $p['lastpost'];
+                if(intval($pid) == 0) return false;
+                $r = $db->forum_posts('id', $pid)->fetch();
+                /* Do callback */
+                $link = $this->userlink;
+                $out = array('time' => $r['time'],
+                    'author'=>$link($r['author'])
+                        );
+                }
+                $this->cache->save($ckey, $out, array(
+                    'tags' => array('forum/' . $forum)
+                ));
+            return $out;
+        }
+
+        /**
+         *
+         * @return array
+         */
+        public function getPostCount(){
+            if($this->id === null) throw new \Exception('ID of forum is not defined.');
+
+            $forum = $this->id;
+            $ckey = 'forum-post-cout-' . $forum;
+            $out = $this->cache->load($ckey);
+
+            if($out === null){
+                $db = $this->database;
+                $c = $db->forum_topic('id', $forum)->select('postcount as count')->fetch();
+                if($this->isAllowed('read'))
+                    $u = $db->forum_visit('idforum = ? AND iduser = ?', array($forum, $this->authorizator->getPermissionsInstance()->getUID()))->fetch();
+                else
+                    $u = array('unread' =>0);
+
+                $out = array('total' => $c['count'], 'unread' => $u == null ? (int)$c['count'] : (int)$u['unread']);
+                $this->cache->save($ckey, $out, array(
+                    'tags' => array('forum/' . $forum)
+                ));
+            }
+            return $out;
+        }
+
+
+
         public function propagateNewPost($postId){
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
+
             $parent = $this->id;
             $ids = array();
+            $db = $this->database;
+
+            $tags = array();
+
             do{
                 $ids[] = $parent;
-                $f = DB::forum_topic('id', $parent);
+                $f = $db->forum_topic('id', $parent);
                 $f->update(array(
                     "postcount" => new \NotORM_Literal('postcount + 1'),
                     "lastpost" => $postId
                     ));
                 $f = $f->fetch();
-                $this->cache->clean(array(
-                    \Nette\Caching\Cache::TAGS => array('forum/'.$parent),
-                ));
+                $tags[] = 'forum/'.$parent;
                 $parent = intval($f['parent']);
-            }while($parent != 0 && $parent != -1 );
+            }while($parent > 0 );
             /* And clear top level forum cache */
-            DB::forum_visit('idforum',  $ids)->update(array(
-              //  "time" => new \NotORM_Literal('unix_timestamp()'),
+            $this->cache->clean(array(
+                    \Nette\Caching\Cache::TAGS => $tags,
+                ));
+            
+            $db->forum_visit('idforum',  $ids)->update(array(
                 "unread" => new \NotORM_Literal('unread + 1')
             ));
-            $this->cache->clean(array(
-                    \Nette\Caching\Cache::TAGS => array('forum-root'),
-                ));
         }
 
-        public function propagateDeletePost(){
+        public function propagateDeletePost($postid){
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
-            
+
+            $parent = $this->id;
+            $ids = array();
+            $db = $this->database;
+
+            $tags = array();
+            do{
+                $ids[] = $parent;
+                $f = $db->forum_topic('id', $parent)->fetch();
+                if($f['lastpost'] == $postid){
+                    $prev = $db->forum_posts('id < ? AND forum = ?', array($postid, $parent))->fetch();
+                    $f->update(array(
+                        "lastpost" => $prev == false ? null : $prev['id']
+                    ));
+                }
+                $f->update(array(
+                    "postcount" => new \NotORM_Literal('postcount - 1')
+                    ));
+                $tags[] = 'forum/'.$parent;
+                $parent = intval($f['parent']);
+            }while($parent > 0);
+            /* And clear top level forum cache */
+            $this->cache->clean(array(
+                    \Nette\Caching\Cache::TAGS => $tags,
+                ));
+
+            $db->forum_visit('idforum',  $ids)->update(array(
+                "unread" => new \NotORM_Literal('unread - 1')
+            ));
+
+            $db->forum_topic('postcount < 0')->update(array('postcount' => 0));
+            $db->forum_visit('unread < 0')->update(array('unread' => 0));
         }
 
     }
@@ -421,10 +518,13 @@ namespace Components\Models{
             if($post['author'] == $uid){
                 $this->authorizator->getPermissionsInstance ()->setOwner ($this->permID);
             }else{
+                if($model->forum->setID($post['forum'])->isAllowed('admin')){
+                    $this->authorizator->getPermissionsInstance ()->setResource ($this->permID, array('_ALL'=>true), true);
+                }
                 /* Is user moderator? */
-                $mods = $model->forum->setID($post['forum'])->getModerators();
+                /*$mods = $model->forum->setID($post['forum'])->getModerators();
                 if(array_search("$uid", $mods) !== false)
-                        $this->authorizator->getPermissionsInstance ()->setResource ($this->permID, array('_ALL'=>true), true);
+                        $this->authorizator->getPermissionsInstance ()->setResource ($this->permID, array('_ALL'=>true), true);*/
             }
             return $this->authorizator->allowed($this->permID, $operation);
         }
@@ -492,7 +592,7 @@ namespace Components\Models{
 
 
             $model = new ForumControl($db, $this->authorizator, $this->cache->getStorage());
-            $model->forum->setID($post['forum'])->propagateDeletePost();
+            $model->forum->setID($post['forum'])->propagateDeletePost($this->id);
 
             return true;
         }
