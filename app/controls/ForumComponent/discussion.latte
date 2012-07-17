@@ -385,8 +385,6 @@
     });
     $$('#frm-forum-discussion-forumForm').addEvents({'submit': function(e){
         e.stop();
-        //console.log(this);
-        //AC.ajax('forumPostAdd', { vals:this.get('values')});
         new Form.Request(this, $('content'),
         {
             onSuccess:function(res, rep){
@@ -399,6 +397,8 @@
     }});
 
     window.addEvent('ac-ready', function(){
+        var target = $$('li.unread').length > 0 ? $$('li.unread').pop() : $$('ul.discussion li')[0];
+        new Fx.SmoothScroll().toElement(target);
         var cc = new CwAutocompleter( 'frmforumForm-post' /* ID of the input field */ ,
             '/ajax/userLookup/', /* URL of backend ajax script */
             {
