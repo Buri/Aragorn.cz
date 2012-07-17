@@ -277,7 +277,10 @@
 {*cache $id.'//'.$vp->getPaginator()->getPage(), tags => ['discussion/' . $id], expire=>'+ 20 minutes', sliding=>true *}
 {control vp}
 <ul class="discussion">
-    {var $db=$presenter->context->database;$len = max($vp->getPaginator()->getLength(), 0); $posts = $db->forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($len, $vp->getPaginator()->getOffset())}
+    {var $db=$presenter->context->database;
+$len = max($vp->getPaginator()->getLength(), 0);
+$posts = $db->forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($len, $vp->getPaginator()->getOffset());
+$mod = clone $model;}
     {if count($posts)}
     {foreach $posts as $post}
     <li class="post{sep} botline{/sep}{if $post['time'] > intval($lastvisit)} unread{/if}" name="msg{$post['id']}">
@@ -396,9 +399,10 @@
         ).send();
     }});
 
+    
     window.addEvent('ac-ready', function(){
-        var target = $$('li.unread').length > 0 ? $$('li.unread').pop() : $$('ul.discussion li')[0];
-        new Fx.SmoothScroll().toElement(target);
+        new Fx.Scroll(window).toElement($$('li.unread').length > 0 ? $$('li.unread').pop() : $$('ul.discussion li')[0])
+
         var cc = new CwAutocompleter( 'frmforumForm-post' /* ID of the input field */ ,
             '/ajax/userLookup/', /* URL of backend ajax script */
             {

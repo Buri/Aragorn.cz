@@ -1,7 +1,7 @@
 {if true}{* Using deffered loading of scripts *}
 <script type="text/javascript">
     window.addEvent('load', function(){
-        {? echo json_encode(array( '__minified-0.1', 'aragorn'))}.each(function(script){
+        {? echo json_encode(array( '__minified-0.2', 'aragorn'))}.each(function(script){
             document.head.grab(new Element('script', {
                 src:"{!$staticPath}/js/" + script + ".js",
                 type:'text/javascript',
@@ -11,7 +11,7 @@
     });
 </script>
 {else}
-    {foreach array( '__minified-0.1', 'aragorn') as $script}
+    {foreach array( '__minified-0.2', 'aragorn') as $script}
     <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{!$script}.js"></script>
     {/foreach}
 {/if}
