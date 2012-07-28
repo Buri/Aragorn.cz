@@ -1,16 +1,12 @@
 #!/bin/bash
 
-BASEDIR=/home/domeny/aragorn.cz/web/subdomeny/four
-HOST=$(hostname)
-[ $HOST == 'test' ] && BASEDIR=/var/www
+BASEDIR=$(./basedir.sh)
 INDIR="$BASEDIR/utility/in"
 OUTDIR="$BASEDIR/utility/out"
 VERSIONFILE="$BASEDIR/utility/version"
 
 VERSION=$(cat $VERSIONFILE)
 let "VERSION = VERSION + 1" > /dev/null
-#echo $VERSION;
-echo $VERSION > $VERSIONFILE
 
 FILE="__minified-0.$VERSION.js"
 OUT="$OUTDIR/$FILE"
@@ -32,6 +28,7 @@ then
     echo "Installing..."
     CPYDIR="$BASEDIR/web/assets/js"
     cp $OUT $CPYDIR
+    echo $VERSION > $VERSIONFILE
     echo "Installed"
 fi
 echo "Done."

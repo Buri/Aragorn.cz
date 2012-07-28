@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 /*
  *  This project source is hereby granted under Mozilla Public License
@@ -313,8 +313,9 @@ namespace Components\Models{
 
 
         public function getLastPost(){
+            
             if($this->id === null) throw new \Exception('ID of forum is not defined.');
-
+            
             $forum = $this->id;
             $ckey = 'forum-last-post-' . $forum;
             $out = $this->cache->load($ckey);
@@ -326,16 +327,19 @@ namespace Components\Models{
                 $p = $db->forum_topic('id', $forum)->fetch();
                 $pid = $p['lastpost'];
                 if(intval($pid) == 0) return false;
+                
                 $r = $db->forum_posts('id', $pid)->fetch();
+                $fr = $db->forum_topic('id', $r['forum'])->fetch();
                 /* Do callback */
                 $link = $this->userlink;
                 $out = array('time' => $r['time'],
-                    'author'=>$link($r['author'])
-                        );
-                }
-                $this->cache->save($ckey, $out, array(
-                    'tags' => array('forum/' . $forum)
-                ));
+                    'author'=>$link($r['author']),
+                    'forum' => $fr['urlfragment']
+                );
+            }
+            $this->cache->save($ckey, $out, array(
+                'tags' => array('forum/' . $forum)
+            ));
             return $out;
         }
 

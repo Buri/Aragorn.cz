@@ -135,18 +135,18 @@ namespace Components{
          * @param integer $forum
          * @return boolean|array
          */
-        public function getLastPost($forum){
+        /*public function getLastPost($forum){
             $db = $this->context->database;
             $p = $db->forum_topic('id', $forum)->fetch();
             $pid = $p['lastpost'];
             if(intval($pid) == 0) return false;
             $r = $db->forum_posts('id', $pid)->fetch();
-            /*if(!$r->count()) return false;
-            $r = $r->fetch();*/
+            $fr = $db->forum_topic('id', $r['forum'])->fetch();
             return array('time' => $r['time'], 
-                'author'=>$this->presenter->userLink($r['author'])
-                    );
-        }
+                'author'=>$this->presenter->userLink($r['author']),
+                'forum' => $fr['urlfragment']
+            );
+        }*/
 
         /**
          *

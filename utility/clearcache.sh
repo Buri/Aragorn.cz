@@ -2,9 +2,7 @@
 HOST=localhost
 PORT=11211
 
-BASEDIR=/home/domeny/aragorn.cz/web/subdomeny/four
-HOST=$(hostname)
-[ $HOST == 'test' ] && BASEDIR=/var/www
+BASEDIR=$(./basedir.sh)
 TMPDIR="$BASEDIR/temp/*"
 
 # RUN

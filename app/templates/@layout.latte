@@ -20,10 +20,12 @@
     {if $forceReload}
         location.reload();
     {/if}
-        $('page-generation-time').set('text', {?        $mtime = explode(" ", microtime());
+        $('page-generation-time').set('text', {?
+            $mtime = explode(" ", microtime());
             $endTime = $mtime[1] + $mtime[0];
             $pageGen = $endTime - $startTime
-            }{substr($pageGen, 0, 5)});
+            }{substr($pageGen, 0, 5)}
+            );
 </script>
 {else}
 <!DOCTYPE html>
@@ -55,7 +57,7 @@
             <menu id="sidebar-left">
                 <div class="block">
                     {if $user->isLoggedIn()}
-                    {*DukĂˇty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
+                    {*Dukáty: <a n:href="settings:" class="ajax">{Bank::getCredit()}</a>
                     <input id="msgStatus" value="{$presenter->userStatus()}" type="text" placeholder="ZprĂˇva stavu" />
                     <input type="button" id="btnStatus" value=">" />*}
                     <a href="{$presenter->userLink($user->getId(), false)}" class="ajax profile" title="{$user->getIdentity()->username}" id="menu-user-profile">
