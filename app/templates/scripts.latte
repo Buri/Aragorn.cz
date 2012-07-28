@@ -1,7 +1,9 @@
-{if true}{* Using deffered loading of scripts *}
+{var $scripts = array( '__minified-0.' . intval(file_get_contents(APP_DIR . '/../utility/version')), /*'TextboxList', /*'TextboxList.Autocomplete',*/ 'aragorn')}
+{if $deferScripts === true}{* Using deffered loading of scripts *}
 <script type="text/javascript">
     window.addEvent('load', function(){
-        {? echo json_encode(array( '__minified-0.2', 'aragorn'))}.each(function(script){
+        var scripts = {? echo json_encode($scripts);}
+        scripts.each(function(script){
             document.head.grab(new Element('script', {
                 src:"{!$staticPath}/js/" + script + ".js",
                 type:'text/javascript',
@@ -11,7 +13,7 @@
     });
 </script>
 {else}
-    {foreach array( '__minified-0.2', 'aragorn') as $script}
+    {foreach $scripts as $script}
     <script type="text/javascript" charset="utf-8" src="{!$staticPath}/js/{!$script}.js"></script>
     {/foreach}
 {/if}

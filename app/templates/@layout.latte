@@ -9,11 +9,6 @@
  * @param string   $title    page title
  *}
 {if $ajax}
-<script type="text/javascript">document.title='{!$title} | Aragorn.cz';
-    {if $forceReload}
-        location.reload();
-    {/if}
-</script>
 <ul n:if="count($flashes)" class="flashes">
     {foreach $flashes as $flash}
     <li class="{$flash->type}">{$flash->message}</li>
@@ -21,6 +16,15 @@
 </ul>
 <h1 id="location">{$title}</h1>
 {include #content}
+<script type="text/javascript">document.title='{!$title} | Aragorn.cz';
+    {if $forceReload}
+        location.reload();
+    {/if}
+        $('page-generation-time').set('text', {?        $mtime = explode(" ", microtime());
+            $endTime = $mtime[1] + $mtime[0];
+            $pageGen = $endTime - $startTime
+            }{substr($pageGen, 0, 5)});
+</script>
 {else}
 <!DOCTYPE html>
 <html lang="cs" xml:lang="cs" xmlns="http://www.w3.org/1999/xhtml">
@@ -30,9 +34,7 @@
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.css" />
         {include 'head.latte'}
         {/cache}
-        <script type="text/javascript" charset="utf-8" n:syntax="double">
-            window.AUTHENTICATED = {{$isLogedIn = $user->isLoggedIn()}};
-        </script>
+        <script type="text/javascript" charset="utf-8" n:syntax="double">window.AUTHENTICATED={{$isLogedIn = $user->isLoggedIn()}};</script>
         <style type="text/css">
             @font-face{ font-family: "xirwena";src: url("/assets/fonts/paper/xirwena.ttf") format('truetype');}
             @font-face{ font-family: "distink";src: url("/assets/fonts/paper/dir.otf") format('truetype');}
@@ -167,19 +169,19 @@
             Veškerý publikovaný obsah je chráněn autorskými právy vlastníků či autorů konkrétních textových či grafických děl.
             Jakékoliv kopírování obsahu je zakázáno.-->
             Nějaké statistiky toho, jak je Aragorn awesome
-            Celkem {$db->users()->count()} uživatelů. Nejmladším členem je {!$presenter->userlink($db->users()->order('id desc')->limit(1)->fetch(),true)}            Diskuze: {$db->forum_topic()->count()} témat, {$db->forum_posts()->count()} příspěvků
-            Čas generování stránky: {?
+            Celkem {$db->users()->count()} uživatelů. Nejnovějším uživatelem je {!$presenter->userlink($db->users()->order('id desc')->limit(1)->fetch(),true)}            Diskuze: {$db->forum_topic()->count()} témat, {$db->forum_posts()->count()} příspěvků
+            Čas generování stránky: <span id="page-generation-time">{?
             $mtime = explode(" ", microtime());
             $endTime = $mtime[1] + $mtime[0];
             $pageGen = $endTime - $startTime
-            }{substr($pageGen, 0, 5)}s
+            }{substr($pageGen, 0, 5)}</span>s
             <a n:href="dashboard:stats" class="ajax">Další statisktika</a>
         </footer>
     </body>
     {* Cache script paths. Probably unnescessary, but still. *}
-    {cache null, files => 'scripts.latte'}
+    {*cache null, files => 'scripts.latte'*}
     {include 'scripts.latte'}
-    {/cache}
-<script>//setTimeout(function(){ $$('#nette-debug').dispose();}, 300);</script>
+    {*/cache*}
+<script>setTimeout(function(){ $$('#nette-debug').dispose();}, 300);</script>
 </html>
 {/if}

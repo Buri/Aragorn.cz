@@ -1,5 +1,0 @@
-#!/bin/bash
-
-LOG=/var/www/log/forever.log
-APP=/var/www/node/app.js
-forever start -l $LOG -a $APP

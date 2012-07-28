@@ -14,7 +14,7 @@ namespace frontendModule{
             
             $this->template->sortabletable = $filter['fulldump'];
             
-            $users = DB::users()->order($filter['sort'])->where('username LIKE ?', $filter['user']);
+            $users = $this->context->database->users()->order($filter['sort'])->where('username LIKE ?', $filter['user']);
             $users = $filter['fulldump'] ? $users : $users->limit(($filter['page']-1).",".$filter["perpage"]);
             $users->select('users.*');
             $this->template->users = $users;

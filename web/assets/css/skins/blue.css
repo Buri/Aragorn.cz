@@ -112,7 +112,7 @@ body.blue{
     position: fixed;
     left: 250px;
     top: 5px;
-    width: 20px;
+    /*width: 20px;*/
     height: 20px;
     text-align: center;
     border: 1px solid #ccc;

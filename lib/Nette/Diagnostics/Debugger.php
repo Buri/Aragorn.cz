@@ -178,7 +178,7 @@ final class Debugger
 		self::$fireLogger = new FireLogger;
 
 		self::$blueScreen = new BlueScreen;
-		self::$blueScreen->addPanel(function($e) {
+/*		self::$blueScreen->addPanel(function($e) {
 			if ($e instanceof Nette\Templating\FilterException) {
 				return array(
 					'tab' => 'Template',
@@ -200,7 +200,7 @@ final class Debugger
 					);
 				}
 			}
-		});
+		});*/
 
 		self::$bar = new Bar;
 		self::$bar->addPanel(new DefaultBarPanel('time'));

@@ -33,7 +33,7 @@
     position: fixed;
     left: 5px;
     top: 5px;
-    width: 20px;
+    min-width: 20px !important;
     height: 20px;
     text-align: center;
 }

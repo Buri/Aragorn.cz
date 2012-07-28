@@ -179,7 +179,13 @@ namespace frontendModule{
                     array('rsvp'=>$rsvp)
             );
             $this->flashMessage('Vaše účast na akci byla změněna.');
-            $this->redirect('view', $id);
+            /*$this->actionView($id);
+            $this->setView('view');*/
+            if($this->isAjax()){
+                $this->template->forceReload = true;
+            }else{
+                $this->redirect('view', $id);
+            }
         }
 
         /*public function createComponentForum(){

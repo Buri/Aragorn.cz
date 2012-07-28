@@ -5,7 +5,7 @@
  */
 
 //WEB_SOCKET_DEBUG = true;
-WEB_SOCKET_SWF_LOCATION = '/WebSocketMain.swf';
+WEB_SOCKET_SWF_LOCATION = '/assets/flash/WebSocketMain.swf';
 
 /*
  * Aragorn client
@@ -338,7 +338,7 @@ var AragornClient = new Class({
                 overlayFadeDuration: 50,
                 content: 'Akce: ' + tree[1].get('text') + '<br/>Cena: ' + tree[2].get('text') + '&yen;<br/>',
                 buttons:[
-                    { title: 'ZruÄąË‡it' },
+                    { title: 'Zrušit' },
                     { 
                         title: 'Potvrdit platbu',
                         event: function() {
@@ -368,9 +368,9 @@ new FloatingTips('div#constat',{
     position:'bottom',
     center:false
 });
-if(window.AUTHENTICATED && false){
-    var iddlebar = new MoogressBar('iddlebar', {
-        bgImage:'http://static.aragorn.cz/images/dark/progressbar/blue.gif', 
+if(window.AUTHENTICATED){
+    /*var iddlebar = new MoogressBar('iddlebar', {
+        bgImage:'http://static.aragorn.cz/i/dark/progressbar/blue.gif', 
         hide:false, 
         label:false, 
         fx:false
@@ -383,6 +383,7 @@ if(window.AUTHENTICATED && false){
     iddlebar.interval = setInterval(function(){
         this.increasePercentage(-1);
     }.bind(iddlebar), 1000);
+    */
 }
 History.initialized = false;
 if(!Browser.ie){

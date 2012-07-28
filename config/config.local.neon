@@ -1,6 +1,8 @@
 development < production:
 production:
   parameters:
+    performance:
+      deferScripts: false
     debug:
       force: true
     servers:
