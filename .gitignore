@@ -20,3 +20,4 @@
 !/documentation/.gitignore
 /node/enabled_modules/*
 /config/config.local.neon
+/nbproject/private/
