@@ -257,7 +257,7 @@
     <button type="button" style="" onclick="$('frmforumForm-post').insertAroundCursor({'before':'[spoiler]', 'after':'[/spoiler]', 'defaultMiddle':''});">Spoiler</button>
     <button type="button" style="" onclick="AC.prompt('Zadejte URL odkazu:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[url]', 'after':'[/url]', 'defaultMiddle':p});});">URL</button>
     <button type="button" style="" onclick="AC.prompt('Zadejte url obrázku:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[img]', 'after':'[/img]', 'defaultMiddle':p});});">Img</button>
-    <button type="button" style="" onclick="AC.prompt('Zadejte url mp3 souboru:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[url=', 'after':'][/img]', 'defaultMiddle':p});});">MP3</button>
+    <button type="button" style="" onclick="AC.prompt('Zadejte url mp3 souboru:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[mp3=', 'after':'][/mp3]', 'defaultMiddle':p});});">MP3</button>
     <button type="button" style="" onclick="AC.prompt('Zadejte url z youtube:', function(p){ $('frmforumForm-post').insertAroundCursor({'before':'[youtube]', 'after':'[/youtube]', 'defaultMiddle':p});});">Youtube</button>
     <a href="#" id="close-edit" style="display:none;">Zrušit editaci</a>
     {input post}
@@ -278,12 +278,13 @@
 {control vp}
 <ul class="discussion">
     {var $db=$presenter->context->database;
-$len = max($vp->getPaginator()->getLength(), 0);
-$posts = $db->forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($len, $vp->getPaginator()->getOffset());
-$mod = clone $model;}
+$len = max($vp->getPaginator()->getLength(), $unreadCount);
+$posts = $db->forum_posts('forum', $info['id'])->order('time desc')->select('*')->limit($len, $vp->getPaginator()->getOffset());}
     {if count($posts)}
+    {var $canBeUnread = $vp->getPaginator()->getPage() == 1 ? true : false}
     {foreach $posts as $post}
-    <li class="post{sep} botline{/sep}{if $post['time'] > intval($lastvisit)} unread{/if}" name="msg{$post['id']}">
+    {*? dump($post['time']) ; dump( intval($lastvisit));*}
+    <li class="post{sep} botline{/sep}{if $post['time'] > intval($lastvisit) && $canBeUnread} unread{/if}" name="msg{$post['id']}">
         <dl>
             {*? dump($iterator)*}
         <a name="msg{$post['id']}" />
@@ -401,8 +402,9 @@ $mod = clone $model;}
 
     
     window.addEvent('ac-ready', function(){
-        new Fx.Scroll(window).toElement($$('li.unread').length > 0 ? $$('li.unread').pop() : $$('ul.discussion li')[0])
+        new Fx.Scroll(window).toElement($$('li.unread').length > 0 ? $$('li.unread').pop() : ($$('ul.discussion li').length > 0 ? $$('ul.discussion li')[0] : window))
 
+        if($$('#frmforumForm-post').length > 0)
         var cc = new CwAutocompleter( 'frmforumForm-post' /* ID of the input field */ ,
             '/ajax/userLookup/', /* URL of backend ajax script */
             {

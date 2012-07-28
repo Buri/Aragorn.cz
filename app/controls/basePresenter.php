@@ -66,6 +66,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         $t->startTime = $this->context->parameters['starttime'];
         $t->db = $this->context->database;
         $t->bookmarks = $this->getBookmarks();
+        $t->deferScripts = $this->context->parameters['performance']['deferScripts'];
         /* Fix invalid links generation */
         #$this->invalidLinkMode = \Nette\Application\UI\Presenter::INVALID_LINK_EXCEPTION;
     }
@@ -97,14 +98,14 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         //dump($cname);
         $link = $c->load($cname);
         if($link !== null){
-            //dump("cached link");
+           // dump("cached link");
             $this->getCache();
             return $link;    
         }
         //dump("uncached link");
         $db = $this->context->database;
         $u = $db->users('id', $id)->fetch();
-        $v = $u->users_profiles()->fetch();
+        $v = $db->users_profiles('id', $id)->fetch();
         $n = $v['urlfragment'];
         $link = $this->link('users:view', $n);
         if($html){

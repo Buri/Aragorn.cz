@@ -16,24 +16,70 @@
         <style>
             *{
                 color: #000;
+                font-family: Verdana;
+                font-size: 12px;
+            }
+            ul.menu{
+                margin:0 0 -1px 0;
+            }
+            ul.menu li{
+                list-style: none;
+                display: inline-block;
+                border: 1px solid #999;
+                background: #ccc;
+                padding: 6px;
+                margin:0;
+                margin-right: -5px;
+            }
+            ul.menu li a{
+                text-decoration: none;
+                color: #444;
+            }
+            ul.menu li.current{
+                background: #ccf;
+            }
+            ul.menu li:first-of-type{
+                border-radius: 5px 0 0 0;
+            }
+            ul.menu li:last-of-type{
+                border-radius: 0 5px 0 0;
+            }
+            #content{
+                border-top: 1px solid #999;
+                margin-top: 0px;
+                padding: 5px;
+            }
+            ul.flashes li{
+                white-space: pre;
             }
         </style>
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.addEvent('domready', function(){
-                new FloatingTips('div#constat',{
+                /*new FloatingTips('#constat',{
                     position:'bottom',
                     center:false
-                });
+                });*/
             });
         </script>
         <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/assets/css/ie6.css" /><![endif]-->
     </head>
     <body class=''>
         <div id="constat" title="Connection status: offline">&nbsp;</div>
-        <div style="float:right;">
-            <a n:href=":frontend:dashboard:default">Zpět na Aragorn.cz</a>
+        <h2>Redakční systém</h2>
+        <ul class="menu">
+            <li {ifCurrent "dashboard:"}class="current"{/ifCurrent}><a n:href="dashboard:">Domů</a></li>
+            {if $user->isAllowed('admin', 'gallery')}<li {ifCurrent "gallery:"}class="current"{/ifCurrent}><a n:href="gallery">Galerie</a></li>{/if}
+            {if $user->isAllowed('admin', 'den')}<li {ifCurrent "den"}class="current"{/ifCurrent}><a n:href="den">Herna</a></li>{/if}
+            {if $user->isAllowed('admin', 'chat')}<li {ifCurrent "chat"}class="current"{/ifCurrent}><a n:href="chat">Chat</a></li>{/if}
+            {if $user->isAllowed('admin', 'maitenance')}<li {ifCurrent "maitenance:"}class="current"{/ifCurrent}><a n:href="maitenance:">Údržba serveru</a></li>{/if}
+            <li><a n:href=":frontend:dashboard:default">Zpět na Aragorn.cz</a></li>
+        </ul>
+        <div id="content">
+            <ul n:foreach="$flashes as $flash" class="flashes">
+                <li>{$flash->message}</li>
+            </ul>
+            {include #content}
         </div>
-        {include #content}
     </body>
 </html>

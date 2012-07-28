@@ -32,17 +32,24 @@
         {if $model->forum->isAllowed('admin')}
             <a href="#" id="forum-admin-toggle" onclick="return showEl('forum-admin');">Administrace</a>
             <div id="forum-admin">
-                <div>Přidání a odebrání správců</div>
-                <div>Přístup do diskuze</div>
-                <div>
-                    <div>Obecné vlastnosti</div>
-                    Nástěnka:
-                    <textarea id="forum-noticeboard-editor">{$noticeboard}</textarea>
-                    Popis:
-                    <textarea id="forum-description-editor">{$info['description']}</textarea>
-                    <button onclick="AC.ajax('forumOptionsUpdate', { id:{$fid}, noticeboard:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ /*AC.message('Hotovo');*/ AC.Ajax.reloadLocation(); });">Uložit změny</button>
-                </div>
-                <div>přesunutí/smazání/export/uzamčení diskuze</div>
+                <fieldset>
+                    <legend>Správci</legend>
+                    <input type="text" id="text-moderators" />
+                </fieldset>
+                <fieldset>
+                    <legend>Přístup do diskuze</legend>
+                </fieldset>
+                <fieldset>
+                    <legend>Obecné vlastnosti</legend>
+                Nástěnka:
+                <textarea id="forum-noticeboard-editor">{$noticeboard}</textarea>
+                Popis:
+                <textarea id="forum-description-editor">{$info['description']}</textarea>
+                <button onclick="AC.ajax('forumOptionsUpdate', { id:{$fid}, noticeboard:$('forum-noticeboard-editor').get('value'), description:$('forum-description-editor').get('value')}, function(){ /*AC.message('Hotovo');*/ AC.Ajax.reloadLocation(); });">Uložit změny</button>
+                </fieldset>
+                <fieldset>
+                    <legend>Přesunutí/smazání/export/uzamčení diskuze</legend>
+                </fieldset>
             </div>
         {/if}
             <div id="forum-access">
@@ -60,7 +67,7 @@
                         <th>Záložka</th>
                     </thead>
                     <tbody>
-                        {foreach DB::forum_visit('idforum', $fid) as $visit}
+                        {foreach $db->forum_visit('idforum', $fid) as $visit}
                         <tr>
                             <td>{!$control->parent->userlink($visit['iduser'])}</td>
                             <td>{date('d.m.Y H.i', $visit['time'])}</td>
@@ -73,7 +80,7 @@
         </div>
         <div class="forum-moderators-list">
             Správci:
-            {*!$control->presenter->userlink($info['owner'])*}{foreach $moderators as $mod}{*first},{/first*}
+            {foreach $moderators as $mod}
                 {if $mod != 0}{!$control->presenter->userlink($mod['userid'])}{sep}, {/sep}{/if}
             {/foreach}
         </div>
@@ -130,7 +137,6 @@
     }
     function newForum(name){
         AC.ajax('forumThreadAdd', {id:name,'param':{{$url}}, prefix:{{$prefix}}}, function(res, dom){
-            console.log(res);
             if(res[2].get('text') == 'ok')
                 AC.Ajax.reloadLocation();
             else

@@ -42,6 +42,7 @@ namespace Components{
         /**
          *
          * @var int
+         * @persistent
          */
         protected $lastVisit = 0;
 
@@ -95,6 +96,7 @@ namespace Components{
             return $this;
         }
 
+        
         /**
          *
          * @param string|null $url
@@ -111,6 +113,10 @@ namespace Components{
 
             //$visit = $db->forum_visit(array('idforum' => $info['id'], 'iduser' => $user->getId()))->select('time')->fetch();
             $this->template->lastvisit = $this->lastVisit;
+            
+            $p = $db->forum_posts('time > ' . ($this->lastVisit ? $this->lastVisit : 0))->select('count(id) as count')->fetch();
+            $this->template->unreadCount = $p['count'];
+            unset($p);
             
             $vp = new \VisualPaginator($this, 'vp');
             $paginator = $vp->getPaginator();
@@ -280,7 +286,7 @@ namespace Components{
                                 'open_tag'=>'<img src="', 'close_tag'=>'" class="ll" />',
                                 'childs'=>''),
                 'mp3'=>      array('type'=>BBCODE_TYPE_OPTARG,
-                                'open_tag'=>'<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0" width="165" height="38" id="niftyPlayer1" align=""><param name=movie value="/niftyplayer.swf?file={PARAM}&as=0"><param name=quality value=high><param name=bgcolor value=#FFFFFF><embed src="/niftyplayer.swf?file={PARAM}&as=0" quality=high bgcolor=#FFFFFF width="165" height="38" name="niftyPlayer1" align="" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed></object>',
+                                'open_tag'=>'<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0" width="165" height="38" id="niftyPlayer1" align=""><param name=movie value="/assets/flash/niftyplayer.swf?file={PARAM}&as=0"><param name=quality value=high><param name=bgcolor value=#FFFFFF><embed src="/assets/flash/niftyplayer.swf?file={PARAM}&as=0" quality=high bgcolor=#FFFFFF width="165" height="38" name="niftyPlayer1" align="" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed></object>',
                                 'close_tag'=>'',
                                 'childs'=>''),
                 'cite'=>      array('type'=>BBCODE_TYPE_OPTARG,

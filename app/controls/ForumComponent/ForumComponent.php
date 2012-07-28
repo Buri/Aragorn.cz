@@ -33,6 +33,7 @@ namespace Components{
             $this->context = $context;
             $this->cache = new \Nette\Caching\Cache($context->cacheStorage, 'forum');
             $this->template->cache = $this->cache;
+            $this->template->db = $context->database;
             return $this;
         }
         

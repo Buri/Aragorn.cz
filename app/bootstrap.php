@@ -8,7 +8,7 @@ include LIBS_DIR . "/Nette/loader.php";
 /*include LIBS_DIR . "/memcache.php";
 include LIBS_DIR . "/database.php";*/
 
-use Nette\Environment;
+
 use Nette\Application\Routers\Route;
 
 /* Create new configurator */
@@ -41,13 +41,12 @@ if($container->parameters['debug']['force'] === true){
     \Extras\Debug\ComponentTreePanel::register();
     \Nette\Diagnostics\Debugger::addPanel(new IncludePanel);
     \Panel\ServicePanel::register($container, $loader);
-    \Panel\Todo::register($container->params['appDir']);
 }else{
     Nette\Diagnostics\Debugger::$email = 'buri.buster@gmail.com';
     $configurator->setDebugMode(Nette\Config\Configurator::PRODUCTION);
     $application->catchExceptions = TRUE;
 }
-$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1", "83.208.197.163"));
+#$configurator->setDebugMode(array("192.168.56.1", "127.0.0.1", "83.208.197.163"));
 
 
 /* Setup cookies for later use */
@@ -68,7 +67,7 @@ $router[] = new Route('ajax/[<action>/[<id>/[<param>/]]]', array(
                 'presenter' => 'ajax',
                 'action' => 'default'
 ));
-$router[] = new Route('admin/[<presenter>/[<id>/[<action>/[<param>/]]]]', array(
+$router[] = new Route('admin/[<presenter>/[<action>/[<id>/[<param>/]]]]', array(
                 'module' => 'admin',
                 'presenter' => 'dashboard',
                 'action' => 'default'
