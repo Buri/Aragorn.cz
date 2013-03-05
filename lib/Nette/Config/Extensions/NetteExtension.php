@@ -200,7 +200,6 @@ class NetteExtension extends Nette\Config\CompilerExtension
 			$container->addDefinition($this->prefix('mailer'))
 				->setClass('Nette\Mail\SendmailMailer');
 		} else {
-			Validators::assertField($config, 'mailer', 'array');
 			$container->addDefinition($this->prefix('mailer'))
 				->setClass('Nette\Mail\SmtpMailer', array($config['mailer']));
 		}
@@ -237,6 +236,10 @@ class NetteExtension extends Nette\Config\CompilerExtension
 		$container->addDefinition($this->prefix('database'))
 				->setClass('Nette\DI\NestedAccessor', array('@container', $this->prefix('database')));
 
+		if (isset($config['database']['dsn'])) {
+			$config['database'] = array('default' => $config['database']);
+		}
+
 		$autowired = TRUE;
 		foreach ((array) $config['database'] as $name => $info) {
 			if (!is_array($info)) {
@@ -260,7 +263,7 @@ class NetteExtension extends Nette\Config\CompilerExtension
 
 			if ($info['reflection']) {
 				$connection->addSetup('setDatabaseReflection', is_string($info['reflection'])
-					? array(new Nette\DI\Statement(preg_match('#^[a-z]+$#', $info['reflection']) ? 'Nette\Database\Reflection\\' . ucfirst($info['reflection']) . 'Reflection' : $info['reflection']))
+					? array(new Nette\DI\Statement(preg_match('#^[a-z]+\z#', $info['reflection']) ? 'Nette\Database\Reflection\\' . ucfirst($info['reflection']) . 'Reflection' : $info['reflection']))
 					: Nette\Config\Compiler::filterArguments(array($info['reflection']))
 				);
 			}

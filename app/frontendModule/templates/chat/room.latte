@@ -3,6 +3,7 @@
     <head>
         {include '../../../templates/head.latte'}
         <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/chat.css" />
+        <link rel="stylesheet" media="screen,projection" type="text/css" href="{!$staticPath}/css/screen.css" />
         <style>
         </style>
     </head>
@@ -52,6 +53,7 @@
             window.AUTHENTICATED = {{$isLogedIn = Nette\Environment::getUser()->isLoggedIn()}};
             window.rid = {{$rid}};
             </script>
+            {var $deferScripts = false}{var $defer=false}
         {include '../../../templates/scripts.latte'}
         <script type="text/javascript" charset="utf-8" n:syntax="double">
             var Chat = null;
@@ -250,7 +252,7 @@
                                 }).adopt(
                                     new Element('img', {src:usr.info.icon, 'class':'user-list-icon'}),
                                     new Element('span', {text:usr.name + ' '}),
-                                    new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:this.options.servers['static'] + '/images/' + img + '.png', styles:{'vertical-align':'middle'}})
+                                    new Element('img', {id:'ty' + usr.name, alt:' - ' + usr.state, src:this.options.servers['static'] + '/i/' + img + '.png', styles:{'vertical-align':'middle'}})
                                 );
                                 $(this.options.userList).grab(e);
                             }.bind(this));
@@ -271,7 +273,7 @@
                         for(var pattern in this.mileys){
                             var re = new RegExp('(\\*' + pattern +  '\\*)', 'gi');
                             console.log(re, text, re.test(text));
-                            text = text.replace(re, '<img src="'+ this.options.servers['static'] + '/images/smileys/' + Smileys[pattern] + '" class="smiley" alt="$1">');
+                            text = text.replace(re, '<img src="'+ this.options.servers['static'] + '/i/smileys/' + Smileys[pattern] + '" class="smiley" alt="$1">');
                         }
                     }
                     return text;
@@ -297,7 +299,8 @@
                 $('glass-length').set('value', Cookie.read('chat-glass-length') || 150);
                 if($('frmMsg'))
                     $('frmMsg').addEvent('submit', function(e){
-                        new Event(e).stop();
+                        //new Event(e).stop();
+                        if(e) e.stop()
                         var v = this.msg.value;
                         if(v.length){
                             var pos = v.indexOf('#');;

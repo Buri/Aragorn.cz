@@ -50,6 +50,16 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 
 
 	/**
+	 * Formats boolean for use in a SQL statement.
+	 */
+	public function formatBool($value)
+	{
+		return $value ? 'TRUE' : 'FALSE';
+	}
+
+
+
+	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
 	public function formatDateTime(\DateTime $value)
@@ -64,7 +74,8 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	 */
 	public function formatLike($value, $pos)
 	{
-		throw new Nette\NotImplementedException;
+		$value = strtr($value, array("'" => "''", '\\' => '\\\\', '%' => '\\\\%', '_' => '\\\\_'));
+		return ($pos <= 0 ? "'%" : "'") . $value . ($pos >= 0 ? "%'" : "'");
 	}
 
 
@@ -102,11 +113,24 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	 */
 	public function getTables()
 	{
-		return $this->connection->query("
-			SELECT table_name as name, CAST(table_type = 'VIEW' AS INTEGER) as view
-			FROM information_schema.tables
-			WHERE table_schema = current_schema()
-		")->fetchAll();
+		$tables = array();
+		foreach ($this->connection->query("
+			SELECT
+				c.relname::varchar AS name,
+				c.relkind = 'v' AS view
+			FROM
+				pg_catalog.pg_class AS c
+				JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+			WHERE
+				c.relkind IN ('r', 'v')
+				AND n.nspname = current_schema()
+			ORDER BY
+				c.relname
+		") as $row) {
+			$tables[] = (array) $row;
+		}
+
+		return $tables;
 	}
 
 
@@ -116,33 +140,42 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	 */
 	public function getColumns($table)
 	{
-		$primary = (int) $this->connection->query("
-			SELECT indkey
-			FROM pg_class
-			LEFT JOIN pg_index on pg_class.oid = pg_index.indrelid AND pg_index.indisprimary
-			WHERE pg_class.relname = {$this->connection->quote($table)}
-		")->fetchColumn(0);
-
 		$columns = array();
 		foreach ($this->connection->query("
-			SELECT *
-			FROM information_schema.columns
-			WHERE table_name = {$this->connection->quote($table)} AND table_schema = current_schema()
-			ORDER BY ordinal_position
+			SELECT
+				a.attname::varchar AS name,
+				c.relname::varchar AS table,
+				upper(t.typname) AS nativetype,
+				NULL AS size,
+				FALSE AS unsigned,
+				NOT (a.attnotnull OR t.typtype = 'd' AND t.typnotnull) AS nullable,
+				ad.adsrc::varchar AS default,
+				coalesce(co.contype = 'p' AND strpos(ad.adsrc, 'nextval') = 1, FALSE) AS autoincrement,
+				coalesce(co.contype = 'p', FALSE) AS primary,
+				substring(ad.adsrc from 'nextval[(]''\"?([^''\"]+)') AS sequence
+			FROM
+				pg_catalog.pg_attribute AS a
+				JOIN pg_catalog.pg_class AS c ON a.attrelid = c.oid
+				JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+				JOIN pg_catalog.pg_type AS t ON a.atttypid = t.oid
+				LEFT JOIN pg_catalog.pg_attrdef AS ad ON ad.adrelid = c.oid AND ad.adnum = a.attnum
+				LEFT JOIN pg_catalog.pg_constraint AS co ON co.connamespace = n.oid AND contype = 'p' AND co.conrelid = c.oid AND a.attnum = ANY(co.conkey)
+			WHERE
+				c.relkind IN ('r', 'v')
+				AND c.relname::varchar = {$this->connection->quote($table)}
+				AND n.nspname = current_schema()
+				AND a.attnum > 0
+				AND NOT a.attisdropped
+			ORDER BY
+				a.attnum
 		") as $row) {
-			$size = (int) max($row['character_maximum_length'], $row['numeric_precision']);
-			$columns[] = array(
-				'name' => $row['column_name'],
-				'table' => $table,
-				'nativetype' => strtoupper($row['udt_name']),
-				'size' => $size ? $size : NULL,
-				'nullable' => $row['is_nullable'] === 'YES',
-				'default' => $row['column_default'],
-				'autoincrement' => (int) $row['ordinal_position'] === $primary && substr($row['column_default'], 0, 7) === 'nextval',
-				'primary' => (int) $row['ordinal_position'] === $primary,
-				'vendor' => (array) $row,
-			);
+			$column = (array) $row;
+			$column['vendor'] = $column;
+			unset($column['sequence']);
+
+			$columns[] = $column;
 		}
+
 		return $columns;
 	}
 
@@ -153,31 +186,30 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	 */
 	public function getIndexes($table)
 	{
-		$columns = array();
-		foreach ($this->connection->query("
-			SELECT ordinal_position, column_name
-			FROM information_schema.columns
-			WHERE table_name = {$this->connection->quote($table)} AND table_schema = current_schema()
-			ORDER BY ordinal_position
-		") as $row) {
-			$columns[$row['ordinal_position']] = $row['column_name'];
-		}
-
 		$indexes = array();
 		foreach ($this->connection->query("
-			SELECT pg_class2.relname, indisunique, indisprimary, indkey
-			FROM pg_class
-			LEFT JOIN pg_index on pg_class.oid = pg_index.indrelid
-			INNER JOIN pg_class as pg_class2 on pg_class2.oid = pg_index.indexrelid
-			WHERE pg_class.relname = {$this->connection->quote($table)}
+			SELECT
+				c2.relname::varchar AS name,
+				i.indisunique AS unique,
+				i.indisprimary AS primary,
+				a.attname::varchar AS column
+			FROM
+				pg_catalog.pg_class AS c1
+				JOIN pg_catalog.pg_namespace AS n ON c1.relnamespace = n.oid
+				JOIN pg_catalog.pg_index AS i ON c1.oid = i.indrelid
+				JOIN pg_catalog.pg_class AS c2 ON i.indexrelid = c2.oid
+				LEFT JOIN pg_catalog.pg_attribute AS a ON c1.oid = a.attrelid AND a.attnum = ANY(i.indkey)
+			WHERE
+				n.nspname = current_schema()
+				AND c1.relkind = 'r'
+				AND c1.relname = {$this->connection->quote($table)}
 		") as $row) {
-			$indexes[$row['relname']]['name'] = $row['relname'];
-			$indexes[$row['relname']]['unique'] = $row['indisunique'] === 't';
-			$indexes[$row['relname']]['primary'] = $row['indisprimary'] === 't';
-			foreach (explode(' ', $row['indkey']) as $index) {
-				$indexes[$row['relname']]['columns'][] = $columns[$index];
-			}
+			$indexes[$row['name']]['name'] = $row['name'];
+			$indexes[$row['name']]['unique'] = $row['unique'];
+			$indexes[$row['name']]['primary'] = $row['primary'];
+			$indexes[$row['name']]['columns'][] = $row['column'];
 		}
+
 		return array_values($indexes);
 	}
 
@@ -188,7 +220,25 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	 */
 	public function getForeignKeys($table)
 	{
-		throw new NotImplementedException;
+		/* Does't work with multicolumn foreign keys */
+		return $this->connection->query("
+			SELECT
+				co.conname::varchar AS name,
+				al.attname::varchar AS local,
+				cf.relname::varchar AS table,
+				af.attname::varchar AS foreign
+			FROM
+				pg_catalog.pg_constraint AS co
+				JOIN pg_catalog.pg_namespace AS n ON co.connamespace = n.oid
+				JOIN pg_catalog.pg_class AS cl ON co.conrelid = cl.oid
+				JOIN pg_catalog.pg_class AS cf ON co.confrelid = cf.oid
+				JOIN pg_catalog.pg_attribute AS al ON al.attrelid = cl.oid AND al.attnum = co.conkey[1]
+				JOIN pg_catalog.pg_attribute AS af ON af.attrelid = cf.oid AND af.attnum = co.confkey[1]
+			WHERE
+				n.nspname = current_schema()
+				AND co.contype = 'f'
+				AND cl.relname = {$this->connection->quote($table)}
+		")->fetchAll();
 	}
 
 
@@ -198,7 +248,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::META;
+		return $item === self::SUPPORT_COLUMNS_META || $item === self::SUPPORT_SEQUENCE;
 	}
 
 }

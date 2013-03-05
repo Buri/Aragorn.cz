@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /*
  *  This project source is hereby granted under Mozilla Public License

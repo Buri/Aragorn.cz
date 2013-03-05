@@ -27,10 +27,12 @@ use Nette,
 class Configurator extends Nette\Object
 {
 	/** config file sections */
-	const DEVELOPMENT = 'development',
-		PRODUCTION = 'production',
-		AUTO = NULL,
+	const AUTO = NULL,
 		NONE = FALSE;
+
+	/** @deprecated */
+	const DEVELOPMENT = 'development',
+		PRODUCTION = 'production';
 
 	/** @var array of function(Configurator $sender, Compiler $compiler); Occurs after the compiler is created */
 	public $onCompile;
@@ -57,7 +59,7 @@ class Configurator extends Nette\Object
 	 */
 	public function setDebugMode($value = TRUE)
 	{
-		$this->parameters['debugMode'] = is_bool($value) ? $value : self::detectDebugMode($value);
+		$this->parameters['debugMode'] = is_bool($value) ? $value : static::detectDebugMode($value);
 		$this->parameters['productionMode'] = !$this->parameters['debugMode']; // compatibility
 		return $this;
 	}
@@ -113,7 +115,7 @@ class Configurator extends Nette\Object
 			'wwwDir' => isset($_SERVER['SCRIPT_FILENAME']) ? dirname($_SERVER['SCRIPT_FILENAME']) : NULL,
 			'debugMode' => $debugMode,
 			'productionMode' => !$debugMode,
-			'environment' => $debugMode ? self::DEVELOPMENT : self::PRODUCTION,
+			'environment' => $debugMode ? 'development' : 'production',
 			'consoleMode' => PHP_SAPI === 'cli',
 			'container' => array(
 				'class' => 'SystemContainer',
@@ -157,9 +159,9 @@ class Configurator extends Nette\Object
 	 * Adds configuration file.
 	 * @return Configurator  provides a fluent interface
 	 */
-	public function addConfig($file, $section = self::AUTO)
+	public function addConfig($file, $section = NULL)
 	{
-		$this->files[] = array($file, $section === self::AUTO ? $this->parameters['environment'] : $section);
+		$this->files[] = array($file, $section === NULL ? $this->parameters['environment'] : $section);
 		return $this;
 	}
 
@@ -187,7 +189,7 @@ class Configurator extends Nette\Object
 			if (!$cached) {
 				$code = $this->buildContainer($dependencies);
 				$cache->save($cacheKey, $code, array(
-					Cache::FILES => $this->parameters['productionMode'] ? NULL : $dependencies,
+					Cache::FILES => $dependencies,
 				));
 				$cached = $cache->load($cacheKey);
 			}
@@ -239,7 +241,7 @@ class Configurator extends Nette\Object
 			$this->parameters['container']['class'],
 			$config['parameters']['container']['parent']
 		);
-		$dependencies = array_merge($loader->getDependencies(), $compiler->getContainerBuilder()->getDependencies());
+		$dependencies = array_merge($loader->getDependencies(), $this->isDebugMode() ? $compiler->getContainerBuilder()->getDependencies() : array());
 		return $code;
 	}
 
@@ -307,12 +309,13 @@ class Configurator extends Nette\Object
 	 */
 	public static function detectDebugMode($list = NULL)
 	{
-		$list = is_string($list) ? preg_split('#[,\s]+#', $list) : $list;
-		$list[] = '127.0.0.1';
-		$list[] = '::1';
+		$list = is_string($list) ? preg_split('#[,\s]+#', $list) : (array) $list;
+		if (!isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$list[] = '127.0.0.1';
+			$list[] = '::1';
+		}
 		return in_array(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : php_uname('n'), $list, TRUE);
 	}
-
 
 
 

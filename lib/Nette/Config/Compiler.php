@@ -113,13 +113,13 @@ class Compiler extends Nette\Object
 
 	public function processExtensions()
 	{
+		for ($i = 0; $slice = array_slice($this->extensions, $i, 1); $i++) {
+			reset($slice)->loadConfiguration();
+		}
+
 		if ($extra = array_diff_key($this->config, self::$reserved, $this->extensions)) {
 			$extra = implode("', '", array_keys($extra));
 			throw new Nette\InvalidStateException("Found sections '$extra' in configuration, but corresponding extensions are missing.");
-		}
-
-		foreach ($this->extensions as $name => $extension) {
-			$extension->loadConfiguration();
 		}
 	}
 
@@ -156,6 +156,7 @@ class Compiler extends Nette\Object
 	{
 		foreach ($this->extensions as $extension) {
 			$extension->beforeCompile();
+			$this->container->addDependency(Nette\Reflection\ClassType::from($extension)->getFileName());
 		}
 
 		$classes[] = $class = $this->container->generateClass($parentName);
@@ -173,9 +174,12 @@ class Compiler extends Nette\Object
 			if ($def->class === 'Nette\DI\NestedAccessor' && ($found = preg_grep('#^'.$name.'\.#i', $list))) {
 				$list = array_diff($list, $found);
 				$def->class = $className . '_' . preg_replace('#\W+#', '_', $name);
-				$class->documents = preg_replace("#\S+(?= \\$$name$)#", $def->class, $class->documents);
+				$class->documents = preg_replace("#\\S+(?= \\$$name\\z)#", $def->class, $class->documents);
 				$classes[] = $accessor = new Nette\Utils\PhpGenerator\ClassType($def->class);
 				foreach ($found as $item) {
+					if ($defs[$item]->internal) {
+						continue;
+					}
 					$short = substr($item, strlen($name)  + 1);
 					$accessor->addDocument($defs[$item]->shared
 						? "@property {$defs[$item]->class} \$$short"
@@ -201,26 +205,28 @@ class Compiler extends Nette\Object
 	{
 		$services = isset($config['services']) ? $config['services'] : array();
 		$factories = isset($config['factories']) ? $config['factories'] : array();
-		if ($tmp = array_intersect_key($services, $factories)) {
-			$tmp = implode("', '", array_keys($tmp));
-			throw new Nette\DI\ServiceCreationException("It is not allowed to use services and factories with the same names: '$tmp'.");
-		}
+		$all = array_merge($services, $factories);
 
-		$all = $services + $factories;
 		uasort($all, function($a, $b) {
 			return strcmp(Helpers::isInheriting($a), Helpers::isInheriting($b));
 		});
 
-		foreach ($all as $name => $def) {
-			$shared = array_key_exists($name, $services);
-			$name = ($namespace ? $namespace . '.' : '') . $name;
+		foreach ($all as $origName => $def) {
+			$shared = array_key_exists($origName, $services);
+			if ((string) (int) $origName === (string) $origName) {
+				$name = (string) (count($container->getDefinitions()) + 1);
+			} elseif ($shared && array_key_exists($origName, $factories)) {
+				throw new Nette\DI\ServiceCreationException("It is not allowed to use services and factories with the same name: '$origName'.");
+			} else {
+				$name = ($namespace ? $namespace . '.' : '') . strtr($origName, '\\', '_');
+			}
 
 			if (($parent = Helpers::takeParent($def)) && $parent !== $name) {
 				$container->removeDefinition($name);
 				$definition = $container->addDefinition($name);
 				if ($parent !== Helpers::OVERWRITE) {
 					foreach ($container->getDefinition($parent) as $k => $v) {
-						$definition->$k = $v;
+						$definition->$k = unserialize(serialize($v)); // deep clone
 					}
 				}
 			} elseif ($container->hasDefinition($name)) {

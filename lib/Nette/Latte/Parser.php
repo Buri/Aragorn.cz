@@ -96,7 +96,6 @@ class Parser extends Nette\Object
 		$this->setSyntax($this->defaultSyntax);
 		$this->setContext(self::CONTEXT_TEXT);
 		$this->lastHtmlTag = $this->syntaxEndTag = NULL;
-		$this->xmlMode = (bool) preg_match('#^<\?xml\s#m', $input);
 
 		while ($this->offset < strlen($input)) {
 			$matches = $this->{"context".$this->context[0]}();
@@ -344,7 +343,7 @@ class Parser extends Nette\Object
 				(?P<noescape>!?)(?P<shortname>/?[=\~#%^&_]?)      ## !expression, !=expression, ...
 			)(?P<args>.*?)
 			(?P<modifiers>\|[a-z](?:'.Parser::RE_STRING.'|[^\'"])*)?
-		()$~isx');
+		()\z~isx');
 
 		if (!$match) {
 			return FALSE;

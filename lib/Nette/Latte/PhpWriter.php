@@ -196,7 +196,7 @@ class PhpWriter extends Nette\Object
 	 */
 	public function formatWord($s)
 	{
-		return (is_numeric($s) || preg_match('#^\\$|[\'"]|^true$|^false$|^null$#i', $s))
+		return (is_numeric($s) || preg_match('#^\$|[\'"]|^true\z|^false\z|^null\z#i', $s))
 			? $s : '"' . $s . '"';
 	}
 
@@ -247,7 +247,9 @@ class PhpWriter extends Nette\Object
 			}
 
 			if ($token['value'] === '[') { // simplified array syntax [...]
-				if ($arrays[] = $prev['value'] !== ']' && $prev['type'] !== MacroTokenizer::T_SYMBOL && $prev['type'] !== MacroTokenizer::T_VARIABLE && $prev['type'] !== MacroTokenizer::T_KEYWORD) {
+				if ($arrays[] = $prev['value'] !== ']' && $prev['value'] !== ')' && $prev['type'] !== MacroTokenizer::T_SYMBOL
+					&& $prev['type'] !== MacroTokenizer::T_VARIABLE && $prev['type'] !== MacroTokenizer::T_KEYWORD
+				) {
 					$tokens[] = MacroTokenizer::createToken('array') + array('depth' => $depth);
 					$token = MacroTokenizer::createToken('(');
 				}

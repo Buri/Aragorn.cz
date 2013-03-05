@@ -25,9 +25,9 @@
 
 #cropframe {
 	position: absolute; width: 40px; height: 40px; left: 0px; top: 0px; padding: 0px; border: 1px dashed #333; background-repeat: no-repeat;
-	-border-image: url('{{!$staticPath}}/images/ants.gif') 1 repeat repeat;
-	-webkit-border-image: url('{{!$staticPath}}/images/ants.gif') 1 repeat repeat;
-	-moz-border-image: url('{{!$staticPath}}/images/ants.gif') 1 repeat repeat;
+	-border-image: url('{{!$staticPath}}/i/ants.gif') 1 repeat repeat;
+	-webkit-border-image: url('{{!$staticPath}}/i/ants.gif') 1 repeat repeat;
+	-moz-border-image: url('{{!$staticPath}}/i/ants.gif') 1 repeat repeat;
 	z-index: 999;		
 }
 
@@ -48,7 +48,7 @@
 }
 
 #cropbtn {
-	background-image:url('{{!$staticPath}}/images/crop.gif'); background-repeat: no-repeat;
+	background-image:url('{{!$staticPath}}/i/crop.gif'); background-repeat: no-repeat;
 	position: absolute; left: 0px; height: 32px; width: 32px; cursor: pointer !important;
 	z-index: 800;
 }
@@ -79,7 +79,7 @@
 <form onsubmit="return false;">
     <div class="feature" style="text-align:center;"> 
         <div>
-            <div id="filecontrol" sstyle="background: url({!$staticPath}/images/drop_item.png); background-repeat:no-repeat;background-position:center middle;"></div>
+            <div id="filecontrol" style="background: url({!$staticPath}/i/drop_item.png); background-repeat:no-repeat;background-position:center middle;display:block;width:200px;height:100px;"></div>
             <div id="iconCrop" style="opacity:0;">
                 <div id="imgouter">
                     <div id="cropframe">
@@ -90,7 +90,7 @@
                             <div id="cropdims"></div>
                         </div>
                     </div>
-                    <div id="imglayer" style="width: 200px; height: 192px; padding: 1px; background-position: center center; background-image: url('{!$staticPath}/images/progress.gif')"></div>
+                    <div id="imglayer" style="width: 200px; height: 192px; padding: 1px; background-position: center center; background-image: url('{!$staticPath}/i/progress.gif')"></div>
                 </div>
             </div>
 	</div>	

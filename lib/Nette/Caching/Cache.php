@@ -107,7 +107,7 @@ class Cache extends Nette\Object implements \ArrayAccess
 	{
 		$data = $this->storage->read($this->generateKey($key));
 		if ($data === NULL && $fallback) {
-			return $this->save($key, callback($fallback));
+			return $this->save($key, new Nette\Callback($fallback));
 		}
 		return $data;
 	}
@@ -138,7 +138,7 @@ class Cache extends Nette\Object implements \ArrayAccess
 
 		if ($data instanceof Nette\Callback || $data instanceof \Closure) {
 			$this->storage->lock($key);
-			$data = callback($data)->invokeArgs(array(&$dp));
+			$data = Nette\Callback::create($data)->invokeArgs(array(&$dp));
 		}
 
 		if ($data === NULL) {
@@ -174,10 +174,7 @@ class Cache extends Nette\Object implements \ArrayAccess
 
 		// add namespaces to items
 		if (isset($dp[self::ITEMS])) {
-			$dp[self::ITEMS] = array_unique((array) $dp[self::ITEMS]);
-			foreach ($dp[self::ITEMS] as $k => $item) {
-				$dp[self::ITEMS][$k] = $this->generateKey($item);
-			}
+			$dp[self::ITEMS] = array_unique(array_map(array($this, 'generateKey'), (array) $dp[self::ITEMS]));
 		}
 
 		// convert CONSTS into CALLBACKS
@@ -236,7 +233,7 @@ class Cache extends Nette\Object implements \ArrayAccess
 		$key = func_get_args();
 		return $this->load($key, function() use ($function, $key) {
 			array_shift($key);
-			return callback($function)->invokeArgs($key);
+			return Nette\Callback::create($function)->invokeArgs($key);
 		});
 	}
 
@@ -255,7 +252,7 @@ class Cache extends Nette\Object implements \ArrayAccess
 			$key = array($function, func_get_args());
 			$data = $cache->load($key);
 			if ($data === NULL) {
-				$data = $cache->save($key, callback($function)->invokeArgs($key[1]), $dp);
+				$data = $cache->save($key, Nette\Callback::create($function)->invokeArgs($key[1]), $dp);
 			}
 			return $data;
 		};
