@@ -365,7 +365,7 @@ document.body.addEvent('click:relay(a.change-skin)', function(e){
     b.addClass(this.get('data-skin'));
 });
 new FloatingTips('div#constat',{
-    position:'bottom',
+    position:'right',
     center:false
 });
 if(window.AUTHENTICATED){

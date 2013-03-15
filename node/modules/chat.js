@@ -91,7 +91,7 @@ exports.ChatServer = new Class({
     options:{
         length:50,          // How many messages to store in one channel? Defaults to 500
         timeout:15*60,       // How long before message is deleted, defaults to 15 minutes
-        userServer:'stat.aragorn.cz' // From where to serve icons?
+        userServer:'static.aragorn.cz' // From where to serve icons?
     },
     redis:null,
     socket:null,
@@ -204,7 +204,7 @@ exports.ChatServer = new Class({
             switch(message.data.action){
                 case "enter":
                     this.Users.add(cname, message.data);
-                    this.Messages.system(cname, {action:'post', message:message.data.name + ' přichází do místnosti.'}, true);
+                    //this.Messages.system(cname, {action:'post', message:message.data.name + ' přichází do místnosti.'}, true);
                     break;
                 case "leave":
                     this.Users.remove({
@@ -213,9 +213,9 @@ exports.ChatServer = new Class({
                         name : message.data.name
                     }, function(err, res){
                         log.warn('User removed', res);
-                        if(!message.data.silent){
+                       /* if(!message.data.silent){
                                 this.Messages.system(cname, {action:'post', message:message.data.name + ' odchází z místnosti.'}, true);
-                        }
+                        }*/
                         cname += '/' + message.data.name;
                         this.Messages.system(cname, {'action':'force-leave', silent:true});
                     }.bind(this));
