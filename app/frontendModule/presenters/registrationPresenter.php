@@ -61,7 +61,7 @@ namespace frontendModule{
             $form->addText('mail', 'E-mail')
                     ->addRule(Form::EMAIL, 'Email není validní!')
                     ->addRule(function(\Nette\Forms\Controls\TextInput $mail) use ($db) {
-                        if(count($db->users_profiles()->where("mail LIKE ?", $mail->getValue()))){
+                        if(count($db->users()->where("mail LIKE ?", $mail->getValue()))){
                             return false;
                         }
                         return true;
@@ -150,12 +150,9 @@ namespace frontendModule{
                     $reg->delete();
                     return false;
                 }
-                $db->users()->insert(array(
-                    "id" => 0,
-                    "username" => $row["username"]
-                ));
-                $r = $db->users_profiles()->insert(array(
+                $r = $db->users()->insert(array(
                     "id"=>0,
+                    "username" => $row["username"],
                     "password" => $row["password"],
                     "mail" => $row["mail"],
                     "created" => $row["create_time"],
@@ -220,11 +217,10 @@ namespace frontendModule{
         public function handleRecoverPassword(Form $form){
             $vals = $form->getValues();
             $db = $this->context->database;
-            $row = $db->users_profiles('mail', $vals->mail);
+            $row = $db->users('mail', $vals->mail);
             if($row->count()){
                 $row = $row->fetch();
-                $usr = $db->users('id', $row['id'])->fetch();
-                $user = $usr['username'];
+                $user = $row['username'];
 
                 $password = $this->generatePassword(9, 1 | 2 | 4);
 

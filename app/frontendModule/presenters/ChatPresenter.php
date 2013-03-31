@@ -76,7 +76,7 @@ namespace frontendModule{
             $db = $this->context->database;
             switch($this->canEnter($id, $param)){
                 case 'OK':
-                    $usr = $db->users_profiles('id', $user->getId())->fetch();
+                    $usr = $db->users('id', $user->getId())->fetch();
                     $prefs = $db->users_preferences('id', $user->getId())->fetch();
                     $this->node->getConnection()->writeReadClose(json_encode(array("command" => "chat",
                         "data" => array(

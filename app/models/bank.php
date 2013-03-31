@@ -3,7 +3,7 @@
 class Bank {
     public static function getCredit($id = null){
         if(is_null($id)) $id = \Nette\Environment::getUser()->getId();
-        $row = DB::users_profiles('id', $id)->fetch();
+        $row = DB::users('id', $id)->fetch();
         return $row['bank'];
     }
     

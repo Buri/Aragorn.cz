@@ -7,7 +7,7 @@
         <style>
         </style>
     </head>
-    <body n:syntax="double" class="{$_COOKIE['skin']}">
+    <body n:syntax="double">
         <div style="display:block;">
             <audio id="audioNotification" preload="full">
                 <source src="{{!$staticPath}}/sound/global.ogg" />
@@ -55,7 +55,7 @@
             </script>
             {var $deferScripts = false}{var $defer=false}
         {include '../../../templates/scripts.latte'}
-        <script type="text/javascript" charset="utf-8" n:syntax="double">
+         <script type="text/javascript" charset="utf-8" n:syntax="double">
             var Chat = null;
             var ChatClient = new Class({
                 Implements:[Events, Options],
@@ -107,11 +107,11 @@
                     window.addEvents({
                         'blur': function(){
                             this.away = true;
-                            this.transport.send('chat',{action:'state', state:'away', rid:rid});
+                            this.transport.send('chat',{ action:'state', state:'away', rid:rid});
                         }.bind(this),
                         'focus': function(){
                             this.away = false;
-                            this.transport.send('chat',{action:'state', state:this._typing.state, rid:rid});
+                            this.transport.send('chat',{ action:'state', state:this._typing.state, rid:rid});
                             if(this.unreadMessages)
                                 AC.updateFavicon('');
                             this.unreadMessages = 0;

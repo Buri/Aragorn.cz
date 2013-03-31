@@ -105,8 +105,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         //dump("uncached link");
         $db = $this->context->database;
         $u = $db->users('id', $id)->fetch();
-        $v = $db->users_profiles('id', $id)->fetch();
-        $n = $v['urlfragment'];
+        $n = $n['url'];
         $link = $this->link('users:view', $n);
         if($html){
             $role = $u['groupid'];
@@ -132,13 +131,13 @@ class BasePresenter extends Nette\Application\UI\Presenter{
     
     public function userStatus($id = null){
         if($id == null) $id = $this->getUser()->getId ();
-        $u = $this->context->database->users_profiles('id', $id)->fetch();
+        $u = $this->context->database->users('id', $id)->fetch();
         return $u['status'];
     }
     
     public function userIcon($id = null){
         if($id == null) $id = $this->getUser()->getId ();
-        $i = $this->context->database->users_profiles('id', $id)->fetch();
+        $i = $this->context->database->users('id', $id)->fetch();
         if($i['icon'])
             $ic = $i['icon'];
         else
@@ -154,7 +153,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             if(isset($user['name'])){
                 $u = $db->users('username', $user['name'])->fetch();
             }elseif(isset($user['mail'])){
-                $u = $db->users_profiles('mail', $user['mail'])->fetch();
+                $u = $db->users('mail', $user['mail'])->fetch();
             }else{
                 throw new Exception("Bad format for user query.");
             }
@@ -182,7 +181,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             // Query node.js here
         }
         if($format & self::$UP_STATUS){
-            $i = $db->users_profiles($user['id'])->fetch();
+            $i = $db->users($user['id'])->fetch();
             $profile .= "<span class=\"profilestatus\">".htmlspecialchars($i['status'])."</span>\n";
         }
         
@@ -225,7 +224,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
             }else{
                 $user->setExpiration('+ 60 minutes', true, true);
             }
-            $this->context->database->users_profiles('id', $user->getId())->update(array('login'=>time()));
+            $this->context->database->users('id', $user->getId())->update(array('login'=>time()));
             $path = 'safe://' . APP_DIR . '/../db/user_ip_addresses/' . $user->getId() . '.txt';
             if(!file_exists($path)){
                 $fp = fopen($path, 'w');

@@ -21,7 +21,7 @@ namespace frontendModule{
         }
         
         public function getUserProfile($id){
-            return DB::users_profiles('id', $id)->fetch();
+            return $this->context->database->users('id', $id)->fetch();
         }
         
         public function actionProfile($id){

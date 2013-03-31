@@ -33,7 +33,7 @@ namespace ajaxModule{
             $this->getTemplate()->data = $this->node->userlogin($sid, $this->permissions, $this->context->user);
         }
         public function actionStatusupdate($id){
-            $ok = DB::users_profiles('id', \Nette\Environment::getUser()->getId())->update(array('status' => $id)) ? true : false;
+            $ok = $this->db->users('id', \Nette\Environment::getUser()->getId())->update(array('status' => $id)) ? true : false;
             try{
                 //$ok = $ok &&  Node::changeStatus($id);
                 $this->getTemplate()->data = $ok ? "ok" : "fail";
@@ -56,8 +56,7 @@ namespace ajaxModule{
             $out = array();
             foreach($db->users("username like ? ", $search . '%') as $user){
                 $name = $user['username'];
-                $p = $db->users_profiles('id', $user['id'])->fetch();
-                $out[] = array($p['urlfragment'], $name);
+                $out[] = array($user['url'], $name);
             }
             $this->template->out = json_encode($out);
         }
@@ -163,11 +162,10 @@ namespace ajaxModule{
         }
         
         public function actionProfileinfo($id) {
-            $r = DB::users_profiles('urlfragment', $id)->fetch();
-            $info = DB::users('id', $r['id'])->fetch();
-            $group = DB::groups('id', $info['groupid'])->fetch();
-            $state = $this->node->isUserOnline($r['id']);
-            $state = $state ? "lime" : ($state == "away" ? "yellow" : "red");
+            $db = $this->db;
+            $info = $db->users('url', $id)->fetch();
+            $group = $db->groups('id', $info['groupid'])->fetch();
+            $state = $this->node->isUserOnline($r['id']) ? "lime" : ($state == "away" ? "yellow" : "red");
             $userver = $this->context->parameters['servers']['userContent'];
             $this->template->data = "<div style=\"width:200px; min-height:90px; text-align:left;\">
                 <div style=\"width:85px;display:inline:block;float:left;border-right:1px solid gray;\">

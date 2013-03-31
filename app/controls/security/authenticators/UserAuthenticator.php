@@ -32,7 +32,7 @@ class UserAuthenticator extends \BaseAuthenticator{
             throw new \Nette\Security\AuthenticationException("User $username not found.", self::IDENTITY_NOT_FOUND);
         }
         $row = $usrs->fetch();
-        $usr = $row->users_profiles()->select("password")->fetch();
+        $usr = $row->users()->select("password")->fetch();
         if ($usr["password"] !== $password) { // hesla se neshodují?
             throw new \Nette\Security\AuthenticationException("Invalid password.", self::INVALID_CREDENTIAL);
         }

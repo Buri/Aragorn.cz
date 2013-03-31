@@ -10,11 +10,12 @@ Aragorn.cz v4
 **System requirements**
 
 * **PHP/5.3**
-* **Redis**
-* **Memcached**
-* **Node.js**
 * **Webserver** Nginx / apache
 * **Database** Preferably MySQL
+* **Openfire (XMPP server)**
+* **Memcached (optional)**
+* **Redis**
+* **Node.js**
 
 #### Installation ####
 
@@ -27,9 +28,4 @@ Aragorn.cz v4
 
 **Authors:**
 
-* Core:   
-  * Jakub Buriánek
-  * Jakub Korál
-
-* Modules:
-  * Jakub Buriánek
+* Jakub Buriánek

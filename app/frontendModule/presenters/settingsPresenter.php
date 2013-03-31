@@ -101,10 +101,10 @@ namespace frontendModule{
                     $icon->resize (null, ($icon->width > 120 ? 120 : ($icon->width < 60 ? 60 : $icon->width)));
                 $icon->save($outputfile);
             }
-            $r = \DB::users_profiles('id', $uid)->fetch();
+            $r = \DB::users('id', $uid)->fetch();
 
             if($r['icon'] != 'default.png') unlink(WWW_DIR . '/../userspace/i/' . $r['icon']);
-            \DB::users_profiles('id', $uid)->update(array('icon' => $fid));
+            \DB::users('id', $uid)->update(array('icon' => $fid));
             
             /* Unlink will be done automatically every 24h by cron */
             //unlink($d['file']);

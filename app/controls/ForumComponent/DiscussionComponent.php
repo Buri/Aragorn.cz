@@ -232,7 +232,7 @@ namespace Components{
             $out = $text;
             if(count($matches[0]) > 0){
                 foreach($matches[1] as $tag){
-                    /*$ur = $db->users_profiles('urlfragment like ?', $user)->fetch();
+                    /*$ur = $db->users('url like ?', $user)->fetch();
                     if(!$ur)
                         continue;
                     $uid = $ur['id'];*/
@@ -251,7 +251,7 @@ namespace Components{
             $db = $this->db;
             if(count($matches[0]) > 0){
                 foreach($matches[1] as $user){
-                    $ur = $db->users_profiles('urlfragment like ?', $user)->fetch();
+                    $ur = $db->users('url like ?', $user)->fetch();
                     if(!$ur)
                         continue;
                     $uid = $ur['id'];
