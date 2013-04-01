@@ -105,7 +105,7 @@ class BasePresenter extends Nette\Application\UI\Presenter{
         //dump("uncached link");
         $db = $this->context->database;
         $u = $db->users('id', $id)->fetch();
-        $n = $n['url'];
+        $n = $u['url'];
         $link = $this->link('users:view', $n);
         if($html){
             $role = $u['groupid'];
