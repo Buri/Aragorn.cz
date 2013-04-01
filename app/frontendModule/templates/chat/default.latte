@@ -13,9 +13,9 @@
         {else}
             <span{if $room['password']} title="Uzamčená místnost - nutné heslo" class="lock"{/if}>{$room["name"]}</span>
         {/if}
-        </td><td> {$room["description"]} </td><td>
+        </td><td> {$room["description"]} ({$room['topic']}) </td><td>
         {foreach $room["occupants"] as $occupant}
-            {$presenter->getContext()->database->users('id', $occupant)->fetch()|r:'username'}{sep}, {/sep}
+            {!$presenter->userlink($occupant)}{sep}, {/sep}
         {/foreach}
         {if !count($room["occupants"])}
         <em>místnost je prázdná</em>

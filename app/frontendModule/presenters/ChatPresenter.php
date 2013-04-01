@@ -7,19 +7,21 @@ namespace frontendModule{
 
         public function actionDefault(){
             $this->getTemplate()->chatrooms = array();
-            foreach(DB::chatrooms() as $row){
+            $db = $this->context->database;
+            foreach($db->ofMucRoom() as $row){
                 $users = array();
-                $users = array_filter(json_decode($this->node->getConnection()->writeRead(json_encode(array("command" => "chat",
-                        "data" => array(
-                            "room" => $row["id"],
-                            "action" => "user-name-list"
-                        )
-                    )), 4096)));
-                $this->getTemplate()->chatrooms[] = array("name"=>$row["name"], "password"=>($row["password"] ? true : false),
-                    "id" => $row["id"],
+                foreach($db->ofMucAffiliation('roomID', $row['roomID']) as $user)
+                {
+                    $uid = $db->users('url', substr($user['jid'], 0, strpos($user['jid'], '@')))->fetch();
+                    $users[] = $uid['id'];
+                }
+                $this->getTemplate()->chatrooms[] = array("name"=>$row["naturalName"], "password"=>($row["roomPassword"] ? true : false),
+                    "id" => $row["roomID"],
                     "description" => $row["description"],
-                    "max" => $row["max"],
-                    "occupants" => $users);
+                    "max" => $row["maxUsers"],
+                    'topic' => $row['subject'],
+                    "occupants" => $users
+                );
             }
         }
         
